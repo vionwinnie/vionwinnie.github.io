@@ -2,7 +2,7 @@
 layout: home
 title: self-intro
 feature_text: <h2 class="whitetext highlighted">winnie@yeung:~$ self-intro</h2>
-image: /assets/img/winnie.jpg
+image: 	/assets/img/Grindelwald.JPG
 ---
 
 #### Education
