@@ -1,6 +1,6 @@
 ---
 layout: home
-title: whoami
+title: self-intro
 feature_text: <h2 class="whitetext highlighted">winnie@yeung:~$ self-intro</h2>
 image: /assets/img/winnie.jpg
 ---
