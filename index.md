@@ -1,7 +1,7 @@
 ---
 layout: home
 title: Introduction
-feature_text: <h2 class="whitetext highlighted">winnie@yeung: cd</h2>
+feature_text: <h2 class="whitetext highlighted">winnie@yeung:~$ cd </h2>
 image: /assets/img/IMG_4071.JPG
 ---
 
