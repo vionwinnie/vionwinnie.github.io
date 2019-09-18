@@ -18,4 +18,4 @@ I grew up from Hong Kong, attended United World College in Hong Kong and then st
 In my free time, I enjoy playing table tennis, reading, biodynamic wine, photography, and traveling. 
 
 ##### How to collaborate ?
-The best way to reach me is via [Linkedin] ({{site.contact.linkedin}}){:target="_blank"}. You may also reach me on social media links listed under the contact me section on the side panel.
+The best way to reach me is via [Linkedin]({{site.contact.linkedin}}){:target="_blank"}. You may also reach me on social media links listed under the contact me section on the side panel.
