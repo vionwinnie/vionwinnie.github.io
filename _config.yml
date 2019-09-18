@@ -45,7 +45,6 @@ social: # jekyll-seo-tag > social overrides
   name: Winnie Yeung # jekyll-seo-tag > real name
   links:  # jekyll-seo-tag > social aliases (sameAs)
     - https://www.linkedin.com/in/winnieyeung
-    - https://plus.google.com/+KunalBaweja
     - https://github.com/vionwinnie
 
 # 4. Jekyll settings
