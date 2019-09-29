@@ -21,7 +21,7 @@ Caption: Text summarization helped capture key information and important stakeho
 The post is not a technical discussion but on the three lessons I learnt from the hackathon.
 
 
-1.  Defining problem statement
+1. Defining problem statement
 
 In class, we learn what a k-means algorithm is, what a neural network model does, but working with real dataset and create something with community impact requires something beyond making a model. By asking the right questions, which is often an exploratory process, we gradually discovered what would be the value-add in analyzing our city council minutes datasets. During the exploratory time, we asked ourselves, who attended the meetings the most? Who was on time to most? What kinds of topics were discussed the most? How can we turn these long, dense PDFs into some key insights that are easier to read? These questions drove us to create visualizations that really serve the need for monitoring civil servants and how they allocate resources into different areas.
 
