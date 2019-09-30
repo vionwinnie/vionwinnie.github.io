@@ -102,6 +102,9 @@ navigation_header:
   Home: /
   About: /about/
   Blog: /blog/
+  Photography: /photography/
+  Projects: /project/
+
 
 #site credits
 navigation_footer:
