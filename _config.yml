@@ -99,8 +99,8 @@ error_mode: strict
 navigation_header:
   About: /about/
   Blog: /blog/
-  Photography: /photography/
   Projects: /project/
+  Photography: /photography/
 
 
 contact:
