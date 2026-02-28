@@ -80,12 +80,10 @@ collections:
 # 7. Site settings
 encoding: utf-8 # Make sure the encoding is right
 title: "Winnie Yeung" # Site name or title, also used in jekyll-seo-tag
-logo: "/assets/img/winnie-logo.png" # Site logo, also used in jekyll-seo-tag
 
 # Site description and default description, also used in jekyll-seo-tag
 url: "https://vionwinnie.github.io" # Site url, also used in jekyll-seo-tag
 repo: "https://github.com/vionwinnie/bawejakunal.github.io"
-disqus: "vionwinnie-github-io"
 avatarurl: "https://github.com/vionwinnie.png"
 
 # site verification
@@ -99,16 +97,11 @@ error_mode: strict
 
 # 8. Site navigation
 navigation_header:
-  Home: /
   About: /about/
   Blog: /blog/
   Photography: /photography/
   Projects: /project/
 
-
-#site credits
-navigation_footer:
-  Adopted Alembic Theme: https://alembic.darn.es/
 
 contact:
   email:      dcvionwinnie@gmail.com
@@ -118,5 +111,3 @@ contact:
 schools:
   georgiatech: https://www.analytics.gatech.edu/
   middlebury: http://www.middlebury.edu/academics/hist
-
-theme: jekyll-theme-tactile

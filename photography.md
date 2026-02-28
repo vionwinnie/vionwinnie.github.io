@@ -1,21 +1,29 @@
 ---
-layout: home
+layout: default
 title: Photography
-feature_text: <h2 class="whitetext highlighted">winnie@yeung:~$ cd ./photography/ </h2>
-image: /assets/img/Swiss_Castle.jpg
 ---
 
-I enjoy capturing beautiful moments in the nature using DSLR. Here are some moments I am particularly fond of over the past few years.
+<p>I enjoy capturing beautiful moments in the nature using DSLR. Here are some moments I am particularly fond of over the past few years.</p>
 
-- Grand Canyon, AZ
-![Grand Canyon](/assets/img/photography/Grand-Canyon-Hike.JPG){:class="img-responsive"}
-
-- Sakura Blomssom in Osaka, Japan
-![Cherry Blossom](/assets/img/photography/Osaka-Sakura.JPG){:class="img-responsive"}
-
-- Toscana, Italy
-![Toscana](/assets/img/photography/Toscana.JPG){:class="img-responsive"}
-
-- Vatican, Italy
-![Vatican](/assets/img/photography/Vatican-Stairwell.JPG){:class="img-responsive"}
-
+<div class="gallery">
+  <figure class="gallery-item">
+    <img src="/assets/img/photography/Grand-Canyon-Hike.JPG" alt="Grand Canyon">
+    <figcaption>Grand Canyon, AZ</figcaption>
+  </figure>
+  <figure class="gallery-item">
+    <img src="/assets/img/photography/Osaka-Sakura.JPG" alt="Cherry Blossom">
+    <figcaption>Sakura Blossom in Osaka, Japan</figcaption>
+  </figure>
+  <figure class="gallery-item">
+    <img src="/assets/img/photography/Toscana.JPG" alt="Toscana">
+    <figcaption>Toscana, Italy</figcaption>
+  </figure>
+  <figure class="gallery-item">
+    <img src="/assets/img/photography/Vatican-Stairwell.JPG" alt="Vatican Stairwell">
+    <figcaption>Vatican, Italy</figcaption>
+  </figure>
+  <figure class="gallery-item">
+    <img src="/assets/img/photography/Vatican-Sunset.JPG" alt="Vatican Sunset">
+    <figcaption>Vatican Sunset, Italy</figcaption>
+  </figure>
+</div>

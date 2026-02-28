@@ -1,10 +1,7 @@
----
-layout: compress
----
 <!DOCTYPE html>
-<html lang="en-GB">
+<html lang="en">
 <head>
-<!-- General meta -->
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 {% if page.indexing == false %}
 <meta name="robots" content="noindex">
@@ -17,14 +14,14 @@ layout: compress
 {% endif %}
 {% include site-favicons.html %}
 {% feed_meta %}
+<link rel="stylesheet" href="{{ "/assets/styles.css" | relative_url }}">
 </head>
 <body>
-{% include site-icons.svg %}
 {% include site-header.html %}
+<main class="container">
 {{ content }}
-{% include google-analytics.html %}
+</main>
 {% include site-footer.html %}
+{% include google-analytics.html %}
 </body>
-<link rel="stylesheet" href="{{ "/assets/styles.css" | relative_url }}">
-<link href="https://fonts.googleapis.com/css?family=Roboto:300" rel="stylesheet">
 </html>
