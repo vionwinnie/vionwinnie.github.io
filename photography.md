@@ -26,4 +26,20 @@ title: Photography
     <img src="/assets/img/photography/Vatican-Sunset.JPG" alt="Vatican Sunset">
     <figcaption>Vatican Sunset, Italy</figcaption>
   </figure>
+  <figure class="gallery-item">
+    <img src="/assets/img/photography/IMG_7939.JPG" alt="Wildebeest and Rainbow">
+    <figcaption>Wildebeest and Rainbow, Safari</figcaption>
+  </figure>
+  <figure class="gallery-item">
+    <img src="/assets/img/photography/IMG_5709.JPG" alt="Chillon Castle">
+    <figcaption>Ch&acirc;teau de Chillon, Switzerland</figcaption>
+  </figure>
+  <figure class="gallery-item">
+    <img src="/assets/img/photography/IMG_1251.jpg" alt="Autumn Tree-Lined Path">
+    <figcaption>Autumn in Napa Valley, CA</figcaption>
+  </figure>
+  <figure class="gallery-item">
+    <img src="/assets/img/photography/IMG_1102.jpg" alt="Vineyard Sculpture">
+    <figcaption>Vineyard Sculpture, Napa Valley, CA</figcaption>
+  </figure>
 </div>
