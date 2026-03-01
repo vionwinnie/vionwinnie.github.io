@@ -1,0 +1,1267 @@
+/* ==========================================================================
+   SafetyGuardian Project Page - LASAGNA-style CSS
+   Self-contained stylesheet with layered, structured sections.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Layer 0: Font Import
+   -------------------------------------------------------------------------- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* --------------------------------------------------------------------------
+   Layer 1: CSS Custom Properties
+   -------------------------------------------------------------------------- */
+:root {
+  --color-bg-body: #fff;
+  --color-bg-content: #fff;
+  --color-text: #363636;
+  --color-link: #0073e6;
+  --color-link-hover: #005bb5;
+  --color-nvidia-green: #76b900;
+  --color-nvidia-green-hover: #649e00;
+  --color-muted: #666;
+  --color-border: #e0e0e0;
+  --color-border-light: #eee;
+  --color-table-header-bg: #f0f0f0;
+  --color-table-alt-row: #fafafa;
+  --color-code-bg: #1e1e1e;
+  --color-code-text: #d4d4d4;
+  --color-placeholder-bg: #e0e0e0;
+  --color-placeholder-border: #ccc;
+  --color-placeholder-text: #999;
+  --color-caption: #666;
+
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+
+  --content-max-width: 900px;
+  --content-width: 60%;
+  --content-padding: 40px 20px;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-pill: 999px;
+
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-card-hover: 0 4px 16px rgba(0, 0, 0, 0.12);
+
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
+}
+
+/* --------------------------------------------------------------------------
+   Layer 2: Reset & Base
+   -------------------------------------------------------------------------- */
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family);
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: var(--color-text);
+  background-color: var(--color-bg-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* --------------------------------------------------------------------------
+   Layer 3: Layout Container
+   -------------------------------------------------------------------------- */
+.container {
+  max-width: var(--content-max-width);
+  width: var(--content-width);
+  margin: 0 auto;
+  padding: var(--content-padding);
+  background-color: var(--color-bg-content);
+  transition: margin-left var(--transition-normal);
+}
+
+/* --------------------------------------------------------------------------
+   Layer 4: Typography
+   -------------------------------------------------------------------------- */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--color-text);
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+}
+
+h1 {
+  font-size: 2.8rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-top: 0;
+}
+
+h2 {
+  font-size: 2rem;
+  letter-spacing: -0.01em;
+  padding-bottom: 0.3em;
+}
+
+h3 {
+  font-size: 1.4rem;
+}
+
+p {
+  margin-bottom: 1em;
+}
+
+a {
+  color: var(--color-link);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+a:hover {
+  color: var(--color-link-hover);
+  text-decoration: underline;
+}
+
+strong {
+  font-weight: 600;
+}
+
+ul,
+ol {
+  margin-bottom: 1em;
+  padding-left: 1.5em;
+}
+
+li {
+  margin-bottom: 0.4em;
+}
+
+/* --------------------------------------------------------------------------
+   Layer 5: Section Separators
+   -------------------------------------------------------------------------- */
+hr {
+  border: none;
+  border-top: 1px solid var(--color-border-light);
+  margin: 2.5em 0;
+}
+
+.section {
+  margin-bottom: 40px;
+}
+
+/* --------------------------------------------------------------------------
+   Layer 6: Header Section
+   -------------------------------------------------------------------------- */
+.header {
+  text-align: center;
+  margin-bottom: 2em;
+}
+
+.header h1 {
+  margin-bottom: 0.3em;
+}
+
+.header .subtitle {
+  font-size: 1.2rem;
+  color: var(--color-muted);
+  font-weight: 400;
+  margin-bottom: 1em;
+  line-height: 1.6;
+}
+
+/* --------------------------------------------------------------------------
+   Layer 7: Author Line
+   -------------------------------------------------------------------------- */
+.author {
+  font-size: 1rem;
+  color: var(--color-muted);
+  margin-bottom: 0.5em;
+}
+
+.author a {
+  color: var(--color-link);
+  font-weight: 500;
+}
+
+.author a:hover {
+  color: var(--color-link-hover);
+  text-decoration: underline;
+}
+
+/* --------------------------------------------------------------------------
+   Layer 8: Badge (NVIDIA Green Pill)
+   -------------------------------------------------------------------------- */
+.badge {
+  display: inline-block;
+  background-color: var(--color-nvidia-green);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 6px 16px;
+  border-radius: var(--radius-pill);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  line-height: 1.4;
+  vertical-align: middle;
+}
+
+/* --------------------------------------------------------------------------
+   Layer 9: Quick Link Buttons
+   -------------------------------------------------------------------------- */
+.quick-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin: 1.5em 0;
+}
+
+.quick-links a {
+  display: inline-block;
+  background-color: var(--color-link);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 500;
+  padding: 10px 22px;
+  border-radius: var(--radius-pill);
+  text-decoration: none;
+  transition: background-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.quick-links a:hover {
+  background-color: var(--color-link-hover);
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+.quick-links a:active {
+  transform: translateY(0);
+}
+
+/* --------------------------------------------------------------------------
+   Layer 10: Cards Grid
+   -------------------------------------------------------------------------- */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+  margin: 1.5em 0;
+}
+
+.card {
+  background-color: var(--color-bg-content);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-card);
+  transition: box-shadow var(--transition-normal), transform var(--transition-normal);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-2px);
+}
+
+.card h3 {
+  margin-top: 0;
+  margin-bottom: 0.5em;
+  font-size: 1.2rem;
+}
+
+.card p {
+  margin-bottom: 0;
+  font-size: 1rem;
+  color: var(--color-muted);
+}
+
+/* --------------------------------------------------------------------------
+   Layer 11: Stat Grid
+   -------------------------------------------------------------------------- */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 20px;
+  margin: 1.5em 0;
+}
+
+.stat-card {
+  background-color: var(--color-bg-content);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  text-align: center;
+  box-shadow: var(--shadow-card);
+  transition: box-shadow var(--transition-normal), transform var(--transition-normal);
+}
+
+.stat-card:hover {
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-2px);
+}
+
+.stat-number {
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: var(--color-link);
+  line-height: 1.2;
+  margin-bottom: 0.2em;
+}
+
+.stat-label {
+  font-size: 0.95rem;
+  color: var(--color-muted);
+  font-weight: 500;
+}
+
+/* --------------------------------------------------------------------------
+   Layer 12: Tables (Comparison / Data)
+   -------------------------------------------------------------------------- */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5em 0;
+  font-size: 1rem;
+}
+
+thead th {
+  background-color: var(--color-table-header-bg);
+  font-weight: 600;
+  text-align: left;
+  padding: 12px;
+  border-bottom: 2px solid var(--color-border);
+}
+
+tbody td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+tbody tr:nth-child(even) {
+  background-color: var(--color-table-alt-row);
+}
+
+tbody tr:hover {
+  background-color: #f0f4ff;
+}
+
+/* --------------------------------------------------------------------------
+   Layer 13: Code Blocks
+   -------------------------------------------------------------------------- */
+pre,
+code {
+  font-family: 'SF Mono', 'Fira Code', 'Fira Mono', 'Roboto Mono', 'Consolas',
+    'Courier New', monospace;
+}
+
+pre {
+  background-color: var(--color-code-bg);
+  color: var(--color-code-text);
+  padding: 20px;
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin: 1.5em 0;
+  -webkit-overflow-scrolling: touch;
+}
+
+code {
+  font-size: 0.9rem;
+}
+
+p code,
+li code {
+  background-color: #f0f0f0;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  font-size: 0.88rem;
+  color: #d63384;
+}
+
+/* --------------------------------------------------------------------------
+   Layer 14: Asset Placeholders
+   -------------------------------------------------------------------------- */
+.asset-placeholder {
+  background: var(--color-placeholder-bg);
+  border: 2px dashed var(--color-placeholder-border);
+  border-radius: var(--radius-md);
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-placeholder-text);
+  font-size: 1rem;
+  font-weight: 500;
+  text-align: center;
+  margin: 1.5em 0;
+  padding: 20px;
+  overflow: hidden;
+}
+
+.asset-placeholder img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* --------------------------------------------------------------------------
+   Layer 14b: Phone Screenshots
+   -------------------------------------------------------------------------- */
+.phone-screenshots {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 32px;
+  margin: 1.5em 0;
+  flex-wrap: wrap;
+}
+
+.phone-frame {
+  max-width: 280px;
+  flex: 0 1 280px;
+}
+
+.phone-frame.small {
+  max-width: 150px;
+  flex: 0 1 150px;
+}
+
+.phone-frame img {
+  width: 100%;
+  height: auto;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+  display: block;
+}
+
+/* --------------------------------------------------------------------------
+   Layer 15: Captions
+   -------------------------------------------------------------------------- */
+.caption {
+  text-align: center;
+  font-style: italic;
+  color: var(--color-caption);
+  font-size: 0.9rem;
+  margin-top: 8px;
+  margin-bottom: 1em;
+}
+
+/* --------------------------------------------------------------------------
+   Layer 16: Hazard Sample Grid
+   -------------------------------------------------------------------------- */
+.hazard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+  margin: 1.5em 0;
+}
+
+.hazard-sample {
+  text-align: center;
+  background-color: var(--color-bg-content);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+  transition: box-shadow var(--transition-normal), transform var(--transition-normal);
+}
+
+.hazard-sample:hover {
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-2px);
+}
+
+.hazard-sample .image-container {
+  width: 100%;
+  overflow: hidden;
+  background-color: var(--color-placeholder-bg);
+}
+
+.hazard-sample .image-container img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+}
+
+.hazard-sample img {
+  width: 100%;
+  display: block;
+  object-fit: cover;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
+.hazard-sample .label {
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+/* --------------------------------------------------------------------------
+   Layer 16b: Bar Charts (CSS-only)
+   -------------------------------------------------------------------------- */
+.charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin: 1.5em 0;
+}
+
+.chart-panel h3 {
+  font-size: 1.1rem;
+  margin-top: 0;
+  margin-bottom: 0.6em;
+}
+
+.bar-chart {
+  margin: 0;
+}
+
+.bar-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+  gap: 6px;
+}
+
+.bar-label {
+  min-width: 90px;
+  font-size: 0.8rem;
+  color: var(--color-text);
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.bar-track {
+  flex: 1;
+  height: 18px;
+  background-color: var(--color-border-light);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  background-color: var(--color-link);
+  border-radius: var(--radius-sm);
+  transition: width 0.6s ease;
+  min-width: 4px;
+}
+
+.bar-value {
+  min-width: 26px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-muted);
+  flex-shrink: 0;
+}
+
+/* Severity color coding */
+.severity-none { background-color: #76b900; }
+.severity-low { background-color: #4CAF50; }
+.severity-medium { background-color: #FF9800; }
+.severity-high { background-color: #f44336; }
+.severity-critical { background-color: #9C27B0; }
+
+/* --------------------------------------------------------------------------
+   Layer 16c: Latency Breakdown Visualization
+   -------------------------------------------------------------------------- */
+.latency-breakdown {
+  margin: 1.5em 0;
+}
+
+.latency-bar-container {
+  display: flex;
+  height: 44px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+
+.latency-segment {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background-color: #94a3b8;
+  position: relative;
+  overflow: hidden;
+}
+
+.latency-segment-label {
+  white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+.latency-inference { background-color: #0073e6; }
+.latency-tts { background-color: #ea580c; }
+.latency-audio { background-color: #8b5cf6; }
+
+.latency-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 12px;
+  font-size: 0.85rem;
+  color: var(--color-muted);
+}
+
+.latency-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.latency-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.latency-camera-dot { background-color: #94a3b8; }
+.latency-inference-dot { background-color: #0073e6; }
+.latency-tts-dot { background-color: #ea580c; }
+.latency-audio-dot { background-color: #8b5cf6; }
+
+.latency-total {
+  margin-top: 8px;
+  font-size: 0.95rem;
+  text-align: center;
+  color: var(--color-text);
+}
+
+/* --------------------------------------------------------------------------
+   Layer 16d: Inference Comparison Table
+   -------------------------------------------------------------------------- */
+.inference-comparison {
+  margin: 1.5em 0;
+}
+
+.comparison-row {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.comparison-row:last-child {
+  border-bottom: none;
+}
+
+.comparison-img {
+  flex: 0 0 140px;
+}
+
+.comparison-img img {
+  width: 140px;
+  height: 140px;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  display: block;
+}
+
+.comparison-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.comparison-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-muted);
+  margin-top: 8px;
+  margin-bottom: 2px;
+}
+
+.comparison-label:first-child {
+  margin-top: 0;
+}
+
+.comparison-details code {
+  display: block;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  word-break: break-word;
+  white-space: normal;
+}
+
+.comparison-details code.output-pre {
+  color: #b91c1c;
+  background-color: #fef2f2;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  border-left: 3px solid #f87171;
+}
+
+.comparison-details code.output-post {
+  color: #15803d;
+  background-color: #f0fdf4;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  border-left: 3px solid #4ade80;
+}
+
+/* --------------------------------------------------------------------------
+   Layer 16e: Next Steps — flowing image + text layout
+   -------------------------------------------------------------------------- */
+.next-step-item {
+  display: flex;
+  gap: 32px;
+  align-items: center;
+  margin: 2em 0;
+}
+
+.next-step-item.reverse {
+  flex-direction: row-reverse;
+}
+
+.next-step-img {
+  flex: 0 0 45%;
+  max-width: 45%;
+}
+
+.next-step-img img {
+  width: 100%;
+  border-radius: var(--radius-lg);
+  display: block;
+}
+
+.next-step-text {
+  flex: 1;
+}
+
+.next-step-text h3 {
+  margin-top: 0;
+}
+
+.next-step-text p {
+  color: var(--color-muted);
+  margin-bottom: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Layer 17: Images (General)
+   -------------------------------------------------------------------------- */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+figure {
+  margin: 1.5em 0;
+  text-align: center;
+}
+
+figure img {
+  border-radius: var(--radius-md);
+}
+
+figure figcaption {
+  text-align: center;
+  font-style: italic;
+  color: var(--color-caption);
+  font-size: 0.9rem;
+  margin-top: 8px;
+}
+
+/* --------------------------------------------------------------------------
+   Layer 17b: Blockquote
+   -------------------------------------------------------------------------- */
+blockquote {
+  border-left: 4px solid var(--color-nvidia-green);
+  margin: 1.5em 0;
+  padding: 1em 1.5em;
+  background-color: var(--color-table-alt-row);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
+blockquote p {
+  margin-bottom: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Layer 18: Footer
+   -------------------------------------------------------------------------- */
+.footer {
+  text-align: center;
+  color: var(--color-muted);
+  font-size: 0.95rem;
+  border-top: 1px solid var(--color-border-light);
+  padding: 20px 20px 40px;
+  margin-top: 0;
+  max-width: var(--content-max-width);
+  width: var(--content-width);
+  margin-left: auto;
+  margin-right: auto;
+  background-color: var(--color-bg-content);
+  transition: margin-left var(--transition-normal);
+}
+
+.footer a {
+  color: var(--color-link);
+}
+
+.footer a:hover {
+  color: var(--color-link-hover);
+}
+
+/* --------------------------------------------------------------------------
+   Layer 19: Utility Classes
+   -------------------------------------------------------------------------- */
+.text-center {
+  text-align: center;
+}
+
+.text-muted {
+  color: var(--color-muted);
+}
+
+.mb-0 {
+  margin-bottom: 0;
+}
+
+.mb-1 {
+  margin-bottom: 0.5em;
+}
+
+.mb-2 {
+  margin-bottom: 1em;
+}
+
+.mt-0 {
+  margin-top: 0;
+}
+
+.mt-2 {
+  margin-top: 1em;
+}
+
+/* --------------------------------------------------------------------------
+   Layer 19b: Sidebar Table of Contents
+   -------------------------------------------------------------------------- */
+.toc-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 260px;
+  height: 100vh;
+  background-color: #fff;
+  padding: 32px 24px;
+  overflow-y: auto;
+  z-index: 100;
+  transform: translateX(-100%);
+  transition: transform var(--transition-normal);
+}
+
+.toc-sidebar.open {
+  transform: translateX(0);
+}
+
+.toc-close {
+  background: none;
+  border: none;
+  font-size: 1.6rem;
+  cursor: pointer;
+  color: var(--color-text);
+  position: absolute;
+  top: 20px;
+  left: 24px;
+  padding: 0;
+  line-height: 1;
+  transition: color var(--transition-fast);
+}
+
+.toc-close:hover {
+  color: var(--color-link);
+}
+
+.toc-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 40px 0 16px 0;
+  padding: 0;
+}
+
+.toc-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.toc-list li {
+  margin-bottom: 4px;
+}
+
+.toc-link {
+  display: block;
+  padding: 6px 0;
+  font-size: 0.95rem;
+  color: var(--color-muted);
+  text-decoration: none;
+  line-height: 1.4;
+  transition: color var(--transition-fast);
+}
+
+.toc-link:hover {
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.toc-link.active {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+/* Toggle button (hamburger) */
+.toc-toggle {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 99;
+  background: var(--color-bg-content);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-card);
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
+
+.toc-toggle:hover {
+  box-shadow: var(--shadow-card-hover);
+}
+
+.toc-toggle.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.8);
+}
+
+.toc-toggle-icon {
+  font-size: 1.2rem;
+  color: var(--color-text);
+  line-height: 1;
+}
+
+/* Overlay for mobile */
+.toc-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 90;
+}
+
+.toc-overlay.open {
+  display: block;
+}
+
+/* On desktop, shift content to the right when sidebar is open */
+@media (min-width: 1101px) {
+  body.toc-open .container,
+  body.toc-open .footer {
+    margin-left: calc(260px + (100vw - 260px) / 2 - var(--content-max-width) / 2);
+  }
+
+  .toc-overlay.open {
+    display: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Layer 20: Responsive - 1100px Breakpoint
+   -------------------------------------------------------------------------- */
+@media (max-width: 1100px) {
+  .container,
+  .footer {
+    width: 75%;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Layer 21: Responsive - 768px (Tablet) Breakpoint
+   -------------------------------------------------------------------------- */
+@media (max-width: 768px) {
+  .container,
+  .footer {
+    width: 90%;
+  }
+
+  .container {
+    padding: 30px 16px;
+  }
+
+  h1 {
+    font-size: 2.2rem;
+  }
+
+  h2 {
+    font-size: 1.7rem;
+  }
+
+  h3 {
+    font-size: 1.25rem;
+  }
+
+  body {
+    font-size: 1.05rem;
+  }
+
+  .card-grid,
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .next-step-item,
+  .next-step-item.reverse {
+    flex-direction: column;
+  }
+
+  .next-step-img {
+    flex: none;
+    max-width: 100%;
+  }
+
+  .comparison-row {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .comparison-img {
+    flex: none;
+  }
+
+  .stat-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .hazard-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+
+  table {
+    font-size: 0.9rem;
+  }
+
+  thead th,
+  tbody td {
+    padding: 10px 8px;
+  }
+
+  pre {
+    padding: 16px;
+    font-size: 0.85rem;
+  }
+
+  .asset-placeholder {
+    min-height: 200px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Layer 22: Responsive - 480px (Mobile) Breakpoint
+   -------------------------------------------------------------------------- */
+@media (max-width: 480px) {
+  .container,
+  .footer {
+    width: 95%;
+  }
+
+  .container {
+    padding: 20px 12px;
+  }
+
+  h1 {
+    font-size: 1.8rem;
+  }
+
+  h2 {
+    font-size: 1.4rem;
+  }
+
+  h3 {
+    font-size: 1.15rem;
+  }
+
+  body {
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+
+  .stat-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hazard-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+
+  .stat-number {
+    font-size: 2rem;
+  }
+
+  .quick-links {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .quick-links a {
+    width: 100%;
+    text-align: center;
+  }
+
+  .header .subtitle {
+    font-size: 1.05rem;
+  }
+
+  .asset-placeholder {
+    min-height: 160px;
+  }
+
+  /* Stack table on very small screens */
+  table,
+  thead,
+  tbody,
+  th,
+  td,
+  tr {
+    display: block;
+  }
+
+  thead {
+    display: none;
+  }
+
+  tbody tr {
+    margin-bottom: 12px;
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    padding: 8px;
+  }
+
+  tbody td {
+    text-align: right;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--color-border-light);
+    position: relative;
+    padding-left: 45%;
+  }
+
+  tbody td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 10px;
+    width: 40%;
+    text-align: left;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  tbody td:last-child {
+    border-bottom: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Layer 23: Print Styles
+   -------------------------------------------------------------------------- */
+@media print {
+  body {
+    background-color: #fff;
+    color: #000;
+    font-size: 12pt;
+    line-height: 1.5;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
+    box-shadow: none;
+  }
+
+  .quick-links,
+  .toc-sidebar,
+  .toc-toggle,
+  .toc-overlay {
+    display: none;
+  }
+
+  .badge {
+    border: 1px solid var(--color-nvidia-green);
+    color: var(--color-nvidia-green);
+    background-color: transparent;
+  }
+
+  a {
+    color: #000;
+    text-decoration: underline;
+  }
+
+  a[href]::after {
+    content: ' (' attr(href) ')';
+    font-size: 0.8em;
+    color: #555;
+  }
+
+  .card,
+  .stat-card,
+  .hazard-sample {
+    box-shadow: none;
+    border: 1px solid #ddd;
+    break-inside: avoid;
+  }
+
+  pre {
+    background-color: #f5f5f5;
+    color: #333;
+    border: 1px solid #ddd;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+
+  .asset-placeholder {
+    border: 1px solid #ccc;
+    background-color: #f9f9f9;
+  }
+
+  hr {
+    border-top-color: #ccc;
+  }
+
+  h1, h2, h3 {
+    break-after: avoid;
+  }
+
+  table {
+    break-inside: avoid;
+  }
+}

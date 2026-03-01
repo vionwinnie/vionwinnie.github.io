@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SafetyGuardian — Real-Time Hazard Detection for Elderly Care</title>
+  <meta name="description" content="Real-time hazard detection for elderly park walks using wearable camera glasses and NVIDIA Cosmos-Reason2-2B">
+  <link rel="stylesheet" href="style.css">
+  <!-- Open Graph tags for social sharing -->
+  <meta property="og:title" content="SafetyGuardian — Real-Time Hazard Detection for Elderly Care">
+  <meta property="og:description" content="Real-time hazard detection for elderly park walks using wearable camera glasses and NVIDIA Cosmos-Reason2-2B">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="/assets/img/safetyguardian/Gemini_Generated_Image_hero_image_phone.png">
+</head>
+<body>
+
+<!-- Sidebar Toggle Button -->
+<button class="toc-toggle" aria-label="Toggle table of contents">
+  <span class="toc-toggle-icon">&#9776;</span>
+</button>
+
+<!-- Sidebar Table of Contents -->
+<nav class="toc-sidebar" id="toc-sidebar">
+  <button class="toc-close" aria-label="Close table of contents">&times;</button>
+  <h3 class="toc-title">Contents</h3>
+  <ul class="toc-list">
+    <li><a href="#overview" class="toc-link">1. Overview</a></li>
+    <li><a href="#demo" class="toc-link">2. Demo</a></li>
+    <li><a href="#motivation" class="toc-link">3. Problem &amp; Motivation</a></li>
+    <li><a href="#architecture" class="toc-link">4. System Architecture</a></li>
+    <li><a href="#app" class="toc-link">5. iPhone App</a></li>
+    <li><a href="#data-pipeline" class="toc-link">6. Data Pipeline</a></li>
+    <li><a href="#fine-tuning" class="toc-link">7. Fine-Tuning</a></li>
+    <li><a href="#results" class="toc-link">8. Results</a></li>
+    <li><a href="#cost" class="toc-link">9. Cost Analysis</a></li>
+    <li><a href="#next-steps" class="toc-link">10. Next Steps</a></li>
+    <li><a href="#acknowledgments" class="toc-link">11. Acknowledgments</a></li>
+  </ul>
+</nav>
+
+<!-- Overlay for mobile sidebar -->
+<div class="toc-overlay" id="toc-overlay"></div>
+
+<div class="container">
+
+  <!-- ============================================================ -->
+  <!-- Section 1 — Header                                           -->
+  <!-- ============================================================ -->
+  <section id="header" class="section header">
+    <h1>SafetyGuardian</h1>
+    <p class="subtitle">Real-Time Hazard Detection for Elderly Park Walks Using Phone Camera and Cosmos-Reason2-2B</p>
+    <span class="badge">NVIDIA Cosmos Cookoff 2026</span>
+    <p class="author">by <a href="https://github.com/eyyeung">Eyan Yeung</a> and <a href="https://vionwinnie.github.io">Winnie Yeung</a></p>
+  </section>
+
+  <hr>
+
+  <!-- ============================================================ -->
+  <!-- Section 2 — Quick Links                                      -->
+  <!-- ============================================================ -->
+  <section id="links" class="section">
+    <div class="quick-links">
+      <a href="https://github.com/eyyeung/SafetyGuardian" target="_blank" rel="noopener noreferrer">GitHub</a>
+      <a href="#demo">Demo Video</a>
+      <a href="#">Slides</a>
+    </div>
+  </section>
+
+  <hr>
+
+  <!-- ============================================================ -->
+  <!-- Section 3 — Overview                                         -->
+  <!-- ============================================================ -->
+  <section id="overview" class="section">
+    <h2>Overview</h2>
+
+    <div class="asset-placeholder">
+      <img src="/assets/img/safetyguardian/Gemini_Generated_Image_hero_image_phone.png" alt="SafetyGuardian: Real-time AI hazard detection for elderly park walkers using phone camera">
+    </div>
+    <p class="caption">SafetyGuardian: wearable AI safety for elderly park walks</p>
+
+    <p>
+      SafetyGuardian is a wearable AI safety system that uses a phone camera to detect environmental
+      hazards in real time as elderly users walk through parks. Training data was curated from
+      synthetic videos generated with Cosmos-Predict2.5-2B, and the Cosmos-Reason2-2B model was
+      supervised fine-tuned (SFT) to produce concise, structured hazard assessments. At inference
+      time, frames are streamed to the fine-tuned model served via vLLM, and responses are converted
+      to natural voice warnings through ElevenLabs TTS — all within ~1.07 seconds end-to-end.
+    </p>
+
+    <p>The model outputs a structured assessment in this format:</p>
+    <pre><code>HAZARD: &lt;type&gt; | SEVERITY: &lt;level&gt; | ACTION: &lt;instruction&gt;</code></pre>
+
+    <p>Examples:</p>
+    <pre><code>HAZARD: clear | SEVERITY: none | ACTION: proceed safely
+HAZARD: ice | SEVERITY: high | ACTION: slow down
+HAZARD: vehicle | SEVERITY: critical | ACTION: stop immediately</code></pre>
+  </section>
+
+  <hr>
+
+  <!-- ============================================================ -->
+  <!-- Demo                                                          -->
+  <!-- ============================================================ -->
+  <section id="demo" class="section">
+    <h2>Demo</h2>
+
+    <!-- ASSET: Demo video thumbnail | 1200x675 | /assets/img/safetyguardian/demo-thumbnail.jpg -->
+    <div class="asset-placeholder">
+      <img src="/assets/img/safetyguardian/demo-thumbnail.jpg" alt="Demo video thumbnail">
+      <noscript>Placeholder: Demo video thumbnail (1200x675)</noscript>
+    </div>
+    <p class="caption">SafetyGuardian demo walkthrough</p>
+
+    <!-- VIDEO EMBED OPTIONS:
+         Option A — YouTube iframe:
+         <iframe width="100%" height="500" src="https://www.youtube.com/embed/VIDEO_ID" frameborder="0" allowfullscreen></iframe>
+
+         Option B — Self-hosted video:
+         <video controls width="100%" poster="/assets/img/safetyguardian/demo-thumbnail.jpg">
+           <source src="/assets/img/safetyguardian/demo.mp4" type="video/mp4">
+         </video>
+    -->
+  </section>
+
+  <hr>
+
+  <!-- ============================================================ -->
+  <!-- Problem & Motivation                                          -->
+  <!-- ============================================================ -->
+  <section id="motivation" class="section">
+    <h2>Problem &amp; Motivation</h2>
+
+    <p>
+      Falls are a leading cause of injury and death among adults aged 65 and older. Each year,
+      millions of older adults experience falls — many of which occur during routine outdoor
+      activities like walking in parks, crossing streets, or navigating uneven terrain. Most
+      existing solutions are reactive, detecting falls after they happen. SafetyGuardian takes
+      a fundamentally different approach.
+    </p>
+
+    <div class="card-grid">
+      <div class="card">
+        <h3>Fall Hazards</h3>
+        <ul>
+          <li>Uneven surfaces</li>
+          <li>Tree roots</li>
+          <li>Cracked pavement</li>
+          <li>Ice patches</li>
+          <li>Wet leaves</li>
+          <li>Puddles</li>
+          <li>Stairs without railings</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Collision Risks</h3>
+        <ul>
+          <li>Cyclists</li>
+          <li>Skateboarders</li>
+          <li>Dogs on/off leash</li>
+          <li>Joggers</li>
+          <li>Children running</li>
+          <li>Vehicles near crossings</li>
+        </ul>
+      </div>
+    </div>
+
+    <p>
+      Why proactive early-warning beats reactive fall detection: SafetyGuardian warns <strong>before</strong>
+      an incident occurs, giving the user time to slow down, change direction, or stop — rather than
+      detecting a fall after it has already happened.
+    </p>
+
+    <blockquote>
+      <p>
+        <strong>Beyond elderly care:</strong> The same voice-based hazard warning system is directly
+        applicable to <strong>blind and visually impaired users</strong>, who face many of the same
+        environmental hazards — uneven surfaces, approaching vehicles, obstacles — but lack the visual
+        cues to detect them. SafetyGuardian's audio-first design makes it a natural fit for
+        accessibility applications.
+      </p>
+    </blockquote>
+  </section>
+
+  <hr>
+
+  <!-- ============================================================ -->
+  <!-- Section 5 — System Architecture                              -->
+  <!-- ============================================================ -->
+  <section id="architecture" class="section">
+    <h2>System Architecture</h2>
+
+    <div class="asset-placeholder">
+      <img src="/assets/img/safetyguardian/system-architecture.svg" alt="SafetyGuardian inference pipeline: Wearable Glasses to iPhone App to vLLM Server to ElevenLabs TTS to Voice Warning">
+    </div>
+    <p class="caption">End-to-end system architecture</p>
+
+    <h3>Cloud vs On-Device Comparison</h3>
+    <p>
+      Running the 4GB+ Cosmos-Reason2-2B model on-device would take 56+ seconds per frame — far too slow for real-time safety warnings — so we chose cloud inference to achieve sub-second latency at the cost of requiring network connectivity.
+    </p>
+    <table>
+      <thead>
+        <tr>
+          <th>Metric</th>
+          <th>Cloud (L40S)</th>
+          <th>On-Device (iPhone)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Inference time</td>
+          <td>0.65s</td>
+          <td>56s+</td>
+        </tr>
+        <tr>
+          <td>Compute</td>
+          <td>360 TFLOPS</td>
+          <td>~6 TOPS</td>
+        </tr>
+        <tr>
+          <td>VRAM/Memory</td>
+          <td>48 GB</td>
+          <td>4-8 GB</td>
+        </tr>
+        <tr>
+          <td>Battery impact</td>
+          <td>Minimal</td>
+          <td>Severe</td>
+        </tr>
+        <tr>
+          <td>Scalability</td>
+          <td>50-100 users</td>
+          <td>Single device</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Latency Breakdown</h3>
+    <div class="latency-breakdown">
+      <div class="latency-bar-container">
+        <div class="latency-segment" style="flex: 0.3" title="Camera capture: 0.003s (0.3%)">
+          <span class="latency-segment-label">0.003s</span>
+        </div>
+        <div class="latency-segment latency-inference" style="flex: 61" title="Cosmos-Reason2-2B inference: 0.65s (61%)">
+          <span class="latency-segment-label">Inference: 0.65s</span>
+        </div>
+        <div class="latency-segment latency-tts" style="flex: 36" title="ElevenLabs TTS: 0.39s (36%)">
+          <span class="latency-segment-label">TTS: 0.39s</span>
+        </div>
+        <div class="latency-segment latency-audio" style="flex: 5" title="Audio playback: 0.05s (5%)">
+          <span class="latency-segment-label">0.05s</span>
+        </div>
+      </div>
+      <div class="latency-legend">
+        <span class="latency-legend-item"><span class="latency-dot latency-camera-dot"></span>Camera 0.003s</span>
+        <span class="latency-legend-item"><span class="latency-dot latency-inference-dot"></span>Inference 0.65s (61%)</span>
+        <span class="latency-legend-item"><span class="latency-dot latency-tts-dot"></span>TTS 0.39s (36%)</span>
+        <span class="latency-legend-item"><span class="latency-dot latency-audio-dot"></span>Audio 0.05s</span>
+      </div>
+      <p class="latency-total"><strong>Total: ~1.07s</strong> — well within the 20-second processing interval</p>
+    </div>
+  </section>
+
+  <hr>
+
+  <!-- ============================================================ -->
+  <!-- Section 6 — iPhone App                                       -->
+  <!-- ============================================================ -->
+  <section id="app" class="section">
+    <h2>iPhone App</h2>
+
+    <div class="phone-screenshots">
+      <div class="phone-frame">
+        <img src="/assets/img/safetyguardian/app-screenshot-main.png" alt="iPhone app main screen showing live camera feed and hazard warnings">
+        <p class="caption">Main screen with live camera feed</p>
+      </div>
+      <div class="phone-frame small">
+        <img src="/assets/img/safetyguardian/app-screenshot-settings.png" alt="iPhone app settings screen with configuration options">
+        <p class="caption">Settings and configuration</p>
+      </div>
+    </div>
+
+    <h3>Features</h3>
+    <ul>
+      <li>Continuous camera capture at 30 FPS</li>
+      <li>Configurable processing intervals (5-60 seconds, default 20s)</li>
+      <li>External wearable camera support via USB-C/Lightning</li>
+      <li>Real-time hazard detection via cloud API</li>
+      <li>Natural voice warnings using ElevenLabs Rachel voice</li>
+      <li>Robust error handling with exponential backoff (3x inference, 2x TTS)</li>
+      <li>Background audio support</li>
+      <li>Settings UI for customization</li>
+    </ul>
+  </section>
+
+  <hr>
+
+  <!-- ============================================================ -->
+  <!-- Section 7 — Data Pipeline                                    -->
+  <!-- ============================================================ -->
+  <section id="data-pipeline" class="section">
+    <h2>Data Pipeline</h2>
+
+    <div class="asset-placeholder">
+      <img src="/assets/img/safetyguardian/data-pipeline.svg" alt="Data pipeline: 106 Cosmos-Predict2.5-2B videos to 530 frames to auto review to human feedback to quality filtering to 264 curated samples">
+    </div>
+    <p class="caption">Data curation pipeline from raw video to training samples</p>
+
+    <h3>Video Generation</h3>
+    <p>
+      Training videos were generated using <strong>NVIDIA Cosmos-Predict2.5-2B</strong>, a diffusion
+      transformer for future-state prediction. Each video simulates a first-person perspective
+      across outdoor locations — parks, paths, intersections, bridges, and riversides.
+      106 unique scenarios were generated across 11 hazard categories: clear, pedestrian, wet surface,
+      vehicle, obstacle, ice, puddle, narrow path, animal, uneven terrain, and flood.
+    </p>
+
+    <h3>Frame Extraction &amp; Image Optimization</h3>
+    <p>
+      5 representative frames were extracted per video at regular intervals
+      (<code>frame_01.jpg</code> through <code>frame_05.jpg</code>), capturing
+      the progression from initial approach to fully visible hazard. Frames were then resized from
+      1280&times;720 (~890 tokens/sample) to 400&times;400 with <code>max_pixels=160000</code>
+      (~300 tokens/sample) — a <strong>3&times; improvement</strong> in token efficiency, raising the
+      target token ratio from 1.8% to 5.6%.
+    </p>
+
+    <h3>Automatic Review</h3>
+    <p>
+      All 530 frames were first analyzed by the base <strong>Cosmos-Reason2-2B</strong> model in a
+      zero-shot setting. The model's predictions were saved as <code>model_analysis.json</code> for
+      each video, providing baseline hazard/severity/action labels before any human review. This
+      automated pass established initial annotations and allowed human reviewers to focus on
+      correcting errors rather than labeling from scratch.
+    </p>
+
+    <h3>Human Feedback</h3>
+    <p>
+      Human reviewers rated each video on a 1-5 quality scale, corrected mislabeled hazard types
+      and severity levels, and flagged unrealistic or unusable scenes. Approximately 35 low-quality
+      videos (ratings 1-2) were removed during this stage.
+    </p>
+
+    <h3>Quality Filtering</h3>
+    <p>
+      After human review, additional quality filtering removed remaining issues:
+    </p>
+    <table>
+      <thead>
+        <tr>
+          <th>Reason</th>
+          <th>Examples</th>
+          <th>Impact</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Camera shifts</td>
+          <td>Non-continuous footage</td>
+          <td>Excluded</td>
+        </tr>
+        <tr>
+          <td>Wrong perspective</td>
+          <td>Hazard not visible from FPV angle</td>
+          <td>Excluded</td>
+        </tr>
+        <tr>
+          <td>Misleading early frames</td>
+          <td>Hazard not yet visible in frames 1-2</td>
+          <td>25 samples removed</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>
+      Additionally, 26 samples were enriched using reviewer notes to resolve unknown or ambiguous labels,
+      and early frames were removed from 13 dynamic hazard videos where the hazard was not yet visible —
+      eliminating contradictory training signals. <strong>Final dataset:</strong> 264 curated samples
+      from 66 unique video scenarios.
+    </p>
+
+    <h3>Hazard Samples</h3>
+    <div class="hazard-grid">
+      <div class="hazard-sample">
+        <img src="/assets/img/safetyguardian/hazard-samples/clear.gif" alt="Clear path — no hazard">
+        <p class="caption">Clear</p>
+      </div>
+      <div class="hazard-sample">
+        <img src="/assets/img/safetyguardian/hazard-samples/ice.gif" alt="Ice patch on walkway">
+        <p class="caption">Ice</p>
+      </div>
+      <div class="hazard-sample">
+        <img src="/assets/img/safetyguardian/hazard-samples/puddle.gif" alt="Puddle spanning path">
+        <p class="caption">Puddle</p>
+      </div>
+      <div class="hazard-sample">
+        <img src="/assets/img/safetyguardian/hazard-samples/vehicle.gif" alt="Vehicle near crossing">
+        <p class="caption">Vehicle</p>
+      </div>
+      <div class="hazard-sample">
+        <img src="/assets/img/safetyguardian/hazard-samples/pedestrian.gif" alt="Pedestrian ahead">
+        <p class="caption">Pedestrian</p>
+      </div>
+      <div class="hazard-sample">
+        <img src="/assets/img/safetyguardian/hazard-samples/wet-surface.gif" alt="Wet surface hazard">
+        <p class="caption">Wet Surface</p>
+      </div>
+      <div class="hazard-sample">
+        <img src="/assets/img/safetyguardian/hazard-samples/obstacle.gif" alt="Obstacle on path">
+        <p class="caption">Obstacle</p>
+      </div>
+    </div>
+  </section>
+
+  <hr>
+
+  <!-- ============================================================ -->
+  <!-- Section 8 — Fine-Tuning                                      -->
+  <!-- ============================================================ -->
+  <section id="fine-tuning" class="section">
+    <h2>Fine-Tuning</h2>
+
+    <div class="card-grid">
+      <div class="card">
+        <h3>Base Model</h3>
+        <p>Cosmos-Reason2-2B (Qwen3-VL architecture)</p>
+      </div>
+      <div class="card">
+        <h3>Method</h3>
+        <p>LoRA fine-tuning via TRL SFTTrainer</p>
+      </div>
+      <div class="card">
+        <h3>Hardware</h3>
+        <p>Single NVIDIA H100 80GB GPU</p>
+      </div>
+      <div class="card">
+        <h3>Dataset</h3>
+        <p>237 train / 27 validation (90/10 split)</p>
+      </div>
+    </div>
+
+    <h3>LoRA Configuration</h3>
+    <pre><code>LoraConfig(
+    r=64,
+    lora_alpha=64,
+    lora_dropout=0,
+    target_modules=["down_proj", "o_proj", "k_proj", "q_proj",
+                     "gate_proj", "up_proj", "v_proj"],
+)</code></pre>
+
+    <h3>Hyperparameter Search</h3>
+    <p>
+      20 trials were run across two Optuna studies, each training for 5 epochs with linear LR
+      schedule and 10% warmup. OOM configurations were automatically pruned.
+    </p>
+    <table>
+      <thead>
+        <tr>
+          <th>Parameter</th>
+          <th>Search Range</th>
+          <th>Best Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Learning rate</td>
+          <td>1e-5 to 5e-4 (log scale)</td>
+          <td><strong>4.4e-04</strong></td>
+        </tr>
+        <tr>
+          <td>LR scheduler</td>
+          <td>Linear with 10% warmup</td>
+          <td><strong>Linear</strong></td>
+        </tr>
+        <tr>
+          <td>Optimizer</td>
+          <td>AdamW 8-bit</td>
+          <td><strong>adamw_8bit</strong></td>
+        </tr>
+        <tr>
+          <td>Batch size</td>
+          <td>8, 16, 32</td>
+          <td><strong>16</strong></td>
+        </tr>
+        <tr>
+          <td>Gradient accumulation</td>
+          <td>1, 2, 4</td>
+          <td><strong>2</strong></td>
+        </tr>
+        <tr>
+          <td>LoRA rank</td>
+          <td>32, 64, 128</td>
+          <td><strong>64</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="asset-placeholder">
+      <img src="/assets/img/safetyguardian/hyperparameter-search.svg" alt="Optuna hyperparameter search: 20 trials comparing eval loss across configurations">
+    </div>
+    <p class="caption">Optuna hyperparameter search — 20 trials (best: lr=4.4e-04, bs=16, ga=2, rank=64)</p>
+
+    <h3>Training Runs</h3>
+    <p>
+      The best configuration was retrained for 20 epochs (160 steps) with the 3 best checkpoints saved
+      based on eval loss. Generation samples were logged to Weights &amp; Biases every 2 epochs
+      on 8 validation samples. The charts below show all runs across both Optuna studies and the
+      final training run.
+    </p>
+
+    <div class="asset-placeholder">
+      <img src="/assets/img/safetyguardian/training-curves.svg" alt="Training loss across all runs over training steps">
+    </div>
+    <p class="caption">train/loss — all runs converge rapidly within the first ~50 steps</p>
+
+    <div class="asset-placeholder">
+      <img src="/assets/img/safetyguardian/train-token-accuracy.svg" alt="Training mean token accuracy across all runs">
+    </div>
+    <p class="caption">train/mean_token_accuracy — plateau at ~0.52 after convergence</p>
+
+    <div class="asset-placeholder">
+      <img src="/assets/img/safetyguardian/eval-token-accuracy.svg" alt="Evaluation mean token accuracy across all runs">
+    </div>
+    <p class="caption">eval/mean_token_accuracy — consistent validation performance across top runs</p>
+  </section>
+
+  <hr>
+
+  <!-- ============================================================ -->
+  <!-- Section 9 — Results                                          -->
+  <!-- ============================================================ -->
+  <section id="results" class="section">
+    <h2>Results</h2>
+
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-number">264</div>
+        <div class="stat-label">Total Samples</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">66</div>
+        <div class="stat-label">Video Scenarios</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">11</div>
+        <div class="stat-label">Hazard Categories</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">5.6%</div>
+        <div class="stat-label">Token Ratio</div>
+      </div>
+    </div>
+
+    <div class="charts-grid">
+      <div class="chart-panel">
+        <h3>Hazard Distribution</h3>
+        <div class="bar-chart">
+          <div class="bar-row"><span class="bar-label">clear</span><div class="bar-track"><div class="bar-fill" style="width: 100%"></div></div><span class="bar-value">50</span></div>
+          <div class="bar-row"><span class="bar-label">wet surface</span><div class="bar-track"><div class="bar-fill" style="width: 86%"></div></div><span class="bar-value">43</span></div>
+          <div class="bar-row"><span class="bar-label">pedestrian</span><div class="bar-track"><div class="bar-fill" style="width: 74%"></div></div><span class="bar-value">37</span></div>
+          <div class="bar-row"><span class="bar-label">obstacle</span><div class="bar-track"><div class="bar-fill" style="width: 64%"></div></div><span class="bar-value">32</span></div>
+          <div class="bar-row"><span class="bar-label">vehicle</span><div class="bar-track"><div class="bar-fill" style="width: 46%"></div></div><span class="bar-value">23</span></div>
+          <div class="bar-row"><span class="bar-label">ice</span><div class="bar-track"><div class="bar-fill" style="width: 46%"></div></div><span class="bar-value">23</span></div>
+          <div class="bar-row"><span class="bar-label">puddle</span><div class="bar-track"><div class="bar-fill" style="width: 40%"></div></div><span class="bar-value">20</span></div>
+          <div class="bar-row"><span class="bar-label">narrow path</span><div class="bar-track"><div class="bar-fill" style="width: 32%"></div></div><span class="bar-value">16</span></div>
+          <div class="bar-row"><span class="bar-label">animal</span><div class="bar-track"><div class="bar-fill" style="width: 24%"></div></div><span class="bar-value">12</span></div>
+          <div class="bar-row"><span class="bar-label">uneven terrain</span><div class="bar-track"><div class="bar-fill" style="width: 10%"></div></div><span class="bar-value">5</span></div>
+          <div class="bar-row"><span class="bar-label">flood</span><div class="bar-track"><div class="bar-fill" style="width: 6%"></div></div><span class="bar-value">3</span></div>
+        </div>
+      </div>
+      <div class="chart-panel">
+        <h3>Severity Distribution</h3>
+        <div class="bar-chart">
+          <div class="bar-row"><span class="bar-label">none</span><div class="bar-track"><div class="bar-fill severity-none" style="width: 62.5%"></div></div><span class="bar-value">50</span></div>
+          <div class="bar-row"><span class="bar-label">low</span><div class="bar-track"><div class="bar-fill severity-low" style="width: 33.75%"></div></div><span class="bar-value">27</span></div>
+          <div class="bar-row"><span class="bar-label">medium</span><div class="bar-track"><div class="bar-fill severity-medium" style="width: 100%"></div></div><span class="bar-value">80</span></div>
+          <div class="bar-row"><span class="bar-label">high</span><div class="bar-track"><div class="bar-fill severity-high" style="width: 93.75%"></div></div><span class="bar-value">75</span></div>
+          <div class="bar-row"><span class="bar-label">critical</span><div class="bar-track"><div class="bar-fill severity-critical" style="width: 40%"></div></div><span class="bar-value">32</span></div>
+        </div>
+      </div>
+    </div>
+
+    <h3>Inference Comparison: Pre-training vs Epoch 8</h3>
+    <p>
+      8 validation samples were tracked throughout training. The table below compares the base
+      model's zero-shot output against the fine-tuned model at epoch 8.
+    </p>
+
+    <div class="inference-comparison">
+      <div class="comparison-row">
+        <div class="comparison-img">
+          <img src="/assets/img/safetyguardian/wandb/sample_1_input.png" alt="Ice hazard sample">
+        </div>
+        <div class="comparison-details">
+          <div class="comparison-label">Ground Truth</div>
+          <code>HAZARD: ice | SEVERITY: medium | ACTION: stay center</code>
+          <div class="comparison-label">Pre-training</div>
+          <code class="output-pre">HAZARD: ice_on_ground | SEVERITY: high | ACTION: Avoid icy patches; walk cautiously.</code>
+          <div class="comparison-label">Epoch 8</div>
+          <code class="output-post">HAZARD: ice | SEVERITY: medium | ACTION: slow down</code>
+        </div>
+      </div>
+
+      <div class="comparison-row">
+        <div class="comparison-img">
+          <img src="/assets/img/safetyguardian/wandb/sample_2_input.png" alt="Animal hazard sample">
+        </div>
+        <div class="comparison-details">
+          <div class="comparison-label">Ground Truth</div>
+          <code>HAZARD: animal | SEVERITY: high | ACTION: stop</code>
+          <div class="comparison-label">Pre-training</div>
+          <code class="output-pre">HAZARD: uneven terrain | SEVERITY: medium | ACTION: avoid uneven patches while walking</code>
+          <div class="comparison-label">Epoch 8</div>
+          <code class="output-post">HAZARD: animal | SEVERITY: medium | ACTION: stop</code>
+        </div>
+      </div>
+
+      <div class="comparison-row">
+        <div class="comparison-img">
+          <img src="/assets/img/safetyguardian/wandb/sample_4_input.png" alt="Clear path sample">
+        </div>
+        <div class="comparison-details">
+          <div class="comparison-label">Ground Truth</div>
+          <code>HAZARD: clear | SEVERITY: none | ACTION: proceed safely</code>
+          <div class="comparison-label">Pre-training</div>
+          <code class="output-pre">HAZARD: uneven terrain | SEVERITY: high | ACTION: Avoid walking on the uneven path; stay on the paved surface.</code>
+          <div class="comparison-label">Epoch 8</div>
+          <code class="output-post">HAZARD: clear | SEVERITY: none | ACTION: proceed safely</code>
+        </div>
+      </div>
+
+      <div class="comparison-row">
+        <div class="comparison-img">
+          <img src="/assets/img/safetyguardian/wandb/sample_7_input.png" alt="Clear path sample 2">
+        </div>
+        <div class="comparison-details">
+          <div class="comparison-label">Ground Truth</div>
+          <code>HAZARD: clear | SEVERITY: none | ACTION: stay alert, proceed slowly</code>
+          <div class="comparison-label">Pre-training</div>
+          <code class="output-pre">HAZARD: cracked pavement | SEVERITY: critical | ACTION: Repair cracked asphalt to prevent slips and falls.</code>
+          <div class="comparison-label">Epoch 8</div>
+          <code class="output-post">HAZARD: clear | SEVERITY: none | ACTION: proceed safely</code>
+        </div>
+      </div>
+
+      <div class="comparison-row">
+        <div class="comparison-img">
+          <img src="/assets/img/safetyguardian/wandb/sample_6_input.png" alt="Wet surface sample">
+        </div>
+        <div class="comparison-details">
+          <div class="comparison-label">Ground Truth</div>
+          <code>HAZARD: wet surface | SEVERITY: medium | ACTION: caution</code>
+          <div class="comparison-label">Pre-training</div>
+          <code class="output-pre">HAZARD: cracked pavement | SEVERITY: high | ACTION: Repair cracked asphalt to prevent slips and falls.</code>
+          <div class="comparison-label">Epoch 8</div>
+          <code class="output-post">HAZARD: clear | SEVERITY: none | ACTION: proceed safely</code>
+        </div>
+      </div>
+
+      <div class="comparison-row">
+        <div class="comparison-img">
+          <img src="/assets/img/safetyguardian/wandb/sample_8_input.png" alt="Puddle hazard sample">
+        </div>
+        <div class="comparison-details">
+          <div class="comparison-label">Ground Truth</div>
+          <code>HAZARD: puddle | SEVERITY: high | ACTION: avoid area</code>
+          <div class="comparison-label">Pre-training</div>
+          <code class="output-pre">HAZARD: puddle | SEVERITY: high | ACTION: avoid puddle to prevent slipping</code>
+          <div class="comparison-label">Epoch 8</div>
+          <code class="output-post">HAZARD: puddle | SEVERITY: high | ACTION: detour</code>
+        </div>
+      </div>
+    </div>
+
+    <p>
+      <strong>Key observations:</strong> Pre-training outputs are verbose, use inconsistent formatting,
+      frequently misidentify hazard types (e.g., "cracked pavement" for clear paths), and inflate severity
+      levels. After fine-tuning, outputs are concise, correctly structured, and substantially more accurate
+      in both hazard identification and severity assessment.
+    </p>
+  </section>
+
+  <hr>
+
+  <!-- ============================================================ -->
+  <!-- Cost Analysis                                                 -->
+  <!-- ============================================================ -->
+  <section id="cost" class="section">
+    <h2>Cost Analysis</h2>
+
+    <p>
+      Per-user monthly cost breakdown assuming 20-second processing intervals, 24/7 operation:
+    </p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Component</th>
+          <th>Monthly Cost</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Cosmos inference (130k requests)</td>
+          <td>~$13</td>
+        </tr>
+        <tr>
+          <td>ElevenLabs TTS (4.9M chars)</td>
+          <td>~$148</td>
+        </tr>
+        <tr>
+          <td>GPU server (shared, 50 users)</td>
+          <td>~$18-36</td>
+        </tr>
+        <tr>
+          <td><strong>Total per user (shared)</strong></td>
+          <td><strong>$31-36</strong></td>
+        </tr>
+        <tr>
+          <td>Total per user (dedicated)</td>
+          <td>$179-197</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p>
+        <strong>Key insight:</strong> Shared GPU infrastructure reduces per-user cost by 83%, making
+        the system economically viable for deployment.
+      </p>
+    </blockquote>
+  </section>
+
+  <hr>
+
+  <!-- ============================================================ -->
+  <!-- Next Steps                                                    -->
+  <!-- ============================================================ -->
+  <section id="next-steps" class="section">
+    <h2>Next Steps</h2>
+
+    <div class="next-step-item">
+      <div class="next-step-img">
+        <img src="/assets/img/safetyguardian/Gemini_Generated_Image_blind.png" alt="Blind user navigating outdoors with SafetyGuardian audio hazard warnings">
+      </div>
+      <div class="next-step-text">
+        <h3>Accessibility Expansion</h3>
+        <p>Adapt the system for blind and visually impaired users. The audio-first design already
+        provides the foundation — future work includes richer spatial descriptions ("obstacle 2 meters
+        ahead, slightly left") and integration with existing assistive technology ecosystems.</p>
+      </div>
+    </div>
+
+    <div class="next-step-item reverse">
+      <div class="next-step-img">
+        <img src="/assets/img/safetyguardian/Gemini_Generated_Image_NextSteps.png" alt="Future smart glasses integration for hands-free hazard detection">
+      </div>
+      <div class="next-step-text">
+        <h3>Wearable Camera Glasses</h3>
+        <p>The current system uses the iPhone camera, but wearable camera glasses are a natural
+        extension — freeing the user's hands and providing a true first-person perspective.
+        USB-C/Lightning external camera support is already built into the app, making glasses
+        integration straightforward.</p>
+      </div>
+    </div>
+
+    <h3>Further Directions</h3>
+    <ul>
+      <li><strong>Edge Deployment</strong> — Explore on-device inference using quantized models (INT4/INT8) on next-generation mobile chips to eliminate cloud dependency and enable offline operation.</li>
+      <li><strong>Multi-Modal Sensing</strong> — Combine camera input with IMU/accelerometer data to detect gait instability and predict falls before they happen.</li>
+      <li><strong>Cost Optimization</strong> — Reduce TTS costs (currently 80% of per-user expense) by evaluating open-source alternatives. Batch inference with vLLM's continuous batching could further reduce GPU cost per request.</li>
+    </ul>
+
+    <p>
+      Longer-term goals include a larger-scale user study with elderly participants, integration with
+      smart city infrastructure (traffic signal data, construction zone APIs), and expanding the hazard
+      taxonomy to cover indoor environments such as hospitals and care facilities.
+    </p>
+  </section>
+
+  <hr>
+
+  <!-- ============================================================ -->
+  <!-- Acknowledgments & References                                  -->
+  <!-- ============================================================ -->
+  <section id="acknowledgments" class="section">
+    <h2>Acknowledgments</h2>
+
+    <p>
+      Thanks to NVIDIA for organizing the Cosmos Cookoff 2026 and providing access to the Cosmos
+      model family.
+    </p>
+    <p>
+      Thanks to Nebius for GPU infrastructure (L40S and H100 instances).
+    </p>
+
+    <h2 id="references">References</h2>
+
+    <ol>
+      <li><a href="https://huggingface.co/nvidia/Cosmos-Reason2-2B" target="_blank" rel="noopener noreferrer">NVIDIA Cosmos-Reason2-2B</a> — Physical AI reasoning model</li>
+      <li><a href="https://github.com/vllm-project/vllm" target="_blank" rel="noopener noreferrer">vLLM</a> — High-throughput LLM serving engine</li>
+      <li><a href="https://elevenlabs.io" target="_blank" rel="noopener noreferrer">ElevenLabs</a> — Text-to-speech API (Turbo v2.5)</li>
+      <li><a href="https://arxiv.org/abs/2106.09685" target="_blank" rel="noopener noreferrer">LoRA</a> — Low-Rank Adaptation for efficient fine-tuning</li>
+      <li><a href="https://optuna.org" target="_blank" rel="noopener noreferrer">Optuna</a> — Hyperparameter optimization framework</li>
+    </ol>
+  </section>
+
+</div>
+
+<footer class="footer">
+  <p>&copy; 2026 <a href="https://github.com/eyyeung">Eyan Yeung</a> and Winnie Yeung &middot; <a href="https://vionwinnie.github.io">vionwinnie.github.io</a></p>
+</footer>
+
+<script>
+(function() {
+  const sidebar = document.getElementById('toc-sidebar');
+  const overlay = document.getElementById('toc-overlay');
+  const toggle = document.querySelector('.toc-toggle');
+  const closeBtn = document.querySelector('.toc-close');
+  const links = document.querySelectorAll('.toc-link');
+
+  function openSidebar() {
+    sidebar.classList.add('open');
+    overlay.classList.add('open');
+    toggle.classList.add('hidden');
+    document.body.classList.add('toc-open');
+  }
+
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('open');
+    toggle.classList.remove('hidden');
+    document.body.classList.remove('toc-open');
+  }
+
+  toggle.addEventListener('click', openSidebar);
+  closeBtn.addEventListener('click', closeSidebar);
+  overlay.addEventListener('click', closeSidebar);
+
+  // Close sidebar on link click (mobile)
+  links.forEach(function(link) {
+    link.addEventListener('click', function() {
+      if (window.innerWidth <= 1100) closeSidebar();
+    });
+  });
+
+  // Active section highlighting via IntersectionObserver
+  var sections = [];
+  links.forEach(function(link) {
+    var id = link.getAttribute('href').substring(1);
+    var el = document.getElementById(id);
+    if (el) sections.push({ id: id, el: el, link: link });
+  });
+
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        links.forEach(function(l) { l.classList.remove('active'); });
+        var match = sections.find(function(s) { return s.el === entry.target; });
+        if (match) match.link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+
+  sections.forEach(function(s) { observer.observe(s.el); });
+
+  // On desktop (>1100px), auto-open sidebar
+  function checkWidth() {
+    if (window.innerWidth > 1100) {
+      openSidebar();
+    } else {
+      closeSidebar();
+    }
+  }
+  checkWidth();
+  window.addEventListener('resize', checkWidth);
+})();
+</script>
+</body>
+</html>

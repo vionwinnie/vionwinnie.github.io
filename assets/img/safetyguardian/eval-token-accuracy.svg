@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" width="800" height="420" style="background:#ffffff;font-family:'Inter',system-ui,-apple-system,sans-serif">
+<text x="400" y="22" text-anchor="middle" font-size="14" font-weight="600" fill="#333">eval/mean_token_accuracy</text>
+<text x="400" y="36" text-anchor="middle" font-size="10" fill="#999">Showing first 10 runs</text>
+<line x1="65" y1="50" x2="81" y2="50" stroke="#1b9e77" stroke-width="1.5" stroke-dasharray="6,3"/>
+<text x="85" y="53" font-size="8.5" fill="#666">trial5-lr4.4e-04_bs16_ga2_r64</text>
+<line x1="430" y1="50" x2="446" y2="50" stroke="#666666" stroke-width="1.5"/>
+<text x="450" y="53" font-size="8.5" fill="#666">trial0-lr3.2e-05_bs8_ga1_r128</text>
+<line x1="65" y1="62" x2="81" y2="62" stroke="#7570b3" stroke-width="2"/>
+<text x="85" y="65" font-size="8.5" fill="#666">cosmos-reason2-safety-sft-final</text>
+<line x1="430" y1="62" x2="446" y2="62" stroke="#d95f02" stroke-width="1.5"/>
+<text x="450" y="65" font-size="8.5" fill="#666">trial-9_lr2.0e-04_bs32_ga2_r64</text>
+<line x1="65" y1="74" x2="81" y2="74" stroke="#66a61e" stroke-width="1.5"/>
+<text x="85" y="77" font-size="8.5" fill="#666">trial-8_lr6.8e-05_bs16_ga2_r128</text>
+<line x1="430" y1="74" x2="446" y2="74" stroke="#a6761d" stroke-width="1.5"/>
+<text x="450" y="77" font-size="8.5" fill="#666">trial-7_lr1.3e-04_bs32_ga4_r32</text>
+<line x1="65" y1="86" x2="81" y2="86" stroke="#e7298a" stroke-width="1.5"/>
+<text x="85" y="89" font-size="8.5" fill="#666">trial-6_lr3.6e-04_bs8_ga4_r32</text>
+<line x1="430" y1="86" x2="446" y2="86" stroke="#e6ab02" stroke-width="1.5"/>
+<text x="450" y="89" font-size="8.5" fill="#666">trial-5_lr4.4e-04_bs16_ga2_r64</text>
+<line x1="60" y1="315.8" x2="750" y2="315.8" stroke="#f0f0f0" stroke-width="0.5"/>
+<line x1="60" y1="227.5" x2="750" y2="227.5" stroke="#f0f0f0" stroke-width="0.5"/>
+<line x1="60" y1="139.2" x2="750" y2="139.2" stroke="#f0f0f0" stroke-width="0.5"/>
+<text x="52" y="319.3" text-anchor="end" font-size="10" fill="#bbb">0.3</text>
+<text x="52" y="231.0" text-anchor="end" font-size="10" fill="#bbb">0.4</text>
+<text x="52" y="142.7" text-anchor="end" font-size="10" fill="#bbb">0.5</text>
+<text x="175.0" y="378" text-anchor="middle" font-size="10" fill="#bbb">100</text>
+<text x="290.0" y="378" text-anchor="middle" font-size="10" fill="#bbb">200</text>
+<text x="405.0" y="378" text-anchor="middle" font-size="10" fill="#bbb">300</text>
+<text x="520.0" y="378" text-anchor="middle" font-size="10" fill="#bbb">400</text>
+<text x="635.0" y="378" text-anchor="middle" font-size="10" fill="#bbb">500</text>
+<text x="750.0" y="378" text-anchor="middle" font-size="10" fill="#bbb">600</text>
+<text x="750" y="392" text-anchor="end" font-size="10" fill="#ccc">train/global_step</text>
+<polyline points="69.20,302.23 78.40,147.74 87.60,132.45 96.80,130.60 106.00,131.22 115.20,129.80 124.40,129.27 133.60,129.01 142.80,129.54 152.00,128.92" fill="none" stroke="#1b9e77" stroke-width="1.5" stroke-dasharray="6,3" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="94.50,307.09 129.00,134.04 163.50,130.51 198.00,129.80 232.50,128.92 267.00,128.48 301.50,128.13 336.00,128.13 370.50,127.77 405.00,127.33 439.50,127.33 474.00,126.80 508.50,126.62 543.00,126.54 577.50,126.62 612.00,126.36 646.50,126.62 681.00,126.45 715.50,126.45 750.00,127.33" fill="none" stroke="#666666" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="69.20,295.96 78.40,150.74 87.60,132.45 96.80,130.69 106.00,130.95 115.20,129.72 124.40,129.01 133.60,129.19 142.80,129.36 152.00,129.27 161.20,129.27 170.40,128.39 179.60,128.39 188.80,128.48 198.00,128.48 207.20,127.60 216.40,127.15 225.60,126.98 234.80,127.15 244.00,128.48" fill="none" stroke="#7570b3" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="64.60,310.45 69.20,265.57 73.80,209.92 78.40,168.32 83.00,144.56" fill="none" stroke="#d95f02" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="69.20,302.67 78.40,210.01 87.60,138.64 96.80,135.19 106.00,134.13" fill="none" stroke="#66a61e" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="62.30,354.44 64.60,333.50 66.90,321.31 69.20,318.22 71.50,318.13" fill="none" stroke="#a6761d" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="69.20,279.17 78.40,141.73 87.60,131.39 96.80,130.60 106.00,130.33" fill="none" stroke="#e7298a" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="69.20,213.54 78.40,133.25 87.60,131.13 96.80,129.63 106.00,129.19" fill="none" stroke="#e6ab02" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+</svg>

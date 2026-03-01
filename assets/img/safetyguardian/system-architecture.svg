@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400" width="1200" height="400">
+  <defs>
+    <!-- Shadow filter -->
+    <filter id="shadow" x="-4%" y="-4%" width="108%" height="116%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000" flood-opacity="0.08"/>
+    </filter>
+    <!-- Arrow marker -->
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#0073e6"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="400" rx="0" fill="#f8f8f8"/>
+
+  <!-- Title -->
+  <text x="600" y="38" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="18" font-weight="700" fill="#1e293b">SafetyGuardian Inference Pipeline</text>
+
+  <!-- ========== BOX 1: Wearable Glasses ========== -->
+  <rect x="32" y="100" width="150" height="170" rx="12" fill="#f3e8ff" stroke="#9333ea" stroke-width="1.5" filter="url(#shadow)"/>
+  <!-- Camera icon -->
+  <g transform="translate(82, 135)">
+    <rect x="-18" y="-12" width="36" height="26" rx="4" fill="none" stroke="#9333ea" stroke-width="1.8"/>
+    <circle cx="0" cy="1" r="7" fill="none" stroke="#9333ea" stroke-width="1.8"/>
+    <circle cx="0" cy="1" r="3" fill="#9333ea"/>
+    <rect x="10" y="-10" width="6" height="4" rx="1" fill="#9333ea"/>
+  </g>
+  <text x="107" y="180" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="13" font-weight="700" fill="#581c87">Wearable</text>
+  <text x="107" y="197" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="13" font-weight="700" fill="#581c87">Glasses</text>
+  <text x="107" y="220" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" fill="#7c3aed">Captures frames</text>
+  <text x="107" y="234" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" fill="#7c3aed">@ 1 FPS</text>
+
+  <!-- Arrow 1 -->
+  <line x1="182" y1="185" x2="228" y2="185" stroke="#0073e6" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <rect x="188" y="163" width="46" height="18" rx="9" fill="#e0f2fe" stroke="#0073e6" stroke-width="0.8"/>
+  <text x="211" y="175" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="9" font-weight="600" fill="#0073e6">0.003s</text>
+
+  <!-- ========== BOX 2: iPhone App ========== -->
+  <rect x="232" y="100" width="150" height="170" rx="12" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5" filter="url(#shadow)"/>
+  <!-- Phone icon -->
+  <g transform="translate(307, 138)">
+    <rect x="-13" y="-18" width="26" height="38" rx="4" fill="none" stroke="#0284c7" stroke-width="1.8"/>
+    <line x1="-5" y1="-13" x2="5" y2="-13" stroke="#0284c7" stroke-width="1.2"/>
+    <circle cx="0" cy="15" r="2.5" fill="#0284c7"/>
+  </g>
+  <text x="307" y="182" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="13" font-weight="700" fill="#0c4a6e">iPhone App</text>
+  <text x="307" y="203" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" fill="#0369a1">Sends frame via</text>
+  <text x="307" y="217" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" fill="#0369a1">HTTPS POST</text>
+
+  <!-- Arrow 2 -->
+  <line x1="382" y1="185" x2="438" y2="185" stroke="#0073e6" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <rect x="388" y="163" width="46" height="18" rx="9" fill="#ecfdf5" stroke="#059669" stroke-width="0.8"/>
+  <text x="411" y="175" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="9" font-weight="600" fill="#059669">0.65s</text>
+
+  <!-- ========== BOX 3: vLLM Server (largest) ========== -->
+  <rect x="442" y="80" width="260" height="210" rx="12" fill="#ecfdf5" stroke="#059669" stroke-width="1.8" filter="url(#shadow)"/>
+  <!-- Server / cloud icon -->
+  <g transform="translate(572, 118)">
+    <path d="M-20,6 C-20,6 -22,-2 -14,-4 C-14,-4 -12,-14 -2,-12 C-2,-12 4,-18 12,-12 C12,-12 22,-12 22,-2 C22,-2 26,0 26,6 Z" fill="none" stroke="#059669" stroke-width="1.8"/>
+    <rect x="-12" y="10" width="24" height="14" rx="2" fill="none" stroke="#059669" stroke-width="1.4"/>
+    <line x1="-8" y1="15" x2="8" y2="15" stroke="#059669" stroke-width="1.2"/>
+    <line x1="-8" y1="20" x2="4" y2="20" stroke="#059669" stroke-width="1.2"/>
+  </g>
+  <text x="572" y="156" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="14" font-weight="700" fill="#064e3b">vLLM Server</text>
+  <text x="572" y="178" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10.5" fill="#047857">Cosmos-Reason2-2B</text>
+  <text x="572" y="194" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10.5" fill="#047857">inference</text>
+  <!-- Hazard JSON output label -->
+  <rect x="498" y="204" width="148" height="22" rx="6" fill="#d1fae5"/>
+  <text x="572" y="219" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" font-weight="600" fill="#065f46">Structured Hazard JSON</text>
+  <!-- Hardware spec -->
+  <rect x="482" y="238" width="180" height="20" rx="6" fill="none" stroke="#059669" stroke-width="0.8" stroke-dasharray="3,2"/>
+  <text x="572" y="252" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="9.5" font-weight="600" fill="#059669">Nebius L40S  |  360 TFLOPS</text>
+
+  <!-- Arrow 3 -->
+  <line x1="702" y1="185" x2="758" y2="185" stroke="#0073e6" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <rect x="708" y="163" width="46" height="18" rx="9" fill="#fff7ed" stroke="#ea580c" stroke-width="0.8"/>
+  <text x="731" y="175" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="9" font-weight="600" fill="#ea580c">0.39s</text>
+
+  <!-- ========== BOX 4: ElevenLabs TTS ========== -->
+  <rect x="762" y="100" width="160" height="170" rx="12" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5" filter="url(#shadow)"/>
+  <!-- Waveform / audio icon -->
+  <g transform="translate(842, 140)">
+    <rect x="-20" y="-10" width="16" height="20" rx="2" fill="none" stroke="#ea580c" stroke-width="1.6"/>
+    <line x1="-12" y1="-4" x2="-12" y2="4" stroke="#ea580c" stroke-width="1.4"/>
+    <line x1="-8" y1="-7" x2="-8" y2="7" stroke="#ea580c" stroke-width="1.4"/>
+    <path d="M2,-12 Q14,-12 14,0 Q14,12 2,12" fill="none" stroke="#ea580c" stroke-width="1.6"/>
+    <path d="M2,-6 Q8,-6 8,0 Q8,6 2,6" fill="none" stroke="#ea580c" stroke-width="1.6"/>
+  </g>
+  <text x="842" y="180" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="13" font-weight="700" fill="#7c2d12">ElevenLabs</text>
+  <text x="842" y="197" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="13" font-weight="700" fill="#7c2d12">TTS</text>
+  <text x="842" y="220" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" fill="#c2410c">Converts text to</text>
+  <text x="842" y="234" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" fill="#c2410c">speech audio</text>
+
+  <!-- Arrow 4 -->
+  <line x1="922" y1="185" x2="978" y2="185" stroke="#0073e6" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <rect x="928" y="163" width="46" height="18" rx="9" fill="#f3e8ff" stroke="#9333ea" stroke-width="0.8"/>
+  <text x="951" y="175" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="9" font-weight="600" fill="#9333ea">0.05s</text>
+
+  <!-- ========== BOX 5: Voice Warning ========== -->
+  <rect x="982" y="100" width="150" height="170" rx="12" fill="#f3e8ff" stroke="#9333ea" stroke-width="1.5" filter="url(#shadow)"/>
+  <!-- Speaker icon -->
+  <g transform="translate(1057, 140)">
+    <polygon points="-14,-10 -6,-10 4,-18 4,18 -6,10 -14,10" fill="none" stroke="#9333ea" stroke-width="1.8"/>
+    <path d="M10,-10 Q20,-10 20,0 Q20,10 10,10" fill="none" stroke="#9333ea" stroke-width="1.6"/>
+    <path d="M10,-4 Q14,-4 14,0 Q14,4 10,4" fill="none" stroke="#9333ea" stroke-width="1.6"/>
+  </g>
+  <text x="1057" y="180" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="13" font-weight="700" fill="#581c87">Voice</text>
+  <text x="1057" y="197" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="13" font-weight="700" fill="#581c87">Warning</text>
+  <text x="1057" y="220" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" fill="#7c3aed">Plays back to user</text>
+  <text x="1057" y="234" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" fill="#7c3aed">via iPhone</text>
+
+  <!-- ========== Total Latency Banner ========== -->
+  <rect x="475" y="340" width="250" height="36" rx="18" fill="#0073e6" filter="url(#shadow)"/>
+  <text x="600" y="363" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="14" font-weight="700" fill="#ffffff">Total Latency: ~1.07s</text>
+
+  <!-- Subtle bottom connector line to latency banner -->
+  <line x1="600" y1="295" x2="600" y2="340" stroke="#0073e6" stroke-width="1" stroke-dasharray="4,3" opacity="0.4"/>
+
+</svg>
