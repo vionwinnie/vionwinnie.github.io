@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Image &amp; Video Generation Models — Training Data &amp; Recipes</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<style>
+  :root {
+    --bg: #0d1117; --surface: #161b22; --border: #30363d;
+    --text: #c9d1d9; --text-muted: #8b949e; --accent: #58a6ff;
+    --green: #3fb950; --orange: #d29922; --red: #f85149; --purple: #bc8cff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+         background: var(--bg); color: var(--text); line-height: 1.6; padding: 2rem; }
+  h1 { font-size: 2rem; margin-bottom: .5rem; color: #fff; }
+  h2 { font-size: 1.5rem; margin: 2rem 0 1rem; color: var(--accent); border-bottom: 1px solid var(--border); padding-bottom: .5rem; }
+  h3 { font-size: 1.15rem; margin: 1.5rem 0 .75rem; color: var(--purple); }
+  h4 { font-size: 1rem; margin: 1rem 0 .5rem; color: var(--green); }
+  p, li { margin-bottom: .5rem; }
+  ul { padding-left: 1.5rem; }
+  .subtitle { color: var(--text-muted); margin-bottom: 2rem; }
+  .toc { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem; }
+  .toc a { color: var(--accent); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .toc ul { list-style: none; padding-left: 0; }
+  .toc li { margin-bottom: .35rem; }
+  .model-section { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 2rem; margin-bottom: 2rem; }
+  .mermaid { background: #fff; border-radius: 8px; padding: 1rem; margin: 1rem 0; overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: .9rem; }
+  th, td { border: 1px solid var(--border); padding: .5rem .75rem; text-align: left; }
+  th { background: #1c2333; color: var(--accent); }
+  tr:nth-child(even) { background: rgba(255,255,255,.02); }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: .75rem; font-weight: 600; margin-right: 4px; }
+  .tag-img { background: #1f3a5f; color: var(--accent); }
+  .tag-vid { background: #3b2f1f; color: var(--orange); }
+  .tag-open { background: #1a3a1a; color: var(--green); }
+  .tag-closed { background: #3a1a1a; color: var(--red); }
+  .source-list { font-size: .8rem; color: var(--text-muted); margin-top: 1rem; padding-top: .75rem; border-top: 1px solid var(--border); }
+  .source-list a { color: var(--text-muted); }
+  .comparison-table { overflow-x: auto; }
+  details { margin: .75rem 0; }
+  summary { cursor: pointer; color: var(--accent); font-weight: 600; }
+  summary:hover { text-decoration: underline; }
+  .key-insight { border-left: 3px solid var(--green); padding: .5rem 1rem; margin: .75rem 0; background: rgba(63,185,80,.05); }
+</style>
+</head>
+<body>
+
+<h1>Image &amp; Video Generation Models</h1>
+<p class="subtitle">Training Data Compilation, Filtering Pipelines &amp; Training Recipes</p>
+
+<div class="toc">
+<strong>Table of Contents</strong>
+<ul>
+  <li><a href="#overview">Overview Comparison</a></li>
+  <li><a href="#sora">1. OpenAI Sora</a> <span class="tag tag-vid">Video</span> <span class="tag tag-closed">Closed</span></li>
+  <li><a href="#imagen">2. Google Imagen</a> <span class="tag tag-img">Image</span> <span class="tag tag-closed">Closed</span></li>
+  <li><a href="#flux">3. Flux / Flux Kontext</a> <span class="tag tag-img">Image</span> <span class="tag tag-open">Open Weights</span></li>
+  <li><a href="#seedream">4. ByteDance Seedream</a> <span class="tag tag-img">Image</span> <span class="tag tag-closed">Closed</span></li>
+  <li><a href="#qwen">5. Qwen-Image &amp; Wan</a> <span class="tag tag-img">Image</span> <span class="tag tag-vid">Video</span> <span class="tag tag-open">Open</span></li>
+  <li><a href="#minimax">6. MiniMax / Hailuo</a> <span class="tag tag-vid">Video</span> <span class="tag tag-open">Partial Open</span></li>
+  <li><a href="#common">Common Patterns &amp; Takeaways</a></li>
+</ul>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="overview">Overview Comparison</h2>
+<!-- ============================================================ -->
+
+<div class="comparison-table">
+<table>
+<tr>
+  <th>Model</th><th>Type</th><th>Architecture</th><th>Params</th><th>Data Scale</th><th>Text Encoder</th><th>Loss</th><th>Open?</th>
+</tr>
+<tr>
+  <td>Sora (Turbo/2)</td><td>Video</td><td>DiT (spacetime patches)</td><td>Undisclosed</td><td>Undisclosed</td><td>DALL-E 3 recaptioner</td><td>Diffusion (likely flow matching)</td><td>No</td>
+</tr>
+<tr>
+  <td>Imagen 1</td><td>Image</td><td>Cascaded pixel-space U-Net</td><td>3B total</td><td>~860M pairs</td><td>Frozen T5-XXL</td><td>Noise prediction</td><td>No</td>
+</tr>
+<tr>
+  <td>Imagen 3</td><td>Image</td><td>Latent Diffusion Transformer</td><td>Undisclosed</td><td>"Billions"</td><td>T5-XXL (likely)</td><td>Undisclosed</td><td>No</td>
+</tr>
+<tr>
+  <td>FLUX.1</td><td>Image</td><td>MMDiT (rectified flow)</td><td>12B</td><td>Undisclosed</td><td>CLIP-L + T5-XXL</td><td>Rectified flow (velocity)</td><td>Partial</td>
+</tr>
+<tr>
+  <td>Flux Kontext</td><td>Image Edit</td><td>MMDiT + 3D RoPE</td><td>12B</td><td>Millions of pairs</td><td>CLIP-L + T5-XXL</td><td>Flow matching + LADD</td><td>Partial</td>
+</tr>
+<tr>
+  <td>Seedream 2.0</td><td>Image</td><td>MMDiT</td><td>3.9B</td><td>~250M pairs</td><td>Bilingual LLM + Glyph-ByT5</td><td>Score matching</td><td>No</td>
+</tr>
+<tr>
+  <td>Seedream 3.0</td><td>Image</td><td>MMDiT</td><td>~3.9B</td><td>~300M (expanded)</td><td>Bilingual LLM + Glyph-ByT5</td><td>Flow matching</td><td>No</td>
+</tr>
+<tr>
+  <td>Qwen-Image</td><td>Image</td><td>MMDiT (20B)</td><td>20B</td><td>5.6B pairs</td><td>Qwen2.5-VL-7B</td><td>Flow matching</td><td>Yes</td>
+</tr>
+<tr>
+  <td>Wan 2.1</td><td>Video</td><td>DiT + 3D Causal VAE</td><td>14B / 1.3B</td><td>~1.5B vid + 10B img</td><td>UMT5-XXL (cross-attn)</td><td>Flow matching</td><td>Yes</td>
+</tr>
+<tr>
+  <td>MiniMax Allegro</td><td>Video</td><td>DiT</td><td>Undisclosed</td><td>107M img + 66M vid</td><td>Undisclosed</td><td>Diffusion</td><td>Yes</td>
+</tr>
+<tr>
+  <td>Hailuo 02</td><td>Video</td><td>DiT + NCR</td><td>3x Hailuo 01</td><td>4x Hailuo 01</td><td>Undisclosed</td><td>Undisclosed</td><td>No</td>
+</tr>
+</table>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="sora">1. OpenAI Sora</h2>
+<!-- ============================================================ -->
+<div class="model-section">
+
+<h3>Architecture</h3>
+<p>Diffusion Transformer (DiT) operating on <strong>spacetime patches</strong> of video latent codes. A VAE compresses raw video temporally and spatially; compressed tokens are arranged as a grid of spacetime patches fed into a transformer with self-attention across both time and space. Images are treated as single-frame videos for joint training.</p>
+
+<h3>Data Pipeline</h3>
+<div class="mermaid">
+flowchart LR
+    A["Raw Data Sources\n• Shutterstock (licensed)\n• Pond5 stock footage\n• Public datasets\n• Custom/commissioned"] --> B["Pre-Training Filters\n• CSAM classifier\n• Explicit/violent removal\n• Quality/consistency checks\n• Human review (ambiguous)"]
+    B --> C["Recaptioning\n(DALL-E 3 technique)\nHighly descriptive\ncaptions for all data"]
+    C --> D["Training Data\nImages + Videos\n(variable res/duration/AR)"]
+</div>
+
+<h3>Training Recipe</h3>
+<div class="mermaid">
+flowchart TB
+    S1["Stage 1: Image Pretraining\nSpatial understanding"] --> S2["Stage 2: Low-Res Video\nTemporal dynamics"]
+    S2 --> S3["Stage 3: Progressive\nResolution Scaling"]
+    S3 --> S4["Stage 4: Joint Image+Video\nNative aspect ratios"]
+    S4 --> S5["Stage 5: Safety Alignment\nClassifiers + fine-tuning"]
+</div>
+
+<div class="key-insight">
+<strong>Key insight:</strong> Quality emerges from scale — 3D consistency, object permanence, and basic physics simulation appear without explicit inductive biases. The DALL-E 3 recaptioning technique (replacing weak alt-text with rich descriptions) is critical for prompt-following fidelity.
+</div>
+
+<h4>Sora Evolution</h4>
+<table>
+<tr><th>Version</th><th>Date</th><th>Capabilities</th></tr>
+<tr><td>Sora Preview</td><td>Feb 2024</td><td>Up to 60s, text-to-video only, no audio</td></tr>
+<tr><td>Sora Turbo</td><td>Dec 2024</td><td>1080p, 20s, T2V/I2V/V2V, storyboard tool</td></tr>
+<tr><td>Sora 2</td><td>2025</td><td>Native audio, multi-shot consistency (LCT), improved physics</td></tr>
+</table>
+
+<div class="source-list">
+Sources: <a href="https://openai.com/index/video-generation-models-as-world-simulators/">Sora Technical Report</a> ·
+<a href="https://openai.com/index/sora-system-card/">System Card</a> ·
+<a href="https://openai.com/index/sora-2/">Sora 2</a>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="imagen">2. Google Imagen</h2>
+<!-- ============================================================ -->
+<div class="model-section">
+
+<h3>Architecture Evolution</h3>
+<div class="mermaid">
+flowchart LR
+    subgraph Imagen1["Imagen 1 (2022)"]
+        direction TB
+        I1A["T5-XXL\n(frozen, 4.6B)"] --> I1B["Base U-Net\n64×64 · 2B params"]
+        I1B --> I1C["SR Stage 1\n256×256 · 600M"]
+        I1C --> I1D["SR Stage 2\n1024×1024 · 400M"]
+    end
+    subgraph Imagen3["Imagen 3 (2024)"]
+        direction TB
+        I3A["T5-XXL + Gemini\nSynthetic Captions"] --> I3B["Latent Diffusion\nTransformer"]
+        I3B --> I3C["Upsampling\n2x / 4x / 8x"]
+    end
+    Imagen1 -->|"evolution"| Imagen3
+</div>
+
+<h3>Data Pipeline (Imagen 3)</h3>
+<div class="mermaid">
+flowchart LR
+    A["Billions of\nimage-text pairs\n(web + licensed)"] --> B["Quality Filter"]
+    B --> C["Safety Filter\n(violent, NSFW)"]
+    C --> D["AI-Generated\nContent Removal"]
+    D --> E["Deduplication +\nDown-weighting"]
+    E --> F["Caption Safety\n(PII removal)"]
+    F --> G["Dual Captioning\n• Original caption\n• Gemini synthetic caption"]
+    G --> H["Training Set"]
+</div>
+
+<h3>Training Details (Imagen 1 — most documented)</h3>
+<table>
+<tr><th>Parameter</th><th>Value</th></tr>
+<tr><td>Batch size</td><td>2048</td></tr>
+<tr><td>Training steps</td><td>2.5M (all 3 stages)</td></tr>
+<tr><td>Optimizer</td><td>Adafactor (base) / Adam (SR)</td></tr>
+<tr><td>Hardware</td><td>256 TPU-v4 (base), 128 TPU-v4 (each SR)</td></tr>
+<tr><td>CFG dropout</td><td>10%</td></tr>
+<tr><td>CFG weight</td><td>1.35 (base), 8.0 (SR)</td></tr>
+<tr><td>FID (COCO zero-shot)</td><td>7.27</td></tr>
+</table>
+
+<h4>Key Techniques (Imagen 1)</h4>
+<ul>
+  <li><strong>Dynamic Thresholding:</strong> At each sampling step, compute the <em>p</em>-th percentile of absolute pixel values as threshold <em>s</em>. If <em>s</em> &gt; 1, clip to [−s, s] and divide by <em>s</em>. This prevents pixel saturation at high guidance weights and enables much larger CFG scales than static thresholding.</li>
+  <li><strong>Noise Conditioning Augmentation:</strong> Super-resolution models are conditioned on <em>noisy</em> low-res inputs (Gaussian noise with variance-preserving schedule). The augmentation level is randomly sampled during training and swept at inference. Critical for preventing train/test mismatch in cascaded pipelines.</li>
+  <li><strong>Efficient U-Net:</strong> Parameters shifted from high-res to low-res blocks, skip connections scaled by 1/√2, reversed up/downsampling order → 2-3× faster.</li>
+</ul>
+
+<h4>Key Innovation (Imagen 2)</h4>
+<ul>
+  <li><strong>Aesthetic Score Conditioning:</strong> A dedicated aesthetics model (trained on human preferences for lighting, framing, exposure, sharpness) scores each image. This score is used as a <em>conditioning signal</em> during training — not just for filtering — giving more weight to human-preferred qualities.</li>
+</ul>
+
+<div class="key-insight">
+<strong>Key insight:</strong> Scaling the text encoder (T5-XXL) was far more impactful than scaling the U-Net. Imagen 2's aesthetic score <em>conditioning</em> (not just filtering) was influential. Imagen 3's removal of AI-generated images from training data is a distinctive curation step.
+</div>
+
+<div class="source-list">
+Sources: <a href="https://arxiv.org/abs/2205.11487">Imagen Paper (2205.11487)</a> ·
+<a href="https://arxiv.org/abs/2408.07009">Imagen 3 Paper (2408.07009)</a> ·
+<a href="https://deepmind.google/technologies/imagen-2/">Imagen 2</a>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="flux">3. FLUX.1 &amp; Flux Kontext (Black Forest Labs)</h2>
+<!-- ============================================================ -->
+<div class="model-section">
+
+<h3>Architecture</h3>
+<div class="mermaid">
+flowchart TB
+    subgraph TextEnc["Text Encoders"]
+        TE1["CLIP-L\n(pooled embedding → modulation)"]
+        TE2["T5-XXL\n(dense token embeddings)"]
+    end
+    subgraph Backbone["12B MMDiT Backbone"]
+        DS["19 Double-Stream Blocks\n(separate text/image weights)"]
+        SS["38 Single-Stream Blocks\n(shared weights, parallel attn+MLP)"]
+        DS --> SS
+    end
+    VAE["16-channel VAE\n(custom, adversarial training)"]
+    TextEnc --> Backbone
+    VAE -->|"encode"| Backbone
+    Backbone -->|"decode"| VAE
+</div>
+
+<h3>Data Pipeline</h3>
+<div class="mermaid">
+flowchart LR
+    A["Large-scale\nimage-text data"] --> B["NSFW Removal"]
+    B --> C["Aesthetic Filtering\n(score ≥ 6.5)"]
+    C --> D["Perceptual\nDeduplication\n(cluster-based)"]
+    D --> E["Synthetic Recaptioning\n(CogVLM)\n50/50 original:synthetic"]
+    E --> F["Precompute Embeddings\n(frozen encoders)"]
+    F --> G["Training Set"]
+</div>
+
+<h3>Training Recipe</h3>
+<div class="mermaid">
+flowchart TB
+    S1["Pre-train at 256×256\nbatch 4096, 500k steps"] --> S2["High-res fine-tune\n(QK-Norm for stability)"]
+    S2 --> S3["Resolution-dependent\ntimestep shifting"]
+    S3 --> S4["Guidance Distillation\n(teacher → student)\n→ FLUX.1 dev"]
+    S3 --> S5["Speed Distillation\n→ FLUX.1 schnell"]
+</div>
+
+<h4>Key Techniques</h4>
+<ul>
+  <li><strong>Rectified Flow:</strong> Velocity prediction objective (not noise prediction). Logit-normal timestep sampling (m=0, s=1) outperforms uniform.</li>
+  <li><strong>QK-Normalization:</strong> RMSNorm on Q/K prevents attention logit explosion at high resolutions, enabling bf16 training.</li>
+  <li><strong>Timestep Shifting:</strong> <code>t_m = (√(m/n) · t_n) / (1 + (√(m/n)−1) · t_n)</code> — more pixels need proportionally more noise.</li>
+  <li><strong>RoPE:</strong> Rotary positional embeddings generalize to unseen sequence lengths (vs. learned absolute encodings).</li>
+</ul>
+
+<h4>Flux Kontext (Image Editing)</h4>
+<ul>
+  <li>Fine-tuned from FLUX.1 checkpoint on millions of relational (input, output, instruction) pairs.</li>
+  <li>Context + target tokens concatenated sequentially (not channel-wise — channel-wise performed worse).</li>
+  <li><strong>3D RoPE:</strong> Factorized (t, h, w) coordinates — context images indexed by <code>i</code>, supporting multi-reference.</li>
+  <li>Two-stage: flow matching → adversarial distillation (LADD) for fewer sampling steps.</li>
+</ul>
+
+<table>
+<tr><th>Variant</th><th>License</th><th>Notes</th></tr>
+<tr><td>FLUX.1 [pro]</td><td>Proprietary (API)</td><td>Full model, best quality</td></tr>
+<tr><td>FLUX.1 [dev]</td><td>Non-commercial</td><td>Guidance-distilled, 12B</td></tr>
+<tr><td>FLUX.1 [schnell]</td><td>Apache 2.0</td><td>Speed-optimized, &lt;2s generation</td></tr>
+<tr><td>Kontext [pro/dev/max]</td><td>Mixed</td><td>Image editing variants</td></tr>
+</table>
+
+<div class="source-list">
+Sources: <a href="https://arxiv.org/abs/2403.03206">Rectified Flow Transformers (2403.03206)</a> ·
+<a href="https://arxiv.org/abs/2506.15742">Flux Kontext (2506.15742)</a> ·
+<a href="https://huggingface.co/black-forest-labs/FLUX.1-dev">HF Model Card</a>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="seedream">4. ByteDance Seedream</h2>
+<!-- ============================================================ -->
+<div class="model-section">
+
+<h3>Architecture</h3>
+<p>MMDiT (3.9B params in v2.0) with a custom bilingual LLM text encoder + Glyph-Aligned ByT5 for character-level text rendering. Uses 2D RoPE for image tokens and Cross-Modality RoPE (v3.0+) for text tokens.</p>
+
+<h3>Data Pipeline</h3>
+<div class="mermaid">
+flowchart LR
+    A["~250M image-text pairs\n70% Chinese / 30% English"] --> B["Multi-Stage Cleaning\n• Watermark removal\n• Artifact filtering\n• Aesthetic scoring"]
+    B --> C["Distribution Balancing\n• Downsample over-represented\n• Hierarchical clustering"]
+    C --> D["Active Learning\n• Find challenging examples\n• Iterative refinement"]
+    D --> E["Two-Tier Captioning\n• Generic (short+long)\n• Multi-perspective rich captions\n• Chinese + English"]
+    E --> F["Training Set"]
+</div>
+
+<h3>Defect-Aware Training (Seedream 3.0)</h3>
+<div class="mermaid">
+flowchart LR
+    A["Previously Excluded\nImages (with defects)"] --> B["Defect Detector\n(trained on 15K\nannotated samples)"]
+    B --> C{"Defect area\n< 20%?"}
+    C -->|Yes| D["Retain image +\nSpatial attention mask\n(exclude defect from loss)"]
+    C -->|No| E["Discard"]
+    D --> F["+21.7% more\ntraining data"]
+</div>
+
+<h3>Training Stages</h3>
+<div class="mermaid">
+flowchart TB
+    S1["Pre-train: 256×256\n(various aspect ratios)"] --> S2["Fine-tune: 512→2048px\n(Seedream 3.0)\nor 512→4096px (4.0)"]
+    S2 --> S3["Continuing Training (CT)\nDiversified aesthetic captions"]
+    S3 --> S4["Supervised Fine-Tuning\n(styles, text rendering, aesthetics)"]
+    S4 --> S5["RLHF\nVLM reward model (>20B params)\nMultiple iterations"]
+    S5 --> S6["Prompt Engineering (PE)\nFinal alignment"]
+</div>
+
+<div class="key-insight">
+<strong>Key insight:</strong> The defect-aware training paradigm is unique — using spatial masks to exclude watermarked regions from loss computation lets the model learn from imperfect data without absorbing artifacts. The bilingual LLM text encoder enables native Chinese cultural knowledge. RLHF with a >20B VLM reward model is one of the largest reported for image generation.
+</div>
+
+<h4>Version Comparison</h4>
+<table>
+<tr><th>Aspect</th><th>Seedream 2.0</th><th>Seedream 3.0</th><th>Seedream 4.0</th></tr>
+<tr><td>Loss</td><td>Score matching</td><td>Flow matching</td><td>Adaptive flow matching</td></tr>
+<tr><td>Data</td><td>~250M pairs</td><td>~300M (+21.7% defect-aware)</td><td>Billions</td></tr>
+<tr><td>Max resolution</td><td>Not specified</td><td>2048×2048</td><td>4096×4096</td></tr>
+<tr><td>Post-training</td><td>SFT + RLHF</td><td>CT + SFT + RLHF + PE</td><td>CT + SFT + RLHF (joint T2I+editing)</td></tr>
+<tr><td>Inference speed</td><td>—</td><td>3s (1K)</td><td>1.8s (2K)</td></tr>
+</table>
+
+<div class="source-list">
+Sources: <a href="https://arxiv.org/abs/2503.07703">Seedream 2.0 (2503.07703)</a> ·
+<a href="https://arxiv.org/abs/2504.11346">Seedream 3.0 (2504.11346)</a> ·
+<a href="https://arxiv.org/abs/2509.20427">Seedream 4.0 (2509.20427)</a>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="qwen">5. Qwen-Image &amp; Wan (Alibaba)</h2>
+<!-- ============================================================ -->
+<div class="model-section">
+
+<h3>Qwen-Image (Text-to-Image, 20B)</h3>
+
+<h4>Data Pipeline</h4>
+<div class="mermaid">
+flowchart LR
+    A["5.6B image-text pairs\n55% nature, 27% design\n13% people, 5% synthetic text"] --> B["Stage 1\nResolution/corruption\nDedup, NSFW"]
+    B --> C["Stage 2\nImage Enhancement\nBlur/brightness/texture"]
+    C --> D["Stage 3\nCaption Alignment\nRaw + recaption + fused"]
+    D --> E["Stage 4\nSynthetic Text Data\n• Pure rendering\n• Compositional\n• Complex layouts"]
+    E --> F["Stage 5\nHigh-res refinement\n640p+ quality/aesthetic filter"]
+    F --> G["Training Set"]
+</div>
+
+<h4>Architecture</h4>
+<ul>
+  <li><strong>20B param MMDiT</strong> with double-stream (vision patches + text tokens)</li>
+  <li><strong>Text encoder:</strong> Frozen <strong>Qwen2.5-VL-7B-Instruct</strong> (a multimodal LLM — not CLIP/T5)</li>
+  <li><strong>Positional encoding:</strong> Multimodal Scalable RoPE (MSRoPE)</li>
+  <li><strong>Loss:</strong> Flow matching with exponential timestep shift</li>
+  <li><strong>Curriculum:</strong> Non-text images → simple text → paragraph/slide-level text compositions</li>
+</ul>
+
+<h3>Wan 2.1 (Video Generation, 14B)</h3>
+
+<h4>Data Pipeline</h4>
+<div class="mermaid">
+flowchart LR
+    A["~1.5B videos\n+ ~10B images"] --> B["Step 1: Fundamental\n(removes ~50%)\n• OCR text coverage\n• LAION aesthetic score\n• NSFW, watermark, blur\n• Duration/resolution"]
+    B --> C["Step 2: Visual Quality\n100 clusters →\nbalanced sampling →\nmanual scoring →\nexpert assessment model"]
+    C --> D["Step 3: Motion Quality\n6 tiers: optimal, medium,\nstatic, camera-driven,\nlow-quality, shaky"]
+    D --> E["Step 4:\nDeduplication"]
+    E --> F["Dense Captioning\n(Qwen2-VL)\nBilingual CN/EN"]
+    F --> G["Training Set"]
+</div>
+
+<h4>Architecture</h4>
+<ul>
+  <li><strong>DiT with flow matching</strong>, UMT5-XXL text encoder via cross-attention</li>
+  <li><strong>Wan-VAE:</strong> 3D causal VAE (temporal 4×, spatial 8× compression), unlimited-length 1080p encoding</li>
+  <li><strong>Resolution-progressive curriculum</strong> with joint image+video training</li>
+</ul>
+
+<div class="key-insight">
+<strong>Key insight:</strong> Wan's 4-step filtering pipeline (fundamental → visual quality → motion quality → dedup) is one of the most detailed public descriptions of video data curation. Using a VLM (Qwen2.5-VL) as the text encoder for image generation is a novel departure from CLIP/T5. The 6-tier motion quality classification for videos is uniquely granular.
+</div>
+
+<div class="source-list">
+Sources: <a href="https://arxiv.org/abs/2508.02324">Qwen-Image (2508.02324)</a> ·
+<a href="https://arxiv.org/abs/2503.20314">Wan (2503.20314)</a> ·
+<a href="https://github.com/QwenLM/Qwen-Image">GitHub</a>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="minimax">6. MiniMax / Hailuo (Allegro)</h2>
+<!-- ============================================================ -->
+<div class="model-section">
+
+<h3>Allegro Data Pipeline (most documented)</h3>
+<div class="mermaid">
+flowchart LR
+    A["412M raw images\n+ video corpus"] --> B["1. Duration/Resolution\n≥360p, ≥2s, ≥23fps"]
+    B --> C["2. Scene Segmentation\nSingle-scene clips\nTrim first/last 10 frames"]
+    C --> D["3. Low-Level Metrics\n• DOVER (brightness/clarity)\n• LPIPS (consistency)\n• UniMatch (motion)"]
+    D --> E["4. Aesthetics\nLAION Aesthetics\nPredictor"]
+    E --> F["5. Artifact Removal\nCRAFT text detection\nWatermark detection"]
+    F --> G["6. Coarse Captioning"]
+    G --> H["7. CLIP Similarity\nFilter"]
+    H --> I["107M images\n48M vid@360p\n18M vid@720p\n2M HQ vid (fine-tune)"]
+</div>
+
+<h3>Training Recipe (Allegro)</h3>
+<div class="mermaid">
+flowchart TB
+    S1["Stage 1: T2I Pre-training\n107M image-text pairs\nVisual fundamentals"] --> S2["Stage 2: T2V Pre-training\n48M@360p + 18M@720p\nTemporal consistency"]
+    S2 --> S3["Stage 3: T2V Fine-tuning\n2M high-quality clips\n6-16s medium-to-long\nmoderate motion"]
+</div>
+
+<h4>Hailuo 02 (Commercial)</h4>
+<ul>
+  <li><strong>Architecture:</strong> DiT + Noise-aware Compute Redistribution (NCR) — dynamically allocates more compute to high-error timesteps</li>
+  <li>3× more parameters and 4× more data than Hailuo 01</li>
+  <li>2.5× training/inference efficiency improvement via NCR</li>
+  <li>Native 1080p, up to 10s, 24-30fps</li>
+  <li>Incorporates user feedback data from Hailuo 01</li>
+</ul>
+
+<h4>VTP (Visual Tokenizer Pre-training)</h4>
+<div class="key-insight">
+<strong>Key insight:</strong> MiniMax's VTP work showed that giving <em>lower</em> weight to pixel reconstruction loss (vs. contrastive + self-supervised losses) actually improved downstream generation quality. Allegro's 7-step video filtering pipeline is one of the most detailed publicly available.
+</div>
+
+<div class="source-list">
+Sources: <a href="https://arxiv.org/abs/2410.15458">Allegro (2410.15458)</a> ·
+<a href="https://arxiv.org/abs/2512.13687">VTP (2512.13687)</a> ·
+<a href="https://www.minimax.io/news/minimax-hailuo-02">Hailuo 02</a>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="common">Common Patterns &amp; Takeaways</h2>
+<!-- ============================================================ -->
+<div class="model-section">
+
+<h3>Universal Data Curation Pipeline</h3>
+<div class="mermaid">
+flowchart TB
+    A["Raw Web-Scale Data\n(millions to billions)"] --> B["Basic Filters\n• Resolution thresholds\n• Duration/FPS (video)\n• Corruption checks"]
+    B --> C["Safety Filters\n• NSFW classifiers\n• CSAM detection\n• Violence removal"]
+    C --> D["Quality Assessment\n• Aesthetic scoring\n• Blur/exposure detection\n• Motion quality (video)"]
+    D --> E["Deduplication\n• Perceptual hashing\n• Cluster-based\n• Semantic dedup"]
+    E --> F["Recaptioning\n• VLM-generated captions\n• Multi-perspective\n• Bilingual (some)"]
+    F --> G["Distribution Balancing\n• Downsample majority\n• Preserve long-tail\n• Active learning"]
+    G --> H["Curated Training Set\n(typically 10-25% of raw data)"]
+</div>
+
+<h3>Common Training Recipe Pattern</h3>
+<div class="mermaid">
+flowchart TB
+    S1["Phase 1: Low-Resolution Pre-training\n256×256 or 512×512\nLarge batch, many steps"] --> S2["Phase 2: Progressive Resolution\nGradually increase to\n1024/2048/4096"]
+    S2 --> S3["Phase 3: Quality Fine-tuning\nHigh-quality subset\nAesthetic optimization"]
+    S3 --> S4["Phase 4: Alignment\n• RLHF (Seedream)\n• Guidance distillation (Flux)\n• Safety fine-tuning (Sora)"]
+</div>
+
+<h3>Key Trends</h3>
+<table>
+<tr><th>Trend</th><th>Details</th></tr>
+<tr><td><strong>Architecture convergence</strong></td><td>Nearly all models have converged on DiT/MMDiT backbones with flow matching objectives. U-Nets are gone.</td></tr>
+<tr><td><strong>Recaptioning is essential</strong></td><td>Every model uses VLM-generated synthetic captions (DALL-E 3, CogVLM, Gemini, Qwen2-VL). This is the single highest-impact data processing step.</td></tr>
+<tr><td><strong>Text encoder = LLM</strong></td><td>Evolution from CLIP → T5-XXL → full LLMs (Qwen2.5-VL, bilingual LLMs). Richer language understanding directly improves generation.</td></tr>
+<tr><td><strong>Progressive resolution</strong></td><td>All models train low-res first, then scale up. Timestep shifting compensates for more pixels needing more noise.</td></tr>
+<tr><td><strong>Flow matching replaces DDPM</strong></td><td>Rectified flow / flow matching is now standard. Velocity prediction with logit-normal timestep sampling.</td></tr>
+<tr><td><strong>Data quality > data quantity</strong></td><td>Aggressive filtering (often removing 50-75% of raw data). Seedream's defect-aware masking shows creative approaches to reclaiming borderline data.</td></tr>
+<tr><td><strong>Post-training matters</strong></td><td>RLHF, guidance distillation, and adversarial distillation are increasingly important for final quality and speed.</td></tr>
+<tr><td><strong>RoPE for positions</strong></td><td>2D/3D RoPE has replaced learned positional embeddings for better resolution generalization.</td></tr>
+</table>
+
+<h3>What Remains Proprietary</h3>
+<p>The most guarded details across all models are: <strong>exact dataset composition</strong>, <strong>compute budgets</strong>, <strong>model parameter counts</strong> (for closed models), and <strong>specific filtering thresholds</strong>. Open models (Flux dev, Wan, Qwen-Image) provide the most architectural detail but still withhold training data specifics.</p>
+</div>
+
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'default',
+  flowchart: { curve: 'monotoneX', padding: 15 },
+  themeVariables: { fontSize: '14px' }
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,341 @@
+<div class="system-section">
+  <div class="section-header">
+    <span class="company-badge badge-waymo">Waymo</span>
+    <h2>Autonomous Driving System <span class="subtitle">— Perception, prediction, and planning at 200M+ autonomous miles</span></h2>
+    <span class="toggle-icon">&#9660;</span>
+  </div>
+  <div class="section-content">
+
+    <!-- Architecture Diagram -->
+    <div class="subsection">
+      <h3>Architecture Overview</h3>
+      <p>The Waymo Driver is a modular-hybrid autonomous driving system built on a Foundation Model with a "Think Fast, Think Slow" (System 1 / System 2) architecture. A sensor fusion encoder handles real-time perception while a driving VLM (fine-tuned from Gemini) reasons about rare and complex scenarios. Large teacher models are distilled into efficient students for onboard deployment under 10ms latency.</p>
+      <p style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">Based on <a href="https://waymo.com/blog/2025/12/demonstrably-safe-ai-for-autonomous-driving/" target="_blank" style="color: var(--accent-cyan);">Demonstrably Safe AI for Autonomous Driving</a> and <a href="https://waymo.com/blog/2026/02/the-waymo-world-model-a-new-frontier-for-autonomous-driving-simulation/" target="_blank" style="color: var(--accent-cyan);">The Waymo World Model</a></p>
+      <div class="diagram-container">
+        <div class="mermaid">
+graph TD
+    subgraph Sensors["6th-Gen Sensor Suite"]
+        direction LR
+        CAM["13 Cameras<br/>17MP, HDR"]
+        LID["4 LiDARs<br/>360° FOV, 300m+"]
+        RAD["6 Radars<br/>Imaging, all-weather"]
+        EAR["Audio Receivers<br/>Siren detection"]
+    end
+
+    subgraph Foundation["Waymo Foundation Model"]
+        direction TB
+        subgraph Sys1["System 1: Think Fast"]
+            SFE["Sensor Fusion Encoder<br/>Camera + LiDAR + Radar over time"]
+            SFE --> OBJ["3D Objects + Semantics<br/>+ Rich Embeddings"]
+        end
+        subgraph Sys2["System 2: Think Slow"]
+            VLM["Driving VLM<br/>Fine-tuned from Gemini"]
+            VLM --> SEM["Complex Semantic Reasoning<br/>Novel/rare situations"]
+        end
+    end
+
+    subgraph Pipeline["Perception → Prediction → Planning"]
+        direction LR
+        PERC["Perception<br/>3D Detection, Tracking,<br/>Lane/Sign/Light"]
+        PRED["Prediction<br/>Multimodal Trajectory<br/>Forecasting (6-64 modes)"]
+        PLAN["Planning<br/>IL + RL Hybrid<br/>Trajectory Generation"]
+    end
+
+    subgraph Safety["Safety Architecture"]
+        direction LR
+        VAL["Onboard Validation Layer<br/>Independent trajectory verification"]
+        FALL["Deterministic Fallbacks<br/>Safety-critical path"]
+    end
+
+    subgraph Virtuous["Virtuous Cycle"]
+        direction TB
+        DRIVER["Waymo Driver"]
+        SIM["Waymo Simulator<br/>World Model / Genie 3"]
+        CRITIC["Waymo Critic<br/>Driving quality evaluation"]
+        DRIVER --> SIM --> CRITIC --> DRIVER
+    end
+
+    CAM --> SFE
+    LID --> SFE
+    RAD --> SFE
+    EAR --> SFE
+    CAM --> VLM
+
+    OBJ --> PERC
+    SEM --> PERC
+    PERC --> PRED --> PLAN
+
+    PLAN --> VAL
+    VAL --> FALL
+
+    subgraph Distill["Teacher-Student Distillation"]
+        direction LR
+        TEACH["Large Teacher Models<br/>Max quality, cloud-trained"]
+        STUD["Small Student Models<br/>Real-time onboard, &lt;10ms"]
+        TEACH -->|"Distill"| STUD
+    end
+
+    Foundation -.-> TEACH
+
+    style Sensors fill:#1c2333,stroke:#58a6ff,stroke-width:2px,color:#e6edf3
+    style Foundation fill:#1a1a2e,stroke:#bc8cff,stroke-width:2px,color:#e6edf3
+    style Sys1 fill:#1c2333,stroke:#3fb950,stroke-width:2px,color:#e6edf3
+    style Sys2 fill:#1c2333,stroke:#d29922,stroke-width:2px,color:#e6edf3
+    style Pipeline fill:#1c2333,stroke:#58a6ff,stroke-width:2px,color:#e6edf3
+    style Safety fill:#1c2333,stroke:#f85149,stroke-width:2px,color:#e6edf3
+    style Virtuous fill:#1c2333,stroke:#39d2c0,stroke-width:2px,color:#e6edf3
+    style Distill fill:#1c2333,stroke:#d29922,stroke-width:2px,color:#e6edf3
+        </div>
+      </div>
+    </div>
+
+    <!-- Sensor Suite & Perception -->
+    <div class="subsection">
+      <h3>Sensor Suite &amp; Perception</h3>
+      <p>The 6th-generation Waymo Driver achieves a 42% reduction in total sensors vs. 5th-gen while improving performance, at under $20K per unit. Overlapping fields of view cover up to 500 meters in all conditions.</p>
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Sensor</th>
+            <th>Count</th>
+            <th>Key Specs</th>
+            <th>Role in Perception</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Cameras</strong></td>
+            <td>13 (down from 29)</td>
+            <td>17MP imager, HDR, superior low-light</td>
+            <td>Texture, color, traffic lights, signs, lane markings</td>
+          </tr>
+          <tr>
+            <td><strong>LiDAR</strong></td>
+            <td>4 (down from 5)</td>
+            <td>360&deg; FOV, 300m+ range, cm-scale accuracy</td>
+            <td>3D geometry, precise depth, object detection regardless of appearance</td>
+          </tr>
+          <tr>
+            <td><strong>Radar</strong></td>
+            <td>6</td>
+            <td>Imaging radar, unprecedented resolution</td>
+            <td>Instantaneous velocity, all-weather robustness (rain/fog/snow)</td>
+          </tr>
+          <tr>
+            <td><strong>Audio (EARs)</strong></td>
+            <td>Array</td>
+            <td>External Audio Receivers</td>
+            <td>Emergency vehicle siren detection</td>
+          </tr>
+        </tbody>
+      </table>
+      <ul style="margin-top: 1rem;">
+        <li><strong>SWFormer (Sparse Window Transformer):</strong> Converts 3D LiDAR points into sparse voxels, processes with self-attention within spatial windows plus cross-window correlation. 73.4 L2 mAPH on Waymo Open Dataset.</li>
+        <li><strong>PVTransformer:</strong> Improved point-to-voxel aggregation achieving 76.1 L2 mAPH (+1.7 over SWFormer).</li>
+        <li><strong>Sensor Fusion Encoder (System 1):</strong> Rapidly fuses camera, LiDAR, and radar inputs over time into objects, semantics, and rich embeddings. Runs in real-time onboard.</li>
+        <li><strong>AutoML / NAS:</strong> Neural architecture search finds optimal quality-latency tradeoffs for onboard deployment.</li>
+      </ul>
+    </div>
+
+    <!-- Motion Forecasting -->
+    <div class="subsection">
+      <h3>Motion Forecasting</h3>
+      <p>Given the current scene (road geometry, traffic lights, agent histories), predict the future trajectories of all agents as multimodal distributions. Models produce 6-64 trajectory hypotheses per agent with associated probabilities.</p>
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Model</th>
+            <th>Architecture</th>
+            <th>Key Innovation</th>
+            <th>Finding</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>MultiPath++</strong></td>
+            <td>Multi-Context Gating (MCG)</td>
+            <td>Efficient fusion between agents and road elements; latent-space trajectory anchors</td>
+            <td>State-of-the-art on multiple benchmarks</td>
+          </tr>
+          <tr>
+            <td><strong>Scene Transformer</strong></td>
+            <td>Attention-based joint prediction</td>
+            <td>Predicts all agent trajectories jointly to capture interactions; supports conditioned prediction</td>
+            <td>Unified architecture for multi-agent forecasting</td>
+          </tr>
+          <tr>
+            <td><strong>Wayformer</strong></td>
+            <td>Multimodal attention family</td>
+            <td>Factorized attention + latent query attention (16x compression, no quality loss)</td>
+            <td>Early fusion, despite being simplest, achieves state-of-the-art</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Planning -->
+    <div class="subsection">
+      <h3>Planning &amp; Decision Making</h3>
+      <p>The planning system determines the ego vehicle's trajectory given perception outputs and predicted agent trajectories. Waymo combines imitation learning with reinforcement learning, validated by an independent onboard safety layer.</p>
+      <ul>
+        <li><strong>ChauffeurNet:</strong> Deep RNN trained via imitation learning on a bird's-eye-view representation. Trained on 30M+ expert driving examples. Key innovation: synthesizing perturbations (collisions, going off-road) to make IL robust.</li>
+        <li><strong>IL + RL Hybrid:</strong> RL fine-tuning on top of imitation learning achieves a 38% reduction in safety events on the most difficult scenarios. Trained on 100K+ miles of real-world urban driving data.</li>
+        <li><strong>Scaling Laws:</strong> Planning performance improves as a power-law function of compute. Unlike LLMs, optimal AV models are relatively smaller in size but require significantly more data — model size scales 1.5x faster than dataset size.</li>
+        <li><strong>Onboard Validation:</strong> An independent validation layer verifies ML-generated trajectories before execution, with deterministic fallbacks for safety-critical situations.</li>
+      </ul>
+    </div>
+
+    <!-- EMMA -->
+    <div class="subsection">
+      <h3>EMMA: End-to-End Multimodal Model</h3>
+      <p>Built on Gemini, EMMA takes raw camera images and text inputs and outputs trajectories, 3D detections, and road graph elements — all as natural language text tokens. A research model exploring the end-to-end frontier.</p>
+      <ul>
+        <li><strong>Chain-of-thought reasoning:</strong> 6.7% improvement in planning performance by letting the model reason before acting.</li>
+        <li><strong>Joint training:</strong> Training on planning + perception + road graph understanding simultaneously improves all tasks vs. training individual models.</li>
+        <li><strong>Current limitations:</strong> Camera-only (no LiDAR/radar), processes limited frames, computationally expensive — not yet suitable for real-time onboard inference.</li>
+        <li><strong>Strategic role:</strong> Research vehicle for pushing performance boundaries; insights feed back into the modular production system.</li>
+      </ul>
+    </div>
+
+    <!-- World Model & Simulation -->
+    <div class="subsection">
+      <h3>World Model &amp; Simulation</h3>
+      <p>Built on Google DeepMind's Genie 3, the Waymo World Model generates photorealistic, controllable, multi-sensor driving scenes at scale — including scenarios impossible to capture in reality. The fleet drives ~20 million simulated miles per day.</p>
+      <ul>
+        <li><strong>Multi-sensor generation:</strong> Jointly produces temporally consistent camera imagery and LiDAR point clouds aligned with Waymo's real sensor stack — no domain gap.</li>
+        <li><strong>Driving action control:</strong> Run "what if" counterfactual scenarios to test whether the Waymo Driver could have driven more confidently on alternative routes.</li>
+        <li><strong>Scene layout control:</strong> Customize road geometry, traffic signal states, and other road user behavior through selective placement and layout mutations.</li>
+        <li><strong>Language control:</strong> Adjust time-of-day, weather, or generate entirely synthetic scenes via natural language prompts (dawn/morning/noon/afternoon/evening/night; cloudy/foggy/rainy/snowy/sunny).</li>
+        <li><strong>Long-tail generation:</strong> Synthesizes never-before-seen conditions — tornadoes, floods, elephants, T-rex costumes, car-sized tumbleweeds — by transferring world knowledge from 2D video pre-training into 3D LiDAR outputs.</li>
+      </ul>
+    </div>
+
+    <!-- Scale -->
+    <div class="subsection">
+      <h3>Scale &amp; Infrastructure</h3>
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Real-world autonomous miles</strong></td>
+            <td>200M+ fully autonomous on public roads</td>
+          </tr>
+          <tr>
+            <td><strong>Simulation miles</strong></td>
+            <td>15B+ total; ~20M miles/day</td>
+          </tr>
+          <tr>
+            <td><strong>Driving data corpus</strong></td>
+            <td>500,000+ hours of driving data</td>
+          </tr>
+          <tr>
+            <td><strong>Data rate per vehicle</strong></td>
+            <td>Up to 1.8 TB/hour</td>
+          </tr>
+          <tr>
+            <td><strong>Onboard inference latency</strong></td>
+            <td>&lt;10ms for most neural nets</td>
+          </tr>
+          <tr>
+            <td><strong>Sensor suite cost (6th-gen)</strong></td>
+            <td>&lt;$20K (50%+ reduction from 5th-gen)</td>
+          </tr>
+          <tr>
+            <td><strong>Safety record (56.7M miles)</strong></td>
+            <td>84% fewer airbag-deployment crashes, 73% fewer injury crashes vs. humans</td>
+          </tr>
+          <tr>
+            <td><strong>Paid rides per week</strong></td>
+            <td>~400K (targeting 1M by end of 2026)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Key Design Decisions -->
+    <div class="subsection">
+      <h3>Key Design Decisions</h3>
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Decision</th>
+            <th>Chosen Approach</th>
+            <th>Alternative</th>
+            <th>Rationale</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Architecture</strong></td>
+            <td>Modular-hybrid: Foundation Model trained end-to-end, deployed in modular structure with safety layers</td>
+            <td>Monolithic end-to-end (Tesla FSD)</td>
+            <td>"A monolithic architecture makes it easy to get started, but is wildly inadequate for safe, at-scale full autonomy" — Dmitri Dolgov. Modular allows independent testing, debugging, and safety certification per component.</td>
+          </tr>
+          <tr>
+            <td><strong>Sensor suite</strong></td>
+            <td>LiDAR + cameras + radar + audio (multi-sensor fusion)</td>
+            <td>Camera-only (Tesla)</td>
+            <td>LiDAR provides cm-scale 3D accuracy; radar sees through rain/fog/snow; redundant sensing critical for safety. Cost reduced to &lt;$20K (6th-gen). Disengagement rate 0.0004/mile vs. higher for camera-only.</td>
+          </tr>
+          <tr>
+            <td><strong>Planning training</strong></td>
+            <td>Imitation learning + RL fine-tuning</td>
+            <td>Pure imitation learning</td>
+            <td>IL alone is brittle in edge cases. RL fine-tuning on safety-critical scenarios yields 38% reduction in safety events on the hardest scenarios.</td>
+          </tr>
+          <tr>
+            <td><strong>Onboard deployment</strong></td>
+            <td>Teacher-student distillation with NAS</td>
+            <td>Deploy full-size models with powerful hardware</td>
+            <td>Distillation achieves large-model quality at small-model latency (&lt;10ms). NAS finds Pareto-optimal quality-latency architectures. Better scaling laws for distilled students.</td>
+          </tr>
+          <tr>
+            <td><strong>Long-tail handling</strong></td>
+            <td>Generative world model (Genie 3) + VLM reasoning (System 2)</td>
+            <td>Collect more real-world data</td>
+            <td>Rare events (&lt;0.03% frequency) are impractical to capture at scale. World Model synthesizes arbitrary scenarios; VLM transfers internet-scale world knowledge to understand novel objects/situations.</td>
+          </tr>
+          <tr>
+            <td><strong>Simulation fidelity</strong></td>
+            <td>Generative world model producing real sensor outputs (camera + LiDAR)</td>
+            <td>Physics-based simulation (Carcraft)</td>
+            <td>Generative model eliminates sim-to-real domain gap — downstream autonomy systems consume simulation like real sensor logs. Language-controllable for rapid scenario iteration.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Interview Talking Points -->
+    <div class="subsection">
+      <div class="talking-points">
+        <h4>Interview Talking Points</h4>
+        <ul>
+          <li><strong>Modular-hybrid beats pure end-to-end for safety-critical systems:</strong> Waymo trains a Foundation Model end-to-end for representation quality, but deploys it in a modular structure with an independent validation layer. This enables per-component testing, failure attribution, and deterministic fallbacks — essential for a system where errors cost lives, not just user experience.</li>
+          <li><strong>Multi-sensor fusion provides irreplaceable redundancy:</strong> LiDAR gives cm-scale depth that monocular cameras cannot match; radar provides instantaneous velocity and sees through weather; cameras capture texture and semantics. The 6th-gen system proves cost is solvable (&lt;$20K, 42% fewer sensors) — the safety margin is not. Disengagement rate of 0.0004/mile speaks for itself.</li>
+          <li><strong>Teacher-student distillation is the deployment strategy:</strong> Train the largest, most accurate teacher models in the cloud, then distill to small students that run onboard in &lt;10ms. This decouples model quality from inference latency — you can keep scaling teachers without redesigning the onboard stack. NAS further optimizes the quality-latency Pareto front.</li>
+          <li><strong>Scaling laws for AV differ from LLMs:</strong> Waymo showed planning performance follows power-law scaling, but optimal AV models are relatively smaller and need much more data than LLMs. Model size scales 1.5x faster than dataset size. This insight shapes compute allocation: invest more in data diversity and coverage than raw model parameters.</li>
+          <li><strong>World models solve the long-tail simulation problem:</strong> Rare events (&lt;0.03% frequency) are the hardest to handle but most dangerous. The Waymo World Model (built on Genie 3) generates photorealistic multi-sensor scenarios — including physically impossible conditions (snow on Golden Gate Bridge, elephants on highways) — with zero sim-to-real domain gap because it outputs real sensor formats.</li>
+          <li><strong>The virtuous cycle is the competitive moat:</strong> Driver, Simulator, and Critic share the same Foundation Model. Real-world driving feeds data mining, which feeds simulation, which feeds training, which improves the driver. 200M+ real miles and 15B+ sim miles create a flywheel competitors cannot easily replicate.</li>
+          <li><strong>RL on top of IL is the planning breakthrough:</strong> Pure imitation learning is brittle at the edges — the model has never seen the expert recover from near-collisions it was never in. RL fine-tuning on safety-critical scenarios yields a 38% reduction in safety events. ChauffeurNet's innovation of synthesizing perturbations during IL training addresses the same insight from a data perspective.</li>
+          <li><strong>EMMA shows where end-to-end is heading:</strong> Building on Gemini, EMMA achieves 6.7% planning improvement through chain-of-thought reasoning and proves joint training helps all tasks. But it's camera-only, processes few frames, and is too expensive for real-time — showing why the modular-hybrid approach remains necessary for production while E2E research advances.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Sources -->
+    <div class="sources">
+      <strong style="color: var(--text-muted); font-size: 0.8rem;">Sources:</strong><br>
+      <a href="https://waymo.com/blog/2025/12/demonstrably-safe-ai-for-autonomous-driving/" target="_blank">Waymo — Demonstrably Safe AI for Autonomous Driving (Dec 2025)</a>
+      <a href="https://waymo.com/blog/2026/02/the-waymo-world-model-a-new-frontier-for-autonomous-driving-simulation/" target="_blank">Waymo — The Waymo World Model (Feb 2026)</a>
+      <a href="https://waymo.com/blog/2024/10/introducing-emma" target="_blank">Waymo — Introducing EMMA (Oct 2024)</a>
+      <a href="https://waymo.com/blog/2025/06/scaling-laws-in-autonomous-driving" target="_blank">Waymo — Scaling Laws in Autonomous Driving (Jun 2025)</a>
+      <a href="https://waymo.com/blog/2024/08/meet-the-6th-generation-waymo-driver/" target="_blank">Waymo — Meet the 6th-Generation Waymo Driver (Aug 2024)</a>
+    </div>
+
+  </div>
+</div>

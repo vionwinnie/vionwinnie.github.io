@@ -1,0 +1,215 @@
+<div class="system-section">
+  <div class="section-header">
+    <span class="company-badge badge-langchain">LangChain</span>
+    <h2>Agent Design Patterns <span class="subtitle">— Context engineering for long-running autonomous agents</span></h2>
+    <span class="toggle-icon">&#9660;</span>
+  </div>
+  <div class="section-content">
+
+    <!-- Architecture Diagram -->
+    <div class="subsection">
+      <h3>Architecture Overview</h3>
+      <p>As agents tackle longer tasks, model performance degrades with expanded context windows. This drives a core principle: context must be treated as a finite resource with diminishing marginal returns. These design patterns — drawn from Claude Code ($1B run rate), Manus ($2B acquisition), and other production agents — show how to strategically populate the context window with only essential information for the agent's immediate next step.</p>
+      <p style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">Based on <a href="https://rlancemartin.github.io/2026/01/09/agent_design/" target="_blank" style="color: var(--accent-cyan);">Agent Design Patterns</a> by Lance Martin (Jan 2026)</p>
+    </div>
+
+    <!-- Seven Design Patterns -->
+    <div class="subsection">
+      <h3>Seven Agent Design Patterns</h3>
+      <p>These patterns address the central challenge of context engineering — getting the right information into the context window at the right time, while keeping it lean enough for high-quality reasoning.</p>
+
+      <div class="pattern-diagrams">
+        <div class="pattern-card">
+          <img src="assets/agent-design/llm_computer.png" alt="Give Agents a Computer — OS-layer access">
+          <div class="pattern-label">1. Give Agents a Computer</div>
+        </div>
+        <div class="pattern-card">
+          <img src="assets/agent-design/action_space.png" alt="Multi-Layer Action Space — hierarchical tools">
+          <div class="pattern-label">2. Multi-Layer Action Space</div>
+        </div>
+        <div class="pattern-card">
+          <img src="assets/agent-design/disclosure.png" alt="Progressive Disclosure — on-demand tool retrieval">
+          <div class="pattern-label">3. Progressive Disclosure</div>
+        </div>
+        <div class="pattern-card">
+          <img src="assets/agent-design/offload_summarize.png" alt="Offload Context — filesystem storage">
+          <div class="pattern-label">4a. Offload Context (Summarization)</div>
+        </div>
+        <div class="pattern-card">
+          <img src="assets/agent-design/tool_offload.png" alt="Offload Context — tool result offloading">
+          <div class="pattern-label">4b. Offload Context (Tool Results)</div>
+        </div>
+        <div class="pattern-card">
+          <img src="assets/agent-design/cache.png" alt="Cache Context — prompt caching">
+          <div class="pattern-label">5. Cache Context</div>
+        </div>
+        <div class="pattern-card">
+          <img src="assets/agent-design/sub_agent.png" alt="Isolate Context — sub-agent delegation">
+          <div class="pattern-label">6a. Isolate Context (Sub-Agents)</div>
+        </div>
+        <div class="pattern-card">
+          <img src="assets/agent-design/ralph.png" alt="Isolate Context — Ralph Wiggum loop pattern">
+          <div class="pattern-label">6b. Isolate Context (Ralph Wiggum Loop)</div>
+        </div>
+        <div class="pattern-card">
+          <img src="assets/agent-design/reflect.png" alt="Evolve Context — trajectory reflection">
+          <div class="pattern-label">7. Evolve Context</div>
+        </div>
+      </div>
+
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Pattern</th>
+            <th>Core Idea</th>
+            <th>How It Works</th>
+            <th>Example</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Give Agents a Computer</strong></td>
+            <td>OS-layer access (filesystem + shell)</td>
+            <td>Agents interact with the operating system via CLI, gaining persistent storage and executable capabilities beyond isolated tool sets</td>
+            <td>Claude Code, Manus — agents that write, execute, and iterate on code directly</td>
+          </tr>
+          <tr>
+            <td><strong>Multi-Layer Action Space</strong></td>
+            <td>Hierarchical tools instead of flat tool lists</td>
+            <td>6-20 atomic tool definitions at the top layer; complex workflows executed via shell/code at the computer layer (CodeAct pattern)</td>
+            <td>Agent calls a "run_code" tool that executes a script invoking dozens of APIs, avoiding intermediate tool result bloat</td>
+          </tr>
+          <tr>
+            <td><strong>Progressive Disclosure</strong></td>
+            <td>Reveal information on demand, not upfront</td>
+            <td>Tool indexing retrieves definitions on demand; skill folders store detailed docs agents access selectively; agents call --help flags when needed</td>
+            <td>Cursor Agent syncs MCP tool descriptions to folders, providing abbreviated lists with full docs retrievable on demand</td>
+          </tr>
+          <tr>
+            <td><strong>Offload Context</strong></td>
+            <td>Write old results to filesystem storage</td>
+            <td>Agent writes tool results and trajectories to files. Plans stored as files and periodically reloaded to reinforce objectives. Selective summarization only when offloading value diminishes</td>
+            <td>Agent writes intermediate research findings to scratch files, reads them back when synthesizing final answer</td>
+          </tr>
+          <tr>
+            <td><strong>Cache Context</strong></td>
+            <td>Prompt caching changes agent economics</td>
+            <td>Resume from cached prefixes instead of replaying linear chat history. Manus identified cache hit rate as the most critical production metric. Without caching, coding agents become economically prohibitive</td>
+            <td>Higher-capacity model with caching can cost less than lower-capacity model without caching</td>
+          </tr>
+          <tr>
+            <td><strong>Isolate Context</strong></td>
+            <td>Sub-agents with independent context windows</td>
+            <td>Each sub-agent has its own context, tools, and instructions. Enables parallelizable tasks and long-running sequential loops. Git-backed coordination communicates progress across instances</td>
+            <td>"Ralph Wiggum" pattern: sequential agents each tackle one discrete plan item, coordinating via git history</td>
+          </tr>
+          <tr>
+            <td><strong>Evolve Context</strong></td>
+            <td>Continual learning in token space</td>
+            <td>Analyze past sessions, extract learnings, update master documentation. Diary-based memory distills sessions into concise entries. Skill extraction saves reusable procedures as new skills</td>
+            <td>GEPA framework: collect trajectories, score outcomes, refine prompt variants over time</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Context Engineering Deep Dive -->
+    <div class="subsection">
+      <h3>Context Engineering Deep Dive</h3>
+      <p>The fundamental insight: context engineering is not prompt engineering. It is the discipline of building systems that populate the context window with exactly the right information at each step of agent execution.</p>
+      <ul>
+        <li><strong>Finite Resource Model:</strong> Context windows have diminishing marginal returns — adding more information beyond a threshold actively degrades performance. Every token in the window must earn its place.</li>
+        <li><strong>CodeAct Pattern:</strong> Instead of processing intermediate tool results in context, agents execute code that captures only final outputs. This avoids context bloat from verbose API responses and lets agents compose, loop, and branch over tool calls in code.</li>
+        <li><strong>Cache Hit Rate as North Star:</strong> Manus identified prompt cache hit rate as the single most important metric for production agent economics. High cache hit rates make high-capability models affordable; low hit rates make even cheap models expensive at scale.</li>
+        <li><strong>Selective Summarization:</strong> Not all context should be summarized — compress only when the cost of keeping full context exceeds the information loss from summarization. Plans and critical decisions should be preserved verbatim.</li>
+        <li><strong>File-Backed Memory:</strong> The filesystem serves as an external memory bank. Agents write plans, intermediate results, and learnings to files, then selectively read them back. This decouples memory capacity from context window size.</li>
+      </ul>
+    </div>
+
+    <!-- Emerging Frontiers -->
+    <div class="subsection">
+      <h3>Emerging Frontiers</h3>
+      <ul>
+        <li><strong>Learned Context Management:</strong> Instead of hand-crafted compression strategies, models may learn their own context management. Recursive Language Models (RLM) suggest LLMs could absorb scaffolding currently embedded in agent harnesses. Sleep-time compute enables agents to reflect offline, consolidating memories without explicit prompting.</li>
+        <li><strong>Multi-Agent Coordination at Scale:</strong> Scaling to concurrent agent swarms introduces shared-context and conflict-resolution challenges. Gas Town demonstrates coordination using git-backed tracking, a specialized "Mayor" agent maintaining workspace context, and merge queues for parallel work.</li>
+        <li><strong>Infrastructure for Long-Running Agents:</strong> Production requirements include observability into agent behavior, human-review hooks, graceful degradation frameworks, standardized debugging interfaces, and human-in-the-loop monitoring — most of which remain immature.</li>
+      </ul>
+    </div>
+
+    <!-- Key Design Decisions -->
+    <div class="subsection">
+      <h3>Key Design Decisions</h3>
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Decision</th>
+            <th>Chosen Approach</th>
+            <th>Alternative</th>
+            <th>Rationale</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Agent-computer interface</strong></td>
+            <td>OS-level access (filesystem + shell)</td>
+            <td>Sandboxed tool-only access</td>
+            <td>OS access provides persistent storage, executable capabilities, and scales to arbitrary workflows. Tool-only access limits agents to predefined actions.</td>
+          </tr>
+          <tr>
+            <td><strong>Action space design</strong></td>
+            <td>Multi-layer: minimal tools + computer layer</td>
+            <td>Flat list of all available tools</td>
+            <td>Dozens of tool definitions pollute context. A hierarchical action space keeps the prompt lean while enabling complex workflows via code execution.</td>
+          </tr>
+          <tr>
+            <td><strong>Information loading</strong></td>
+            <td>Progressive disclosure (retrieve on demand)</td>
+            <td>Load all tool/context upfront</td>
+            <td>Upfront loading wastes context on information the agent may never need. On-demand retrieval keeps context focused on the current subtask.</td>
+          </tr>
+          <tr>
+            <td><strong>Memory architecture</strong></td>
+            <td>File-backed offloading + selective recall</td>
+            <td>Keep everything in context window</td>
+            <td>Context windows are finite with diminishing returns. Filesystem storage provides unlimited capacity; selective recall retrieves only what's relevant.</td>
+          </tr>
+          <tr>
+            <td><strong>Cost optimization</strong></td>
+            <td>Prompt caching with cache hit rate as KPI</td>
+            <td>Use cheaper models to reduce cost</td>
+            <td>A high-capability model with high cache hit rate can cost less than a low-capability model without caching, while producing better results.</td>
+          </tr>
+          <tr>
+            <td><strong>Multi-agent coordination</strong></td>
+            <td>Isolated contexts + git-backed coordination</td>
+            <td>Shared context window across agents</td>
+            <td>Isolated contexts prevent cross-contamination and enable parallelism. Git provides durable, auditable coordination without shared-state complexity.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Interview Talking Points -->
+    <div class="subsection">
+      <div class="talking-points">
+        <h4>Interview Talking Points</h4>
+        <ul>
+          <li><strong>Context is a finite resource with diminishing returns:</strong> Adding more information to the context window eventually degrades performance. The core skill of agent design is curating what goes in — not maximizing what goes in. This principle drives every pattern in this section.</li>
+          <li><strong>Give agents a computer, not just tools:</strong> The most successful agents (Claude Code, Manus) interact at the OS layer — filesystem for persistence, shell for execution. This is fundamentally different from giving an LLM a list of API tools. It enables agents to write their own tools, store intermediate results, and compose arbitrary workflows.</li>
+          <li><strong>Multi-layer action spaces prevent context pollution:</strong> Instead of loading 50+ tool definitions into context, use 6-20 atomic tools at the top layer and let the agent execute complex workflows via code at the computer layer. The CodeAct pattern avoids processing verbose intermediate results by capturing only final outputs.</li>
+          <li><strong>Cache hit rate is the most important production metric:</strong> Manus found that prompt cache hit rate determines agent economics more than model choice. High cache hit rates make powerful models affordable; without caching, even coding agents become economically prohibitive. Design your agent's prompt structure to maximize cache hits.</li>
+          <li><strong>Progressive disclosure keeps context lean:</strong> Don't load all tool definitions and documentation upfront. Use tool indexing, skill folders, and help flags to let agents retrieve information on demand. This mirrors how human developers work — you don't read every man page before starting a task.</li>
+          <li><strong>Evolving context is the path to continual improvement:</strong> Agents that reflect on past trajectories, extract reusable skills, and update master documentation improve over time without retraining. This operates in "token space" — updating what goes into context rather than updating model weights.</li>
+          <li><strong>Multi-agent coordination is an unsolved problem at scale:</strong> Isolated context windows with git-backed coordination works for small agent teams, but scaling to concurrent swarms requires new infrastructure — observability, merge queues, human-review hooks, and graceful degradation. This is an active area of research worth flagging in an interview.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Sources -->
+    <div class="sources">
+      <strong style="color: var(--text-muted); font-size: 0.8rem;">Sources:</strong><br>
+      <a href="https://rlancemartin.github.io/2026/01/09/agent_design/" target="_blank">Lance Martin — Agent Design Patterns (Jan 2026)</a>
+    </div>
+
+  </div>
+</div>

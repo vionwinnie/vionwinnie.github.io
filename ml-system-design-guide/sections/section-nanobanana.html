@@ -1,0 +1,208 @@
+<div class="system-section">
+  <div class="section-header">
+    <span class="company-badge badge-google">DeepMind</span>
+    <h2>Nano Banana — Gemini Image <span class="subtitle">— Reasoning-first image generation with autoregressive + diffusion hybrid</span></h2>
+    <span class="toggle-icon">&#9660;</span>
+  </div>
+  <div class="section-content">
+
+    <!-- Architecture Diagram -->
+    <div class="diagram-container">
+      <div class="mermaid">
+graph TD
+    subgraph NanoBanana["Nano Banana Pipeline — Reasoning-First Generation"]
+        direction TB
+
+        PROMPT["Text Prompt"] --> GEMINI["Gemini LLM Backbone<br/>(Multimodal Transformer)"]
+
+        subgraph Think["'Think' Phase — Scene Planning"]
+            GEMINI --> REASON["Reasoning Core"]
+            REASON --> PHYSICS["Physics &amp; Gravity<br/>Simulation"]
+            REASON --> SPATIAL["Spatial Layout &amp;<br/>Composition Planning"]
+            REASON --> TEXTPLAN["Text Rendering<br/>Layout &amp; Glyph Planning"]
+            REASON --> WORLD["World Knowledge<br/>(Object Appearance, Materials)"]
+        end
+
+        PHYSICS --> PLAN["Unified Scene Plan"]
+        SPATIAL --> PLAN
+        TEXTPLAN --> PLAN
+        WORLD --> PLAN
+
+        subgraph AutoReg["Autoregressive Token Generation"]
+            PLAN --> TOK1["Image Token 1"]
+            TOK1 --> TOK2["Image Token 2"]
+            TOK2 --> TOK3["Image Token 3"]
+            TOK3 --> TOKN["Image Token N"]
+            TOK1 -.-> |"Each token is<br/>context-aware of<br/>prior tokens"| TOKN
+        end
+
+        subgraph DiffHead["Diffusion Head — High-Fidelity Rendering"]
+            TOKN --> DIFF["Diffusion Decoder"]
+            DIFF --> DENOISE["Iterative Denoising<br/>(Conditioned on<br/>Planned Tokens)"]
+            DENOISE --> PIXELS["Pixel Synthesis"]
+        end
+
+        PIXELS --> OUTPUT["Output Image<br/>Native 2K / 4K"]
+    end
+
+    subgraph Traditional["Traditional Diffusion Pipeline (e.g., Stable Diffusion)"]
+        direction TB
+        TPROMPT["Text Prompt"] --> CLIP["CLIP Text Encoder"]
+        CLIP --> NOISE["Random Gaussian Noise"]
+        NOISE --> UNET["U-Net Iterative Denoising<br/>(No scene planning)"]
+        UNET --> TDEC["VAE Decoder"]
+        TDEC --> TIMG["Output Image<br/>(Often requires upscaling)"]
+    end
+
+    subgraph Comparison["Key Differences"]
+        D1["Nano Banana: Reasons THEN renders"]
+        D2["Diffusion-only: Denoises noise directly"]
+        D3["Nano Banana: Accurate text in images"]
+        D4["Diffusion-only: Struggles with text"]
+    end
+
+    style NanoBanana fill:#1a2233,stroke:#bc8cff,stroke-width:2px,color:#e6edf3
+    style Think fill:#1a2a22,stroke:#3fb950,stroke-width:2px,color:#e6edf3
+    style AutoReg fill:#1a2744,stroke:#58a6ff,stroke-width:2px,color:#e6edf3
+    style DiffHead fill:#2a1a22,stroke:#f85149,stroke-width:2px,color:#e6edf3
+    style Traditional fill:#2a2219,stroke:#d29922,stroke-width:2px,color:#e6edf3
+    style Comparison fill:#1a2233,stroke:#8b949e,stroke-width:2px,color:#e6edf3
+      </div>
+    </div>
+
+    <!-- Problem Statement -->
+    <div class="subsection">
+      <h3>Problem Statement</h3>
+      <p>
+        Build an image generation system that produces photorealistic, physically accurate images with
+        flawless text rendering, conversational editing capabilities, and native high-resolution output.
+        The system must understand the <em>semantics</em> of what it generates — not just pixel-level
+        patterns — enabling it to reason about physics, spatial relationships, material properties,
+        and causal logic before committing to pixel generation. It must also support multi-turn
+        conversational image editing: users upload an image and describe modifications in natural language.
+      </p>
+      <p>
+        <strong>Core ML tasks:</strong> (1) Autoregressive scene planning using an LLM backbone,
+        (2) Sequential image token generation with full context awareness,
+        (3) High-fidelity diffusion-based rendering conditioned on the planned token representation,
+        (4) Conversational image understanding and editing via multimodal input/output.
+      </p>
+    </div>
+
+    <!-- Architecture Overview -->
+    <div class="subsection">
+      <h3>Architecture Overview</h3>
+      <ul>
+        <li><strong>Gemini LLM Backbone:</strong> Unlike standalone diffusion models (Stable Diffusion, DALL-E 2), Nano Banana is built directly on the Gemini multimodal transformer. The same model that understands language, code, and images also generates images. This means the image generator inherits world knowledge, reasoning ability, and multimodal understanding — it knows what a "1960s diner at golden hour" looks like because it has learned from vast multimodal data.</li>
+        <li><strong>"Think" Phase — Scene Planning:</strong> Before any pixels are generated, Nano Banana's reasoning core plans the scene. It evaluates physics (how light reflects off surfaces, how gravity affects objects), spatial layout (composition, perspective, depth ordering), text rendering (glyph shapes, font spacing, placement), and world knowledge (what objects actually look like). In Nano Banana Pro, this thinking step is mandatory and cannot be disabled.</li>
+        <li><strong>Autoregressive Image Token Generation:</strong> The text encoder not only processes the prompt but generates autoregressive image tokens that feed the image decoder. Each successive token is generated with full awareness of all previously generated tokens. This is the key architectural innovation: because generation is sequential and context-aware, each sub-region of the image can be distinct and coherent with the rest — unlike diffusion models that denoise all regions simultaneously from random noise.</li>
+        <li><strong>Diffusion Head:</strong> The planned autoregressive tokens are converted into high-fidelity pixels by a diffusion decoder. This component handles the fine-grained visual details — textures, lighting gradients, sharp edges — that autoregressive token generation alone cannot capture at sufficient quality. The diffusion process is conditioned on the token plan, making it far more directed than unconditional noise-to-image denoising.</li>
+        <li><strong>Native High Resolution:</strong> Nano Banana outputs native 2K resolution; Nano Banana Pro outputs native 4K. This is achieved without post-hoc upscaling, meaning the model generates high-resolution detail directly rather than hallucinating detail during a super-resolution step.</li>
+        <li><strong>Conversational Image Editing:</strong> Because the system is built on a multimodal LLM, it natively supports multi-turn conversations. Users can upload an image and describe changes ("make the sky more dramatic," "add a coffee cup to the table"), and the model understands both the existing image content and the requested modifications through the same reasoning pipeline.</li>
+      </ul>
+    </div>
+
+    <!-- Product Evolution -->
+    <div class="subsection">
+      <h3>Product Evolution</h3>
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Version</th>
+            <th>Model</th>
+            <th>Date</th>
+            <th>Key Advances</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Nano Banana</strong></td>
+            <td>Gemini 2.5 Flash Image</td>
+            <td>Aug 2025</td>
+            <td>First release; appeared anonymously on Arena and went viral for photorealistic "3D figurine" images. Native 2K resolution. Demonstrated reasoning-first generation was viable at scale.</td>
+          </tr>
+          <tr>
+            <td><strong>Nano Banana Pro</strong></td>
+            <td>Gemini 3 Pro Image</td>
+            <td>Nov 2025</td>
+            <td>Improved text rendering and world knowledge. Native 4K output. Under 10 seconds generation time. Mandatory "thinking" before generation (cannot be disabled). Significant leap in prompt adherence.</td>
+          </tr>
+          <tr>
+            <td><strong>Nano Banana 2</strong></td>
+            <td>Gemini 3.1 Flash Image</td>
+            <td>Feb 2026</td>
+            <td>Pro-level quality at Flash-tier speed. Democratized high-quality generation by matching Pro capabilities on a more efficient architecture.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Key Design Decisions -->
+    <div class="subsection">
+      <h3>Key Design Decisions</h3>
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Decision</th>
+            <th>Why</th>
+            <th>Tradeoff</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Autoregressive + diffusion hybrid</strong> over pure diffusion</td>
+            <td>Autoregressive planning provides sequential, context-aware token generation — each part of the image "knows" about the rest. The diffusion head then converts this coherent plan into high-fidelity pixels. This solves the fundamental limitation of pure diffusion: denoising all regions simultaneously from random noise without global awareness.</td>
+            <td>Autoregressive generation is inherently sequential, adding latency compared to fully parallel diffusion. Mitigated by the Flash architecture (Nano Banana 2) achieving competitive generation times, and the quality gains are substantial enough to justify the cost.</td>
+          </tr>
+          <tr>
+            <td><strong>Reasoning before rendering</strong> (mandatory "think" phase)</td>
+            <td>Planning scene composition, physics, and text layout before pixel generation prevents errors that are impossible to fix during denoising. A diffusion model that generates a misspelled word cannot correct it mid-generation; Nano Banana plans the text layout first, then renders it.</td>
+            <td>Adds computational overhead and latency for the reasoning step. In Nano Banana Pro, thinking cannot be disabled — even for simple prompts. This is a deliberate quality-over-speed choice, reflecting DeepMind's bet that users prefer slower, correct output over faster, flawed output.</td>
+          </tr>
+          <tr>
+            <td><strong>LLM backbone for image generation</strong> vs. standalone image model</td>
+            <td>Building on Gemini gives the image generator access to vast world knowledge, language understanding, and reasoning capabilities for free. The model inherently understands what "Art Deco architecture" or "subsurface light scattering in jade" looks like because the LLM backbone has learned these concepts from multimodal data.</td>
+            <td>Tightly couples image generation to the LLM — updates to the language model affect image quality and vice versa. The model is also significantly larger and more expensive to serve than a standalone diffusion model like Stable Diffusion. However, the shared backbone enables conversational editing and multi-turn interaction that standalone models cannot provide.</td>
+          </tr>
+          <tr>
+            <td><strong>Text rendering accuracy</strong> as a first-class design priority</td>
+            <td>Accurate text in images is one of the most requested and most failed capabilities in image generation. Diffusion models notoriously produce garbled, misspelled, or misshapen text because they lack character-level planning. By making text layout part of the reasoning phase, Nano Banana treats text as a semantic element, not just pixel patterns.</td>
+            <td>Requires dedicated text layout planning in the reasoning core, adding complexity. But text rendering is a high-signal quality differentiator — users immediately notice when text is wrong, making this a high-ROI investment.</td>
+          </tr>
+          <tr>
+            <td><strong>Native high resolution</strong> (2K/4K) vs. generate-then-upscale</td>
+            <td>Upscaling models (e.g., Real-ESRGAN) hallucinate detail that may not be consistent with the original image intent. Native high-resolution generation ensures every detail was planned by the reasoning core and is consistent with the scene plan.</td>
+            <td>Dramatically more compute per image generation. Native 4K has 4x the pixels of 2K, requiring proportionally more tokens and diffusion steps. Justified by the quality difference — upscaled artifacts are a common complaint with competing systems.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Interview Talking Points -->
+    <div class="subsection">
+      <div class="talking-points">
+        <h4>Interview Talking Points</h4>
+        <ul>
+          <li><strong>Autoregressive + diffusion hybrid architecture:</strong> The central insight is decomposing image generation into two complementary stages: (1) autoregressive token planning for global coherence and semantic correctness, and (2) diffusion-based rendering for local pixel fidelity. This mirrors how humans create images — sketching composition before adding detail. In an interview, connect this to the broader trend of "System 2" thinking in AI: slower, deliberate planning produces better results than fast, reactive generation.</li>
+          <li><strong>Why diffusion models fail at text:</strong> Pure diffusion models denoise all pixels simultaneously from random noise. They have no concept of "this region is the letter A" — they only learn statistical pixel correlations. Nano Banana solves this by planning text layout during the reasoning phase (knowing character shapes, spacing, and font properties) before the diffusion head renders the planned glyphs. This is a concrete example of how architectural choices solve specific failure modes.</li>
+          <li><strong>LLM as image generator — the "foundation model" bet:</strong> Rather than training a separate image model, DeepMind built image generation into the Gemini backbone. This is a strong architectural opinion: multimodal understanding and generation should share the same learned representation. Discuss the implications — the model can generate an image of "the Eiffel Tower during its 1889 inauguration" because the LLM knows what the Eiffel Tower looked like in 1889, not just what it looks like in modern photos.</li>
+          <li><strong>Sequential vs. parallel generation:</strong> Autoregressive generation is inherently sequential (each token depends on prior tokens), while diffusion denoises all regions in parallel. This is a latency vs. quality tradeoff. Nano Banana 2 (Flash) demonstrates that architectural efficiency can close the speed gap while retaining the quality benefits of sequential planning. Discuss how this parallels the latency-quality tradeoff in LLM serving (larger models are slower but better).</li>
+          <li><strong>Mandatory reasoning ("thinking cannot be disabled"):</strong> Nano Banana Pro forces the model to reason before generating, even for simple prompts. This is a product design decision disguised as an architecture decision — by removing the option to skip reasoning, DeepMind ensures consistent output quality at the cost of minimum latency. Compare this to how chain-of-thought prompting in LLMs improves accuracy at the cost of additional tokens.</li>
+          <li><strong>Conversational image editing as a moat:</strong> Because Nano Banana is built on a multimodal LLM, it natively supports multi-turn editing: "make the sky more dramatic," "now add a reflection in the water." Standalone diffusion models require separate image-to-image pipelines (ControlNet, InstructPix2Pix) bolted on after the fact. This is a structural advantage of the shared-backbone approach — discuss how architectural choices create product moats.</li>
+          <li><strong>Native resolution vs. upscaling:</strong> Generating native 4K directly is significantly more expensive than generating 512x512 and upscaling. But upscaling models hallucinate detail — they invent textures and edges that were never in the original generation. This is a reliability vs. cost tradeoff. For professional use cases (marketing, design), hallucinated detail is a dealbreaker, making native resolution the right choice despite the compute cost.</li>
+          <li><strong>Arena-first launch strategy:</strong> Nano Banana first appeared anonymously on Chatbot Arena, where it was evaluated blindly against competitors before anyone knew it was from Google. This is an interesting ML evaluation strategy — blind evaluation eliminates brand bias and provides genuine signal about model quality. Discuss how evaluation methodology (blind A/B testing vs. benchmark scores) affects real-world deployment confidence.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Sources -->
+    <div class="sources">
+      <strong style="color: var(--text-muted); font-size: 0.8rem;">Sources:</strong><br>
+      <a href="https://deepmind.google/models/gemini-image/" target="_blank">DeepMind: Gemini Image Model</a>
+      <a href="https://blog.google/innovation-and-ai/products/nano-banana-pro/" target="_blank">Google Blog: Nano Banana Pro</a>
+      <a href="https://blog.google/innovation-and-ai/technology/ai/nano-banana-2/" target="_blank">Google Blog: Nano Banana 2</a>
+      <a href="https://minimaxir.com/2025/12/nano-banana-pro/" target="_blank">Max Woolf: Nano Banana Pro Deep Dive</a>
+    </div>
+
+  </div>
+</div>

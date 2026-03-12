@@ -1,0 +1,258 @@
+<div class="system-section">
+  <div class="section-header">
+    <span class="company-badge badge-anthropic">Anthropic</span>
+    <h2>Multi-Agent System <span class="subtitle">— Orchestrating parallel agents with context engineering</span></h2>
+    <span class="toggle-icon">▼</span>
+  </div>
+  <div class="section-content">
+
+    <!-- Architecture Diagram -->
+    <div class="subsection">
+      <h3>Architecture Overview</h3>
+      <p>Anthropic's multi-agent architecture composes simple, well-defined patterns — orchestrator-workers, parallel exploration, tool use, and context engineering — into a system where multiple Claude agents cooperate on complex research queries. An outer agent harness provides checkpoint/resume durability for long-running tasks that outlive a single context window.</p>
+      <div class="diagram-container">
+        <div class="mermaid">
+graph TD
+    subgraph Harness["Agent Harness (Long-Running Durability)"]
+        direction TB
+        CP["Checkpoint / State Serialization"]
+        RS["Resume & Retry on Failure"]
+        MW["Multi-Context-Window Persistence"]
+    end
+
+    UQ["User Query"] --> Router["Router Agent<br/>(Classify & Route)"]
+    Router --> Orchestrator["Orchestrator Agent<br/>(Decompose into subtasks)"]
+
+    subgraph ParallelExploration["Parallel Exploration (Fan-Out)"]
+        direction LR
+        W1["Worker Agent A<br/>(Angle 1)"]
+        W2["Worker Agent B<br/>(Angle 2)"]
+        W3["Worker Agent C<br/>(Angle 3)"]
+    end
+
+    Orchestrator --> W1
+    Orchestrator --> W2
+    Orchestrator --> W3
+
+    subgraph ToolUse["Tool Use Layer"]
+        direction TB
+        Think["Think Tool<br/>(Stop & Reason)"]
+        MCP["MCP Code Execution<br/>(Write code to invoke tools)"]
+        DirectAPI["Direct Tool Calls<br/>(Search, Retrieve, Execute)"]
+    end
+
+    W1 --> Think
+    W2 --> MCP
+    W3 --> DirectAPI
+
+    subgraph ContextEng["Context Engineering Layer"]
+        direction TB
+        Summarize["Summarization<br/>(Compress prior turns)"]
+        Retrieve["Retrieval<br/>(Pull relevant context)"]
+        Curate["Curate & Write Context<br/>(Finite window management)"]
+    end
+
+    Think --> Summarize
+    MCP --> Retrieve
+    DirectAPI --> Curate
+
+    Summarize --> Fusion["Fusion Agent<br/>(Aggregate & Synthesize)"]
+    Retrieve --> Fusion
+    Curate --> Fusion
+
+    subgraph QualityLoop["Evaluator-Optimizer Loop"]
+        direction LR
+        Eval["Evaluator Agent<br/>(Score quality)"]
+        Refine["Optimizer Agent<br/>(Refine output)"]
+        Eval -->|"Below threshold"| Refine
+        Refine -->|"Re-evaluate"| Eval
+    end
+
+    Fusion --> Eval
+    Eval -->|"Meets threshold"| FinalAnswer["Final Comprehensive Answer"]
+
+    Harness -.->|"Wraps entire pipeline"| Router
+    Harness -.->|"Checkpoints at each stage"| Fusion
+
+    style Harness fill:#1a1a2e,stroke:#bc8cff,stroke-width:2px,color:#e6edf3
+    style ParallelExploration fill:#1c2333,stroke:#58a6ff,stroke-width:2px,color:#e6edf3
+    style ToolUse fill:#1c2333,stroke:#3fb950,stroke-width:2px,color:#e6edf3
+    style ContextEng fill:#1c2333,stroke:#d29922,stroke-width:2px,color:#e6edf3
+    style QualityLoop fill:#1c2333,stroke:#f85149,stroke-width:2px,color:#e6edf3
+    style UQ fill:#222d3f,stroke:#58a6ff,color:#e6edf3
+    style FinalAnswer fill:#222d3f,stroke:#3fb950,color:#e6edf3
+    style Router fill:#222d3f,stroke:#bc8cff,color:#e6edf3
+    style Orchestrator fill:#222d3f,stroke:#bc8cff,color:#e6edf3
+    style Fusion fill:#222d3f,stroke:#d29922,color:#e6edf3
+        </div>
+      </div>
+    </div>
+
+    <!-- Agent Patterns -->
+    <div class="subsection">
+      <h3>Composable Agent Patterns</h3>
+      <p>Anthropic advocates starting with the simplest pattern that works and adding complexity only when demonstrably needed. Each pattern is a building block, not a framework.</p>
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Pattern</th>
+            <th>Structure</th>
+            <th>When to Use</th>
+            <th>Example</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Prompt Chaining</strong></td>
+            <td>LLM call &rarr; gate &rarr; LLM call (sequential)</td>
+            <td>Tasks decomposable into fixed sequential steps</td>
+            <td>Generate outline &rarr; validate structure &rarr; write full draft</td>
+          </tr>
+          <tr>
+            <td><strong>Routing</strong></td>
+            <td>Classify input &rarr; route to specialized handler</td>
+            <td>Distinct input categories needing different processing</td>
+            <td>Customer query &rarr; billing / technical / account handler</td>
+          </tr>
+          <tr>
+            <td><strong>Parallelization</strong></td>
+            <td>Fan-out multiple LLM calls &rarr; aggregate results</td>
+            <td>Independent subtasks that can run concurrently</td>
+            <td>Research query explored from 3 angles simultaneously</td>
+          </tr>
+          <tr>
+            <td><strong>Orchestrator-Workers</strong></td>
+            <td>Central LLM delegates subtasks to worker LLMs</td>
+            <td>Complex tasks requiring dynamic subtask decomposition</td>
+            <td>Code refactor: orchestrator plans, workers edit files</td>
+          </tr>
+          <tr>
+            <td><strong>Evaluator-Optimizer</strong></td>
+            <td>Generator LLM + Evaluator LLM iterate in a loop</td>
+            <td>Tasks with clear quality criteria and iterative improvement</td>
+            <td>Generate code &rarr; evaluate correctness &rarr; refine until passing</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Tool Use Architecture -->
+    <div class="subsection">
+      <h3>Tool Use Architecture</h3>
+      <p>Agents are defined as LLM + tools in a loop with a stopping condition. Anthropic's tool use design scales from simple direct calls to sophisticated code-generation-based invocation.</p>
+      <ul>
+        <li><strong>"Think" Tool:</strong> A special tool that lets the agent pause and reason explicitly during complex multi-step tool use. The model outputs its chain-of-thought as a tool call, then continues execution. This improves accuracy on tasks requiring careful planning before acting.</li>
+        <li><strong>Direct Tool Calls:</strong> Traditional function-calling interface — the agent selects a tool name and provides structured arguments. Simple and reliable for well-defined APIs with a small tool set.</li>
+        <li><strong>MCP Code Execution:</strong> Instead of calling tools directly, the agent writes code that invokes tools programmatically. This scales far better when the tool surface is large (hundreds of endpoints) because the agent can compose, loop, and branch over tool calls in code rather than making one-at-a-time function calls.</li>
+        <li><strong>Dynamic Tool Discovery:</strong> The agent discovers available tools at runtime rather than having all tool schemas loaded into the prompt. This keeps the context window lean and enables open-ended tool ecosystems.</li>
+        <li><strong>Self-Optimizing Tooling:</strong> Claude is used to evaluate and improve its own tool definitions — rewriting descriptions, parameter schemas, and examples to maximize the success rate of tool invocations.</li>
+      </ul>
+    </div>
+
+    <!-- Context Engineering -->
+    <div class="subsection">
+      <h3>Context Engineering</h3>
+      <p>The context window is a finite, valuable resource. Context engineering is the discipline of curating what goes into it — writing the context rather than blindly passing everything in.</p>
+      <ul>
+        <li><strong>Summarization:</strong> Compress prior conversation turns and intermediate results into concise summaries. Long multi-turn exchanges are periodically condensed so the agent retains relevant history without exhausting the window.</li>
+        <li><strong>Retrieval-Augmented Context:</strong> Pull in only the most relevant documents, code snippets, or knowledge — scored by relevance — rather than including entire corpora. The retrieval system acts as a gatekeeper for the context window.</li>
+        <li><strong>Tool-Augmented Context:</strong> Rather than pre-loading all potentially useful information, the agent uses tools to fetch exactly what it needs on demand, keeping the base context minimal.</li>
+        <li><strong>Write, Don't Pass:</strong> Explicitly author context instructions, system prompts, and structured data. Hand-crafted context consistently outperforms naive "dump everything in" approaches.</li>
+        <li><strong>Context Budgeting:</strong> Allocate portions of the context window to different purposes — system instructions, retrieved knowledge, conversation history, scratch space — and enforce limits on each.</li>
+      </ul>
+    </div>
+
+    <!-- Agent Harness -->
+    <div class="subsection">
+      <h3>Agent Harness for Long-Running Tasks</h3>
+      <p>Real-world agent tasks often exceed a single context window in duration or complexity. The agent harness applies patterns from traditional software engineering — checkpointing, state serialization, and resumable workflows — to make agents durable.</p>
+      <ul>
+        <li><strong>Multi-Context-Window Persistence:</strong> An agent can span multiple context windows by serializing its state (progress, intermediate results, plan) at checkpoints. A new context window is initialized with the serialized state, allowing the agent to continue seamlessly.</li>
+        <li><strong>Checkpointing:</strong> At defined milestones (after each subtask, after each worker returns, after each evaluation loop), the harness saves the agent's full state. If the process crashes or the context window fills, work is not lost.</li>
+        <li><strong>Failure Handling & Retries:</strong> When a tool call fails, an API times out, or an agent produces low-quality output, the harness retries the specific failed step rather than restarting the entire pipeline. Partial progress is preserved.</li>
+        <li><strong>State Serialization:</strong> Agent state is represented as a structured object (task plan, completed steps, accumulated results, pending subtasks) that can be serialized to storage and deserialized into a fresh context window.</li>
+        <li><strong>Graceful Degradation:</strong> If an agent cannot complete a subtask after retries, the harness returns partial results with clear annotations about what succeeded and what did not, rather than failing silently.</li>
+      </ul>
+    </div>
+
+    <!-- Key Design Decisions -->
+    <div class="subsection">
+      <h3>Key Design Decisions</h3>
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Decision</th>
+            <th>Chosen Approach</th>
+            <th>Alternative</th>
+            <th>Rationale</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Composition model</strong></td>
+            <td>Simple composable patterns (chaining, routing, parallelization)</td>
+            <td>Heavyweight agent framework (AutoGen, CrewAI, LangGraph)</td>
+            <td>Composable primitives are easier to debug, test, and reason about. Frameworks add abstraction layers that obscure failure modes. Start simple, add complexity only when measured improvement justifies it.</td>
+          </tr>
+          <tr>
+            <td><strong>Exploration strategy</strong></td>
+            <td>Parallel exploration + fusion (fan-out workers, merge results)</td>
+            <td>Sequential chain-of-thought (single agent explores all angles one by one)</td>
+            <td>Parallel exploration reduces wall-clock latency linearly with number of workers. It also produces more diverse perspectives since agents explore independently without anchoring on each other's early conclusions.</td>
+          </tr>
+          <tr>
+            <td><strong>Tool invocation method</strong></td>
+            <td>Code execution via MCP (agent writes code to call tools)</td>
+            <td>Direct API tool calls (structured function calling)</td>
+            <td>Code execution scales to large tool surfaces — the agent can loop, branch, and compose calls in code. Direct calls work for small tool sets but become unwieldy with hundreds of endpoints. Code also enables the agent to handle data transformations inline.</td>
+          </tr>
+          <tr>
+            <td><strong>Long-running durability</strong></td>
+            <td>Multi-context-window persistence with checkpoint/resume</td>
+            <td>Single-shot: run everything in one context window</td>
+            <td>Complex research tasks exceed single context windows. Checkpoint/resume enables the agent to survive crashes, handle context window limits, and maintain progress across arbitrarily long tasks without information loss.</td>
+          </tr>
+          <tr>
+            <td><strong>Context management</strong></td>
+            <td>Curated context engineering (summarize, retrieve, budget)</td>
+            <td>Pass full history and all documents into context</td>
+            <td>Context windows are finite and performance degrades with irrelevant content. Curated context keeps the signal-to-noise ratio high, improves accuracy, and leaves room for the agent's own reasoning.</td>
+          </tr>
+          <tr>
+            <td><strong>Quality assurance</strong></td>
+            <td>Evaluator-optimizer loop with explicit scoring</td>
+            <td>Single-pass generation with no self-evaluation</td>
+            <td>LLM outputs are non-deterministic. An evaluation loop catches errors and hallucinations, iteratively improving output until it meets a quality threshold. Cost of extra LLM calls is offset by reduced need for human review.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Interview Talking Points -->
+    <div class="subsection">
+      <div class="talking-points">
+        <h4>Interview Talking Points</h4>
+        <ul>
+          <li><strong>Start simple, add complexity only when needed:</strong> Anthropic's core philosophy is that agents should begin as single LLM calls with tools. Layer in orchestration patterns (routing, parallelization, evaluation loops) only when you can measure the improvement. This directly contrasts the "reach for a framework first" instinct many candidates have.</li>
+          <li><strong>An agent is LLM + tools + loop + stopping condition:</strong> This is the clearest mental model. The LLM decides what to do, tools execute actions, the loop continues until a stopping condition is met (task complete, quality threshold reached, or budget exhausted). Everything else is implementation detail.</li>
+          <li><strong>Parallel exploration produces better results than sequential:</strong> When multiple agents explore different angles of a complex query simultaneously, you get diverse perspectives without anchoring bias. The fusion step synthesizes these into a more comprehensive answer than any single sequential chain would produce.</li>
+          <li><strong>Context engineering is as important as model quality:</strong> The same model produces dramatically different results depending on what is in its context window. Strategies like summarization, retrieval-augmented context, and explicit context budgeting directly improve agent accuracy. In an interview, showing you think about context curation signals senior-level understanding.</li>
+          <li><strong>Code execution for tool use is a scaling breakthrough:</strong> Direct function calling works for 5-10 tools, but breaks down at 100+. Having the agent write code that invokes tools lets it compose, loop, and branch — handling complex tool orchestration that structured function calls cannot express. This is a key architectural insight from Anthropic's MCP work.</li>
+          <li><strong>Long-running agents need software engineering patterns:</strong> Checkpointing, state serialization, and resumable workflows are borrowed from distributed systems. The agent harness treats an LLM agent like a long-running process that can crash — saving progress, handling retries, and resuming from the last checkpoint. This is critical for production deployments.</li>
+          <li><strong>The "Think" tool improves multi-step reasoning:</strong> Giving the agent an explicit mechanism to pause and reason (rather than rushing to the next tool call) measurably improves accuracy on complex tasks. It is a simple intervention — essentially a no-op tool that outputs chain-of-thought — but it prevents the agent from acting before thinking.</li>
+          <li><strong>Evaluator-optimizer loops catch errors that single-pass generation misses:</strong> LLM outputs are stochastic. Adding a separate evaluator agent that scores output quality and triggers refinement loops brings reliability closer to production standards. The cost of extra LLM calls is typically far less than the cost of shipping hallucinated or incorrect results.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Sources -->
+    <div class="sources">
+      <strong style="color: var(--text-muted); font-size: 0.8rem;">Sources:</strong><br>
+      <a href="https://www.anthropic.com/engineering" target="_blank">Building Effective Agents (Dec 2024)</a>
+      <a href="https://www.anthropic.com/engineering" target="_blank">Multi-Agent Research System (Jun 2025)</a>
+      <a href="https://www.anthropic.com/engineering" target="_blank">Context Engineering (Sep 2025)</a>
+      <a href="https://www.anthropic.com/engineering" target="_blank">Agent Harnesses for Long-Running Agents (Nov 2025)</a>
+    </div>
+
+  </div>
+</div>

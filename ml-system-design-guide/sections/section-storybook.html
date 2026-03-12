@@ -1,0 +1,288 @@
+<div class="system-section">
+  <div class="section-header">
+    <span class="company-badge badge-google">DeepMind</span>
+    <h2>Gemini Storybook <span class="subtitle">— Multimodal pipeline: text + image + audio in seconds</span></h2>
+    <span class="toggle-icon">▼</span>
+  </div>
+  <div class="section-content">
+
+    <!-- Architecture Diagram -->
+    <div class="subsection">
+      <h3>System Architecture</h3>
+      <div class="diagram-container">
+        <div class="mermaid">
+graph TD
+    subgraph Input["User Input Layer"]
+        UP["User Prompt<br/>(text description)"]
+        PHOTO["Photo Upload<br/>(optional personalization)"]
+        STYLE["Style Selection<br/>(pixel art, comics, claymation, etc.)"]
+    end
+
+    subgraph Encoding["Multimodal Encoding"]
+        TE["Text Encoder"]
+        PE["Photo Encoder<br/>(visual feature extraction)"]
+        UE["Unified Embedding Space<br/>(text + visual + audio tokens coexist)"]
+    end
+
+    subgraph StoryPlanning["Story Planning Module"]
+        NP["Narrative Planner<br/>(10-page arc generation)"]
+        CC["Character Consistency<br/>Registry"]
+        SC["Style Conditioning<br/>Vector"]
+    end
+
+    subgraph MoEBackbone["Sparse MoE Backbone"]
+        ROUTER["Expert Router"]
+        EX1["Text Generation<br/>Expert"]
+        EX2["Image Generation<br/>Expert"]
+        EX3["Style Transfer<br/>Expert"]
+        CMA["Cross-Modal Attention<br/>(modalities talk to each other)"]
+    end
+
+    subgraph PerPageLoop["Per-Page Generation Loop (pages 1-10)"]
+        TG["Text Generation<br/>(story text per page)"]
+        IG["Image Generation<br/>(discrete image tokens,<br/>autoregressive decoding)"]
+        AG["Audio Narration<br/>(USM text-to-speech,<br/>45+ languages)"]
+        CONSIST["Cross-Page Consistency<br/>Check"]
+    end
+
+    subgraph Safety["Content Safety Layer"]
+        TF["Text Safety Filter<br/>(child-appropriate content)"]
+        IF["Image Safety Filter<br/>(visual content moderation)"]
+        AF["Audio Safety Filter"]
+    end
+
+    subgraph Assembly["Book Assembly"]
+        LAYOUT["Page Layout Engine"]
+        SYNC["Text-Image-Audio<br/>Synchronization"]
+        RENDER["Final Storybook<br/>Rendering"]
+    end
+
+    subgraph Output["Output"]
+        BOOK["10-Page Illustrated<br/>Storybook"]
+        READER["Read-Aloud<br/>Audio Narration"]
+        SHARE["Share / Export"]
+    end
+
+    UP --> TE
+    PHOTO --> PE
+    STYLE --> SC
+    TE --> UE
+    PE --> UE
+
+    UE --> NP
+    SC --> NP
+    NP --> CC
+
+    CC --> ROUTER
+    NP --> ROUTER
+    ROUTER --> EX1
+    ROUTER --> EX2
+    ROUTER --> EX3
+    EX1 <--> CMA
+    EX2 <--> CMA
+    EX3 <--> CMA
+
+    CMA --> TG
+    CMA --> IG
+    PE -.->|"photo conditioning"| IG
+    SC -.->|"style conditioning"| IG
+    TG --> AG
+    TG --> CONSIST
+    IG --> CONSIST
+    CONSIST -.->|"feedback loop"| TG
+    CONSIST -.->|"feedback loop"| IG
+
+    TG --> TF
+    IG --> IF
+    AG --> AF
+
+    TF --> LAYOUT
+    IF --> LAYOUT
+    AF --> SYNC
+    LAYOUT --> SYNC
+    SYNC --> RENDER
+
+    RENDER --> BOOK
+    RENDER --> READER
+    RENDER --> SHARE
+
+    classDef inputStyle fill:#1a3a2a,stroke:#3fb950,color:#e6edf3
+    classDef encodeStyle fill:#1a2a3a,stroke:#58a6ff,color:#e6edf3
+    classDef planStyle fill:#2a1a3a,stroke:#bc8cff,color:#e6edf3
+    classDef moeStyle fill:#3a2a1a,stroke:#d29922,color:#e6edf3
+    classDef loopStyle fill:#1a3a3a,stroke:#39d2c0,color:#e6edf3
+    classDef safetyStyle fill:#3a1a1a,stroke:#f85149,color:#e6edf3
+    classDef assemblyStyle fill:#1a2a2a,stroke:#58a6ff,color:#e6edf3
+    classDef outputStyle fill:#1a3a2a,stroke:#3fb950,color:#e6edf3
+
+    class UP,PHOTO,STYLE inputStyle
+    class TE,PE,UE encodeStyle
+    class NP,CC,SC planStyle
+    class ROUTER,EX1,EX2,EX3,CMA moeStyle
+    class TG,IG,AG,CONSIST loopStyle
+    class TF,IF,AF safetyStyle
+    class LAYOUT,SYNC,RENDER assemblyStyle
+    class BOOK,READER,SHARE outputStyle
+        </div>
+      </div>
+    </div>
+
+    <!-- Problem Formulation -->
+    <div class="subsection">
+      <h3>1. Problem Formulation</h3>
+      <p>Given a short text prompt (and optionally user photos and a style preference), generate a complete, illustrated 10-page storybook with coherent narrative, consistent artwork, and optional read-aloud audio narration -- all within seconds.</p>
+      <ul>
+        <li><strong>Input:</strong> Text prompt (e.g., "A brave cat explores the ocean"), optional personal photos, style choice (pixel art, claymation, crochet, etc.)</li>
+        <li><strong>Output:</strong> 10-page storybook with per-page text, illustrations, and synchronized TTS audio</li>
+        <li><strong>ML task framing:</strong> Conditional multimodal generation -- a single unified model produces text, images, and audio conditioned on user input</li>
+        <li><strong>Key constraint:</strong> End-to-end latency must be seconds (not minutes), requiring aggressive parallelism and efficient architecture</li>
+        <li><strong>Scope:</strong> 45+ languages for both text and audio narration; diverse visual styles; child-safe content</li>
+      </ul>
+    </div>
+
+    <!-- Data -->
+    <div class="subsection">
+      <h3>2. Data</h3>
+      <ul>
+        <li><strong>Training data:</strong> Massive multimodal corpus of text-image-audio pairs; children's literature corpora for narrative structure; diverse illustration datasets spanning many art styles</li>
+        <li><strong>Style data:</strong> Curated examples for each of the 45+ visual styles (pixel art, comics, claymation, crochet, coloring books, etc.) to learn style-conditioned generation</li>
+        <li><strong>Multilingual data:</strong> Parallel text and speech data across 45+ languages for the Universal Speech Model</li>
+        <li><strong>Safety data:</strong> Child-safety-labeled datasets for training content filters; adversarial prompt datasets for red-teaming</li>
+        <li><strong>Personalization data:</strong> Photo-to-character mapping examples for learning how to integrate user-uploaded faces/objects into generated art</li>
+        <li><strong>Data preprocessing:</strong> Images tokenized into discrete visual tokens; text tokenized with multilingual tokenizer; audio processed into speech tokens</li>
+      </ul>
+    </div>
+
+    <!-- Feature Engineering -->
+    <div class="subsection">
+      <h3>3. Feature Engineering & Representation</h3>
+      <ul>
+        <li><strong>Unified embedding space:</strong> Text, image, and audio modalities are projected into a shared representation space where cross-modal relationships are learned natively</li>
+        <li><strong>Discrete image tokens:</strong> Images are represented as sequences of discrete tokens (similar to text tokens), enabling autoregressive generation within the same transformer framework</li>
+        <li><strong>Photo conditioning features:</strong> User-uploaded photos are encoded into dense feature vectors that condition the image generation to preserve identity/likeness</li>
+        <li><strong>Style embedding vectors:</strong> Each visual style (pixel art, claymation, etc.) is encoded as a conditioning vector that steers the image decoder</li>
+        <li><strong>Character consistency features:</strong> A character registry maintains visual attributes (colors, proportions, clothing) across all 10 pages to ensure coherent characters</li>
+        <li><strong>Narrative structure features:</strong> Story arc encoded as structured metadata (setup, rising action, climax, resolution) to guide page-level text generation</li>
+      </ul>
+    </div>
+
+    <!-- Model Architecture -->
+    <div class="subsection">
+      <h3>4. Model Architecture</h3>
+      <p>Gemini's architecture is a single transformer backbone that natively handles multiple modalities, rather than stitching together separate specialist models.</p>
+      <ul>
+        <li><strong>Core backbone:</strong> Sparse Mixture-of-Experts (MoE) transformer -- routes each token to specialized experts (text, image, style) for efficiency without sacrificing capacity</li>
+        <li><strong>Multimodal encoder:</strong> Dual-encoder architecture processes each modality independently first, then projects into the unified embedding space</li>
+        <li><strong>Cross-modal attention:</strong> Dedicated cross-attention layers allow text representations to attend to image features and vice versa, enabling tight coherence between story text and illustrations</li>
+        <li><strong>Image generation:</strong> Autoregressive decoding of discrete image tokens (not a separate diffusion model) -- this is native to the transformer, allowing end-to-end gradient flow</li>
+        <li><strong>Audio generation:</strong> Universal Speech Model (USM) handles text-to-speech across 45+ languages with natural prosody</li>
+        <li><strong>Narrative planning:</strong> A planning pass generates the full story arc before per-page generation begins, ensuring global coherence</li>
+      </ul>
+
+      <table class="comparison-table">
+        <tr>
+          <th>Design Choice</th>
+          <th>Gemini Approach</th>
+          <th>Alternative</th>
+          <th>Tradeoff</th>
+        </tr>
+        <tr>
+          <td>Multimodal strategy</td>
+          <td>Single unified model</td>
+          <td>Separate models per modality (e.g., GPT-4 + DALL-E + TTS)</td>
+          <td>Unified model enables cross-modal attention and consistency; separate models are easier to develop/debug independently</td>
+        </tr>
+        <tr>
+          <td>Image generation</td>
+          <td>Discrete image tokens (autoregressive)</td>
+          <td>Latent diffusion (e.g., Stable Diffusion)</td>
+          <td>Autoregressive tokens integrate natively with the transformer; diffusion models often produce higher-fidelity images but require separate pipelines</td>
+        </tr>
+        <tr>
+          <td>Efficiency</td>
+          <td>Sparse MoE (activate subset of experts)</td>
+          <td>Dense transformer</td>
+          <td>MoE achieves larger effective capacity at lower compute cost; adds routing complexity and potential load-balancing issues</td>
+        </tr>
+        <tr>
+          <td>Consistency mechanism</td>
+          <td>Character registry + cross-page attention</td>
+          <td>Per-page independent generation + post-hoc correction</td>
+          <td>Registry approach is more coherent; post-hoc is simpler but produces visible inconsistencies</td>
+        </tr>
+        <tr>
+          <td>Style transfer</td>
+          <td>Style conditioning vector</td>
+          <td>Fine-tuned model per style</td>
+          <td>Conditioning vector supports 45+ styles in one model; per-style fine-tuning would yield higher quality per style but be operationally expensive</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- Serving & Inference -->
+    <div class="subsection">
+      <h3>5. Serving & Inference</h3>
+      <ul>
+        <li><strong>Latency target:</strong> Full 10-page storybook generated in seconds -- this requires aggressive parallelism and optimized decoding</li>
+        <li><strong>Pipeline parallelism:</strong> Story planning runs first (sequential), then per-page text + image generation can be parallelized across pages since the narrative arc is already determined</li>
+        <li><strong>MoE inference efficiency:</strong> Only a subset of expert parameters are activated per token, reducing per-step compute by ~60-80% compared to a dense model of equivalent capacity</li>
+        <li><strong>Speculative decoding:</strong> Smaller draft model proposes token sequences that the full model verifies in parallel, accelerating autoregressive generation</li>
+        <li><strong>Image token compression:</strong> Discrete image tokens are generated at lower resolution first, then upsampled, reducing the number of autoregressive steps</li>
+        <li><strong>Audio generation:</strong> TTS can run in parallel with image rendering since it only depends on the text, which is generated first</li>
+        <li><strong>Infrastructure:</strong> Served on TPU v5p clusters with custom inference kernels optimized for MoE routing patterns</li>
+        <li><strong>Caching:</strong> Common story elements (backgrounds, UI chrome) can be cached; style conditioning vectors are precomputed</li>
+      </ul>
+    </div>
+
+    <!-- Evaluation & Safety -->
+    <div class="subsection">
+      <h3>6. Evaluation, Safety & Monitoring</h3>
+      <ul>
+        <li><strong>Narrative quality:</strong> Automated coherence scoring (does the story arc make sense?), human eval for creativity and engagement, reading-level assessment</li>
+        <li><strong>Visual quality:</strong> FID/CLIP scores for image fidelity and text-image alignment; human ratings for aesthetic quality per style</li>
+        <li><strong>Cross-page consistency:</strong> Character similarity metrics across pages (embedding distance of character regions); style consistency scores</li>
+        <li><strong>Audio quality:</strong> MOS (Mean Opinion Score) for naturalness; pronunciation accuracy across 45+ languages</li>
+        <li><strong>Content safety (critical for children):</strong> Multi-layer filtering -- text safety classifier blocks harmful narratives, image safety classifier blocks inappropriate visuals, audio safety checks for TTS output</li>
+        <li><strong>Prompt injection defense:</strong> Adversarial prompt detection to prevent users from bypassing safety filters to generate inappropriate children's content</li>
+        <li><strong>Latency monitoring:</strong> P50/P95/P99 end-to-end generation times; per-component breakdown (planning, text, image, audio, assembly)</li>
+        <li><strong>A/B testing:</strong> Style preference testing, narrative arc variants, TTS voice quality comparisons</li>
+      </ul>
+    </div>
+
+    <!-- Iteration & Improvement -->
+    <div class="subsection">
+      <h3>7. Iteration & Improvement</h3>
+      <ul>
+        <li><strong>User feedback loop:</strong> Implicit signals (share rate, re-read rate, completion rate) and explicit signals (ratings, regeneration requests) feed back into model improvement</li>
+        <li><strong>Style expansion:</strong> New visual styles can be added by collecting style exemplars and learning new conditioning vectors without full model retraining</li>
+        <li><strong>Language expansion:</strong> USM supports progressive addition of new languages for narration</li>
+        <li><strong>Consistency improvements:</strong> Character registry can be refined with better visual feature extractors, reducing cross-page drift</li>
+        <li><strong>Personalization depth:</strong> Future iterations could support multi-character personalization, pet integration, and scene-specific photo conditioning</li>
+        <li><strong>Failure modes to watch:</strong> Style bleed (mixing styles unintentionally), character drift across pages, narrative dead-ends, culturally inappropriate content in multilingual generation</li>
+      </ul>
+    </div>
+
+    <!-- Interview Talking Points -->
+    <div class="talking-points">
+      <h4>Interview Talking Points</h4>
+      <ul>
+        <li><strong>Why a unified model matters:</strong> Gemini's single-backbone approach enables cross-modal attention -- the image generator can "see" the text context and vice versa. Separate models (GPT + DALL-E + TTS) require brittle prompt engineering to maintain coherence, while a unified model learns these relationships end-to-end.</li>
+        <li><strong>Discrete image tokens vs. diffusion:</strong> By representing images as discrete tokens, Gemini generates them autoregressively within the same transformer -- no separate diffusion pipeline needed. This simplifies the architecture and enables seamless cross-modal attention, though diffusion models may still win on raw image fidelity for single images.</li>
+        <li><strong>Cross-page consistency is the hardest problem:</strong> Generating 10 pages with the same characters, colors, and proportions requires explicit mechanisms (character registry, cross-page attention). Without these, even state-of-the-art models produce visually inconsistent characters -- this is a key differentiator in interview discussions.</li>
+        <li><strong>Sparse MoE for latency:</strong> The Mixture-of-Experts architecture is what makes seconds-level generation feasible. Only ~10-20% of parameters activate per token, giving you the capacity of a much larger model at a fraction of the inference cost. Discuss the routing mechanism and load-balancing challenges.</li>
+        <li><strong>Safety is non-negotiable for children's content:</strong> Multi-layer safety filtering (text + image + audio) is critical. Discuss how you would design adversarial testing specifically for children's content -- prompt injection, subtle inappropriate content, cultural sensitivity across 45+ languages.</li>
+        <li><strong>Pipeline parallelism strategy:</strong> Story planning must be sequential (narrative arc first), but once the arc is established, per-page generation can be parallelized. Text generation completes before image conditioning starts per page, but audio generation runs independently. This pipeline design is a great whiteboard discussion topic.</li>
+        <li><strong>Personalization via photo conditioning:</strong> User photos are encoded into dense features that condition the image decoder -- the model learns to preserve identity while adapting to the chosen art style. This is a challenging transfer learning problem: how do you maintain likeness in pixel art vs. claymation vs. watercolor?</li>
+        <li><strong>Scale of the style space:</strong> Supporting 45+ visual styles with a single model (via conditioning vectors rather than per-style fine-tuning) demonstrates the power of conditional generation. In an interview, contrast this with the alternative of maintaining 45 separate fine-tuned models.</li>
+      </ul>
+    </div>
+
+    <!-- Sources -->
+    <div class="sources">
+      <strong style="color: var(--text-muted); font-size: 0.8rem;">Sources:</strong>
+      <a href="https://blog.google/innovation-and-ai/models-and-research/google-deepmind/gemini-universal-ai-assistant/" target="_blank">Google Blog: Gemini Universal AI Assistant</a>
+      <a href="https://deepmind.google/models/" target="_blank">DeepMind Models</a>
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,258 @@
+<div class="system-section">
+  <div class="section-header">
+    <span class="company-badge badge-google">DeepMind</span>
+    <h2>Gemini MoE Architecture <span class="subtitle">-- Sparse expert routing for efficient trillion-parameter models</span></h2>
+    <span class="toggle-icon">&#9660;</span>
+  </div>
+  <div class="section-content">
+
+    <!-- Architecture Diagram -->
+    <div class="diagram-container">
+      <div class="mermaid">
+graph TD
+    subgraph INPUT["Input Pipeline"]
+        A["Input Tokens"] --> B["Embedding Layer"]
+        B --> C["Transformer Layers x N"]
+    end
+
+    subgraph MOE_LAYER["Sparse MoE Layer (replaces dense FFN)"]
+        C --> R["Router Network (Learned Gating)"]
+        R --> |"Softmax over logits"| G["Top-K Selection (e.g. K=2 of 64)"]
+        G --> E1["Expert FFN 1"]
+        G --> E2["Expert FFN 2"]
+        G -.-> |"Not activated"| E3["Expert FFN 3...64"]
+        E1 --> W["Weighted Combination (gate scores)"]
+        E2 --> W
+        W --> OUT["Layer Output"]
+        R --> |"Auxiliary loss"| LB["Load Balancing Loss"]
+    end
+
+    subgraph TRAINING["Training Infrastructure"]
+        TPU["TPU v5p / Ironwood Pods"] --> JP["Jupiter Network Fabric"]
+        JP --> DP["Data Parallelism"]
+        JP --> EP["Expert Parallelism (experts across devices)"]
+        DP --> JAX["XLA/JAX Compiler"]
+        EP --> JAX
+        JAX --> MP["Mixed Precision Training"]
+        AC["AlphaChip AI-Designed Layout"] -.-> TPU
+    end
+
+    subgraph SERVING["Serving Pipeline"]
+        PW["Pathways Distributed Runtime"] --> MH["Multi-Host Inferencing"]
+        MH --> SD["Speculative Decoding"]
+        SD --> CH{"MoE Challenge: Draft tokens activate more experts"}
+        CH --> |"Verification overhead 2-3x"| S1["Adaptive Grouped Speculation"]
+        CH --> S2["Context-Aware Scheduling"]
+        CH --> S3["Confidence-Based Deferral"]
+        MH --> VL["vLLM on TPU (PyTorch)"]
+    end
+
+    OUT --> PW
+
+    style INPUT fill:#1c2333,stroke:#58a6ff,color:#e6edf3
+    style MOE_LAYER fill:#1c2333,stroke:#3fb950,color:#e6edf3
+    style TRAINING fill:#1c2333,stroke:#bc8cff,color:#e6edf3
+    style SERVING fill:#1c2333,stroke:#d29922,color:#e6edf3
+    style R fill:#222d3f,stroke:#3fb950,color:#e6edf3
+    style G fill:#222d3f,stroke:#3fb950,color:#e6edf3
+    style CH fill:#222d3f,stroke:#f85149,color:#e6edf3
+    style LB fill:#222d3f,stroke:#d29922,color:#e6edf3
+    style E3 fill:#161b22,stroke:#6e7681,color:#6e7681
+      </div>
+    </div>
+
+    <!-- Subsection 1: Problem Formulation -->
+    <div class="subsection">
+      <h3>Problem Formulation</h3>
+      <p>How do you scale a language model to trillions of parameters without proportionally scaling inference cost? Dense transformers face a fundamental constraint: every token must pass through every parameter, making compute cost linear in model size. The goal is to decouple total model capacity from per-token compute.</p>
+      <ul>
+        <li><strong>Core insight:</strong> Not all parameters are needed for every token -- different tokens require different "expertise"</li>
+        <li><strong>ML framing:</strong> Replace the dense FFN in each transformer block with a set of expert FFNs, gated by a learned router</li>
+        <li><strong>Target metric:</strong> Maintain quality of a dense model with N parameters while only activating a fraction (e.g., 10%) per token</li>
+        <li><strong>Example scale:</strong> A model with 1 trillion total parameters might activate only ~100 billion per token, achieving near-dense quality at a fraction of the FLOPS</li>
+      </ul>
+    </div>
+
+    <!-- Subsection 2: MoE Architecture Deep Dive -->
+    <div class="subsection">
+      <h3>MoE Architecture Deep Dive</h3>
+      <p>In a standard (dense) transformer, every token passes through the same FFN layer. In a sparse MoE transformer, that FFN is replaced with multiple expert FFNs plus a router.</p>
+
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Aspect</th>
+            <th>Dense Transformer</th>
+            <th>Sparse MoE Transformer</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>FFN structure</td>
+            <td>Single FFN per layer, all tokens use it</td>
+            <td>N expert FFNs per layer, router selects top-K</td>
+          </tr>
+          <tr>
+            <td>Params activated per token</td>
+            <td>100% of model parameters</td>
+            <td>~2-10% of total parameters (top-K experts only)</td>
+          </tr>
+          <tr>
+            <td>FLOPS per token</td>
+            <td>Proportional to total params</td>
+            <td>Proportional to K * expert_size (much smaller)</td>
+          </tr>
+          <tr>
+            <td>Total capacity</td>
+            <td>Limited by compute budget</td>
+            <td>Can be 10-100x larger for same per-token cost</td>
+          </tr>
+          <tr>
+            <td>Memory footprint</td>
+            <td>All params must be loaded</td>
+            <td>All params must be loaded (serving challenge)</td>
+          </tr>
+          <tr>
+            <td>Expert specialization</td>
+            <td>N/A</td>
+            <td>Experts naturally specialize (e.g., code, math, language)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p><strong>Router mechanism step by step:</strong></p>
+      <ul>
+        <li><strong>Step 1 -- Router logits:</strong> Each token embedding is multiplied by a learned router weight matrix to produce logits for each expert</li>
+        <li><strong>Step 2 -- Softmax gating:</strong> Softmax is applied to get a probability distribution over experts</li>
+        <li><strong>Step 3 -- Top-K selection:</strong> The K experts with highest probabilities are selected (typically K=1 or K=2)</li>
+        <li><strong>Step 4 -- Expert processing:</strong> Selected expert FFNs process the token independently</li>
+        <li><strong>Step 5 -- Weighted output:</strong> Expert outputs are combined using the gating probabilities as weights</li>
+        <li><strong>Load balancing loss:</strong> An auxiliary loss term penalizes uneven expert utilization, preventing "expert collapse" where the router sends all tokens to a few experts</li>
+      </ul>
+    </div>
+
+    <!-- Subsection 3: Training Infrastructure -->
+    <div class="subsection">
+      <h3>Training Infrastructure</h3>
+      <p>Training a sparse MoE model at Gemini scale requires specialized hardware and parallelism strategies beyond standard data parallelism.</p>
+      <ul>
+        <li><strong>TPU v5p / Ironwood pods:</strong> Google's custom AI accelerators, with Ironwood chips designed using AlphaChip (AI-driven chip layout optimization)</li>
+        <li><strong>Jupiter network fabric:</strong> Custom high-bandwidth interconnect enabling fast all-to-all communication between TPU hosts -- critical for expert parallelism</li>
+        <li><strong>Expert parallelism:</strong> Different experts are placed on different devices. When a token is routed to an expert, the token embedding must be sent to that expert's device. This requires all-to-all communication patterns that differ fundamentally from standard data or tensor parallelism</li>
+        <li><strong>Data parallelism:</strong> Standard data parallelism is combined with expert parallelism -- each data-parallel replica has a full copy of shared parameters (attention, embeddings) but only a subset of experts</li>
+        <li><strong>XLA/JAX stack:</strong> JAX with XLA compilation enables automatic optimization of the complex parallelism patterns, including sharding experts across pods</li>
+        <li><strong>Mixed precision:</strong> BFloat16/FP8 training reduces memory and communication bandwidth requirements</li>
+        <li><strong>AI Hypercomputer:</strong> Google's integrated architecture combining TPU hardware + Jupiter network + XLA/JAX software stack, purpose-built for models like Gemini</li>
+      </ul>
+    </div>
+
+    <!-- Subsection 4: Serving & Inference Challenges -->
+    <div class="subsection">
+      <h3>Serving and Inference Challenges</h3>
+      <p>MoE models present unique serving challenges compared to dense models, particularly around memory, data movement, and speculative decoding.</p>
+
+      <p><strong>Core serving challenge -- memory vs. compute:</strong></p>
+      <ul>
+        <li>All expert weights must reside in memory even though only a fraction are activated per token</li>
+        <li>This makes MoE models memory-bound rather than compute-bound during inference</li>
+        <li>Data movement (loading expert weights from HBM to compute units) becomes the bottleneck</li>
+      </ul>
+
+      <p><strong>Pathways distributed runtime:</strong></p>
+      <ul>
+        <li><strong>Multi-host inferencing:</strong> Distributes model across multiple TPU hosts, enabling models too large for a single host</li>
+        <li><strong>Dynamic scaling:</strong> Pathways can allocate compute resources dynamically based on load</li>
+        <li><strong>Efficient routing:</strong> Implements the token routing at the system level, managing expert-to-device mapping</li>
+      </ul>
+
+      <p><strong>The speculative decoding + MoE problem:</strong></p>
+      <ul>
+        <li><strong>Standard speculative decoding:</strong> A small draft model generates K candidate tokens cheaply, then the large verifier model accepts or rejects them in a single forward pass -- yielding speedups of 2-3x for dense models</li>
+        <li><strong>Why it breaks with MoE:</strong> In standard autoregressive decoding, each token activates only its top-K experts. But during verification, the batch of K draft tokens collectively activates many more unique experts (potentially all of them), dramatically increasing the data movement required</li>
+        <li><strong>Quantified impact:</strong> Verification time can increase 2-3x because loading additional expert weights from HBM dominates compute time. When throughput gains fail to offset this overhead, speculative decoding can cause slowdowns up to 1.5x</li>
+      </ul>
+
+      <p><strong>Solutions to the MoE speculation problem:</strong></p>
+      <ul>
+        <li><strong>Adaptive grouped speculative decoding:</strong> Group draft tokens that route to the same experts, process them together to minimize expert loading overhead</li>
+        <li><strong>Context-aware scheduling:</strong> Predict which experts will be needed based on the prompt context and pre-load them</li>
+        <li><strong>Divided rollout:</strong> Dynamic load balancing across devices during verification to prevent hotspots when certain experts are disproportionately activated</li>
+        <li><strong>Confidence-based deferral:</strong> Only speculate when the draft model is highly confident, reducing the number of wasted expert activations from rejected tokens</li>
+        <li><strong>Blockwise parallel decoding:</strong> Parallelize generation at the block level to amortize expert loading costs over multiple tokens</li>
+      </ul>
+    </div>
+
+    <!-- Subsection 5: Key Design Decisions -->
+    <div class="subsection">
+      <h3>Key Design Decisions</h3>
+
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Decision</th>
+            <th>Choice</th>
+            <th>Tradeoff</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Sparse MoE vs. Dense</td>
+            <td>Sparse MoE for Gemini 2.5+</td>
+            <td>10x more capacity at same per-token cost, but requires all expert weights in memory and introduces routing complexity</td>
+          </tr>
+          <tr>
+            <td>Top-K selection value</td>
+            <td>Typically K=2 out of 64 experts</td>
+            <td>K=1 is cheapest but risks information loss; K=2 balances quality and efficiency; higher K approaches dense cost</td>
+          </tr>
+          <tr>
+            <td>Load balancing mechanism</td>
+            <td>Auxiliary loss in training objective</td>
+            <td>Prevents expert collapse but adds a hyperparameter (loss weight) and can slightly hurt quality if too strong</td>
+          </tr>
+          <tr>
+            <td>TPU custom silicon vs. commodity GPUs</td>
+            <td>TPU pods with custom Jupiter interconnect</td>
+            <td>Optimized for all-to-all communication patterns of expert parallelism; less ecosystem flexibility than NVIDIA GPUs</td>
+          </tr>
+          <tr>
+            <td>Expert parallelism strategy</td>
+            <td>Experts distributed across devices</td>
+            <td>Enables larger expert counts but requires high-bandwidth interconnect (Jupiter) for token routing across devices</td>
+          </tr>
+          <tr>
+            <td>Speculative decoding approach</td>
+            <td>Adaptive grouped speculation with MoE-aware scheduling</td>
+            <td>Recovers speedups that naive speculation loses with MoE; adds system complexity for routing-aware batching</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Subsection 6: Interview Talking Points -->
+    <div class="subsection">
+      <div class="talking-points">
+        <h4>Interview Talking Points</h4>
+        <ul>
+          <li><strong>Capacity vs. compute decoupling:</strong> "MoE lets you build a 1T-parameter model that only uses 100B parameters per token. The key insight is that different tokens need different expertise -- a math token doesn't need the poetry weights."</li>
+          <li><strong>Router as a learned component:</strong> "The router is itself a neural network trained end-to-end. It learns which experts specialize in what, and the load balancing loss prevents degenerate solutions where all tokens go to one expert."</li>
+          <li><strong>Memory-bound inference:</strong> "The counterintuitive thing about MoE serving is that even though you activate fewer FLOPs per token, you need ALL expert weights in memory. This makes MoE models memory-bandwidth-bound rather than compute-bound -- the bottleneck is loading expert weights from HBM, not the actual math."</li>
+          <li><strong>Speculative decoding breaks with MoE:</strong> "Speculative decoding assumes verification is cheap because you batch draft tokens. But with MoE, those draft tokens collectively activate way more experts than single-token generation -- you go from loading 2 experts to potentially dozens. The data movement overhead can actually make it 1.5x slower."</li>
+          <li><strong>Expert parallelism is not tensor parallelism:</strong> "Expert parallelism has a fundamentally different communication pattern. Tensor parallelism splits a single weight matrix; expert parallelism places whole experts on different devices and requires all-to-all token routing. That's why Google built Jupiter -- you need massive bisection bandwidth."</li>
+          <li><strong>Hardware-software co-design:</strong> "Google's advantage is vertical integration: AlphaChip designs the TPU layout, Jupiter provides the interconnect for expert routing, XLA/JAX compiles the parallelism strategy, and Pathways orchestrates serving. Each layer is optimized for the MoE workload pattern."</li>
+          <li><strong>Why not just train a bigger dense model?</strong> "Dense models hit a wall where doubling parameters doubles both training and inference cost. MoE breaks this -- you can scale capacity sublinearly. The cost is system complexity: routing, load balancing, expert parallelism, and MoE-aware serving."</li>
+          <li><strong>Practical implication for system design:</strong> "When designing for MoE serving, think about expert placement, caching hot experts, routing-aware batching, and your interconnect bandwidth. The system design is fundamentally different from dense model serving."</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Sources -->
+    <div class="sources">
+      <strong style="color: var(--text-muted); font-size: 0.8rem;">Sources:</strong>
+      <a href="https://deepmind.google/models/" target="_blank">DeepMind Models</a>
+      <a href="https://storage.googleapis.com/deepmind-media/gemini/gemini_v2_5_report.pdf" target="_blank">Gemini 2.5 Technical Report</a>
+      <a href="https://deepmind.google/blog/googles-year-in-review-8-areas-with-research-breakthroughs-in-2025/" target="_blank">Google Research Breakthroughs 2025</a>
+    </div>
+
+  </div>
+</div>

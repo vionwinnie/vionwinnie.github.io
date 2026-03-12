@@ -1,0 +1,203 @@
+<div class="system-section open">
+  <div class="section-header">
+    <span class="company-badge badge-cursor">Cursor</span>
+    <h2>Real-Time Code Completion System <span class="subtitle">— 1M+ QPS LLM serving with speculative edits</span></h2>
+    <span class="toggle-icon">&#9660;</span>
+  </div>
+  <div class="section-content">
+
+    <!-- Architecture Diagram -->
+    <div class="diagram-container">
+      <div class="mermaid">
+graph TD
+    subgraph Client["Client Layer (VS Code Fork — TypeScript/Electron)"]
+        U["User types code"] --> CC["Context Collector"]
+        CC --> |"Gathers surrounding code,<br/>imports, file tree"| ENC["Local Encryption"]
+    end
+
+    subgraph Infra["Infrastructure Layer"]
+        CF["Cloudflare<br/>Reverse Proxy / TLS / DDoS"]
+    end
+
+    ENC --> CF
+    CF --> BE["Monolithic Backend<br/>TypeScript + Rust"]
+
+    subgraph Server["Server Layer (AWS CPU + Azure H100 GPUs)"]
+        BE --> DEC["Decrypt Request"]
+        DEC --> ROUTER["Model Router"]
+
+        ROUTER --> |"Autocomplete<br/>low-latency"| FW["Fireworks<br/>Fine-tuned Models"]
+        ROUTER --> |"Chat / Summarize"| OAI["OpenAI<br/>GPT Models"]
+        ROUTER --> |"Reasoning"| ANT["Anthropic<br/>Claude Models"]
+        ROUTER --> |"Multimodal"| GCP["Google Vertex AI<br/>Gemini"]
+
+        FW --> SPEC["Speculative Edits Engine"]
+        SPEC --> |"Fine-tuned Llama-3-70b<br/>13x speedup"| RESP["Response Builder"]
+        OAI --> RESP
+        ANT --> RESP
+        GCP --> RESP
+    end
+
+    RESP --> CF
+    CF --> |"Sub-second latency"| RENDER["Render Suggestions<br/>in Editor"]
+
+    subgraph Indexing["Codebase Indexing Pipeline"]
+        FILES["Local Codebase Files"] --> MERKLE["Merkle Tree Hash<br/>Sync every 3 min"]
+        MERKLE --> |"Detect changed files"| CHUNK["Code Chunker"]
+        CHUNK --> EMB["Embedding Model"]
+        EMB --> TP["Turbopuffer<br/>Vector DB"]
+    end
+
+    TP --> |"Semantic code search<br/>for context retrieval"| CC
+
+    subgraph Shadow["Shadow Workspace"]
+        EDIT_REQ["Edit Request"] --> SW["Hidden VSCode Window"]
+        SW --> |"AI applies edits"| LINT["Lint Check"]
+        LINT --> |"Pass/Fail + diagnostics"| REPORT["Report Back to User"]
+    end
+
+    subgraph Training["Custom Training Pipeline"]
+        UD["Real User Data"] --> CB["Cursor Bench<br/>Custom Benchmark"]
+        CB --> RL["RL Training<br/>PyTorch + Ray"]
+        RL --> |"Thousands of GPUs"| CM["Composer Model"]
+        CM --> |"Evaluates correctness +<br/>codebase abstraction adherence"| FW
+    end
+
+    subgraph Monitoring["Observability"]
+        DD["Datadog Monitoring"]
+        PG["PostgreSQL<br/>Primary Datastore"]
+    end
+
+    BE --> DD
+    BE --> PG
+
+    style Client fill:#1a2744,stroke:#58a6ff,stroke-width:2px,color:#e6edf3
+    style Server fill:#1a2233,stroke:#bc8cff,stroke-width:2px,color:#e6edf3
+    style Indexing fill:#1a2a22,stroke:#3fb950,stroke-width:2px,color:#e6edf3
+    style Shadow fill:#2a2219,stroke:#d29922,stroke-width:2px,color:#e6edf3
+    style Training fill:#2a1a22,stroke:#f85149,stroke-width:2px,color:#e6edf3
+    style Monitoring fill:#1a2233,stroke:#8b949e,stroke-width:2px,color:#e6edf3
+    style Infra fill:#1a2233,stroke:#39d2c0,stroke-width:2px,color:#e6edf3
+      </div>
+    </div>
+
+    <!-- Problem Statement -->
+    <div class="subsection">
+      <h3>Problem Statement</h3>
+      <p>
+        Build a real-time code completion system that serves 1M+ queries per second at peak, providing
+        context-aware suggestions with sub-second latency. The system must deeply understand an entire
+        codebase (not just the open file), support multi-model routing for different task types
+        (autocomplete, chat, reasoning, code edits), and maintain strict user privacy through
+        client-side encryption. Beyond simple completions, the system must also handle "speculative edits"
+        — predicting and applying multi-line code changes — with enough speed that users experience them
+        as instantaneous.
+      </p>
+      <p>
+        <strong>Core ML tasks:</strong> (1) Next-token code prediction at extreme throughput,
+        (2) Semantic code retrieval via embeddings for context augmentation,
+        (3) Reinforcement learning from real user interactions to continuously improve suggestion quality.
+      </p>
+    </div>
+
+    <!-- Architecture Overview -->
+    <div class="subsection">
+      <h3>Architecture Overview</h3>
+      <ul>
+        <li><strong>Client (VS Code fork):</strong> TypeScript/Electron app collects code context — surrounding lines, imports, file tree structure — and encrypts it locally before transmission. The client manages the user experience and rendering of suggestions.</li>
+        <li><strong>Codebase Indexing:</strong> Files are chunked, embedded, and stored in Turbopuffer (vector DB). A Merkle tree hash mechanism syncs every 3 minutes to detect file changes; only modified files are re-indexed. Raw code is never stored server-side — only embeddings — preserving privacy.</li>
+        <li><strong>Infrastructure:</strong> Cloudflare provides reverse proxy, TLS termination, and DDoS protection. AWS handles CPU workloads; Azure provides tens of thousands of H100 GPUs dedicated to inference. The backend is a monolithic TypeScript + Rust service (Rust for performance-critical paths) backed by PostgreSQL.</li>
+        <li><strong>Model Router:</strong> Requests are dispatched to the optimal model provider based on task type — Fireworks for low-latency autocomplete (custom fine-tuned models), OpenAI GPT for chat and summarization, Anthropic Claude for deep reasoning, and Google Vertex AI for Gemini access.</li>
+        <li><strong>Speculative Edits:</strong> A novel variant of speculative decoding optimized for code. Because existing code provides a strong guess of the output, the system uses longer speculation windows. A fine-tuned Llama-3-70b served via Fireworks achieves a 13x speedup over vanilla decoding and 9x over GPT-4 on the "Fast Apply" task (planning + applying code changes).</li>
+        <li><strong>Shadow Workspace:</strong> A hidden VSCode window is spawned where AI performs edits, runs lint checks, and reports diagnostics — all without affecting the user's active coding session. This enables iterative AI refinement before surfacing suggestions.</li>
+        <li><strong>Custom Training:</strong> The Composer model is trained via reinforcement learning on real user data using PyTorch + Ray distributed across thousands of GPUs. "Cursor Bench," a custom benchmark built from real agent requests by real users, evaluates both correctness and adherence to codebase abstractions.</li>
+        <li><strong>Monitoring:</strong> Datadog for full-stack observability. PostgreSQL (migrated from Yugabyte for simplicity) as the primary datastore.</li>
+      </ul>
+    </div>
+
+    <!-- Key Design Decisions -->
+    <div class="subsection">
+      <h3>Key Design Decisions</h3>
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Decision</th>
+            <th>Why</th>
+            <th>Tradeoff</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Monolithic backend</strong> (single TypeScript + Rust service)</td>
+            <td>Maximizes developer velocity — small team can iterate rapidly without cross-service coordination overhead</td>
+            <td>Sacrifices independent scaling of components; risk of coupling. Acceptable at their stage because development speed is the bottleneck, not operational complexity.</td>
+          </tr>
+          <tr>
+            <td><strong>Multi-provider model routing</strong> (Fireworks, OpenAI, Anthropic, Google)</td>
+            <td>Each provider excels at a different task profile — latency-sensitive autocomplete vs. deep reasoning vs. multimodal understanding</td>
+            <td>Increased vendor dependency and integration complexity. Mitigated by having custom fine-tuned models (via Fireworks) for the highest-QPS path (autocomplete), keeping the critical path under their control.</td>
+          </tr>
+          <tr>
+            <td><strong>Speculative decoding with long speculation windows</strong></td>
+            <td>Code edits have high predictability (existing code is a strong prior), so longer speculations pay off more than in general text generation</td>
+            <td>Wasted compute when speculation is wrong. The 13x speedup demonstrates that the hit rate is high enough for code to make this overwhelmingly worthwhile.</td>
+          </tr>
+          <tr>
+            <td><strong>Merkle tree + 3-minute sync for indexing</strong></td>
+            <td>Efficiently detects which files changed without diffing entire codebases; only re-indexes modified files</td>
+            <td>Up to 3 minutes of staleness in the index. Acceptable because code context changes are usually in the active file (handled by real-time context), not the broader codebase.</td>
+          </tr>
+          <tr>
+            <td><strong>Turbopuffer for vector storage</strong> (replacing prior solution)</td>
+            <td>Purpose-built vector DB optimized for embedding search at scale, with the right cost/performance profile for their access patterns</td>
+            <td>Newer, less battle-tested infrastructure. Offset by the privacy benefit of storing only embeddings (not raw code) and better query performance.</td>
+          </tr>
+          <tr>
+            <td><strong>PostgreSQL over Yugabyte</strong></td>
+            <td>Yugabyte's distributed complexity was unnecessary; PostgreSQL is simpler, better understood, and sufficient at their scale for relational data</td>
+            <td>Gives up automatic horizontal sharding. Justified because the relational data (user metadata, settings) doesn't require distributed scale — the heavy lifting is on the GPU inference side.</td>
+          </tr>
+          <tr>
+            <td><strong>Client-side encryption + embeddings-only storage</strong></td>
+            <td>Enterprise customers require strong privacy guarantees — code never persists on servers in raw form</td>
+            <td>Limits server-side debugging and data analysis capabilities. Necessary for enterprise adoption and user trust.</td>
+          </tr>
+          <tr>
+            <td><strong>RL training on real user data with custom benchmark</strong></td>
+            <td>Standard code benchmarks (HumanEval, etc.) don't capture real-world coding patterns — editing existing code, following project conventions, multi-file changes</td>
+            <td>Expensive to collect and curate; potential bias toward power-user patterns. The custom "Cursor Bench" built from real agent requests provides far more realistic evaluation than synthetic benchmarks.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Interview Talking Points -->
+    <div class="subsection">
+      <div class="talking-points">
+        <h4>Interview Talking Points</h4>
+        <ul>
+          <li><strong>Scale separation:</strong> Autocomplete (1M+ QPS, ~100ms budget) is a fundamentally different serving problem than chat/reasoning (~1 QPS per user, seconds acceptable). Cursor solves this by routing to different model providers — Fireworks for the latency-critical path, heavier models for deeper tasks.</li>
+          <li><strong>Speculative decoding for code:</strong> Code edits are uniquely suited for speculative decoding because existing code acts as a strong prior. The system uses longer speculation windows than typical text generation, achieving 13x speedup with a fine-tuned Llama-3-70b. This is a great example of adapting a general ML technique to a domain-specific advantage.</li>
+          <li><strong>Merkle tree indexing:</strong> Rather than re-indexing the entire codebase on every change, Cursor uses Merkle tree hashing (synced every 3 minutes) to detect only modified files. This is the same data structure Bitcoin uses for transaction verification — an elegant application of a well-known CS concept to reduce redundant embedding computation.</li>
+          <li><strong>Privacy-preserving retrieval:</strong> Only embeddings are stored server-side, never raw code. This is a critical design constraint that shapes the entire architecture — you cannot do server-side code analysis, but you gain enterprise trust. Discuss how this constraint limits certain features (e.g., server-side refactoring analysis) while enabling others (enterprise adoption).</li>
+          <li><strong>Shadow Workspace pattern:</strong> Spawning a hidden VSCode instance for AI to iterate in is a clever separation of concerns — the AI gets a full IDE environment (linting, type checking) without risking the user's active session. This is an example of using existing tools as infrastructure rather than rebuilding them.</li>
+          <li><strong>Monolith over microservices:</strong> Cursor deliberately chose a monolithic backend despite 1M+ QPS scale. This is a great discussion point about when microservices are premature — at their team size, developer velocity from a single deployable unit outweighs the operational benefits of independent scaling.</li>
+          <li><strong>Custom benchmarks over standard ones:</strong> "Cursor Bench" uses real agent requests from real users, evaluating not just correctness but adherence to codebase abstractions and conventions. This is a strong stance on evaluation — standard benchmarks like HumanEval measure isolated function generation, not the messy reality of editing existing code across multiple files.</li>
+          <li><strong>Infrastructure pragmatism:</strong> The migration from Yugabyte to PostgreSQL illustrates an underappreciated principle: choose the simplest technology that solves your problem. Distributed databases add operational complexity that wasn't justified by their relational data access patterns. The heavy scaling challenge is on the GPU inference side, not the metadata side.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Sources -->
+    <div class="sources">
+      <strong style="color: var(--text-muted); font-size: 0.8rem;">Sources:</strong><br>
+      <a href="https://www.cursor.com/blog" target="_blank">Cursor Engineering Blog</a>
+      <a href="https://www.youtube.com/watch?v=oFfVt3S51T4" target="_blank">Lex Fridman Podcast: Cursor Team Interview</a>
+      <a href="https://www.latent.space/p/cursor" target="_blank">Latent Space Podcast: Cursor Deep Dive</a>
+      <a href="https://www.youtube.com/watch?v=FJVCjNSz0go" target="_blank">Cursor: Behind the Code (Sully Omar)</a>
+      <a href="https://turbopuffer.com" target="_blank">Turbopuffer Vector Database</a>
+      <a href="https://fireworks.ai" target="_blank">Fireworks AI: Model Serving Platform</a>
+    </div>
+
+  </div>
+</div>

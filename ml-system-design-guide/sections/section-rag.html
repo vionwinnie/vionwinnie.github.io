@@ -1,0 +1,141 @@
+<div class="system-section">
+  <div class="section-header">
+    <span class="company-badge badge-anthropic">Anthropic</span>
+    <h2>Contextual Retrieval (RAG) <span class="subtitle">— 67% fewer failed retrievals with hybrid search + reranking</span></h2>
+    <span class="toggle-icon">&#9660;</span>
+  </div>
+  <div class="section-content">
+
+    <!-- Architecture Diagram -->
+    <div class="diagram-container">
+      <div class="mermaid">
+graph TD
+    subgraph INGEST["Ingestion Pipeline"]
+        A["Raw Document"] --> B["Chunking"]
+        B --> C["Chunks (c1, c2, ... cN)"]
+        C --> D["LLM Context Generation"]
+        A -- "Full document as cached prefix" --> D
+        D --> E["Contextual Chunks"]
+        E --> F["Embedding Model"]
+        E --> G["BM25 Tokenizer"]
+        F --> H["Vector Index"]
+        G --> I["BM25 Index"]
+    end
+
+    subgraph CACHE["Prompt Caching Optimization"]
+        J["Full Document (cached)"] --> K["+ Individual Chunk (variable)"]
+        K --> L["Generated Context Snippet"]
+        L --> M["~90% cost reduction per chunk"]
+    end
+
+    subgraph QUERY["Query Pipeline"]
+        N["User Query"] --> O["Query Embedding"]
+        N --> P["Query Tokens"]
+        O --> Q["Semantic Search (Vector Index)"]
+        P --> R["Keyword Search (BM25 Index)"]
+        Q --> S["Merge Results"]
+        R --> S
+        S --> T["Reranker (e.g. Cohere)"]
+        T --> U["Top-K Contextual Chunks"]
+        U --> V["LLM Answer Generation"]
+        N --> V
+    end
+
+    H -.-> Q
+    I -.-> R
+
+    style INGEST fill:#1c2333,stroke:#58a6ff,stroke-width:2px,color:#e6edf3
+    style CACHE fill:#1c2333,stroke:#bc8cff,stroke-width:2px,color:#e6edf3
+    style QUERY fill:#1c2333,stroke:#3fb950,stroke-width:2px,color:#e6edf3
+    style A fill:#222d3f,stroke:#58a6ff,color:#e6edf3
+    style E fill:#222d3f,stroke:#bc8cff,color:#e6edf3
+    style H fill:#222d3f,stroke:#58a6ff,color:#e6edf3
+    style I fill:#222d3f,stroke:#d29922,color:#e6edf3
+    style S fill:#222d3f,stroke:#3fb950,color:#e6edf3
+    style T fill:#222d3f,stroke:#f85149,color:#e6edf3
+    style V fill:#222d3f,stroke:#3fb950,color:#e6edf3
+    style M fill:#222d3f,stroke:#bc8cff,color:#e6edf3
+      </div>
+    </div>
+
+    <!-- Problem Statement -->
+    <div class="subsection">
+      <h3>Problem Statement</h3>
+      <p>Traditional RAG systems split documents into chunks and embed them for semantic retrieval. However, individual chunks often lose critical context once separated from their source document. For example, a chunk stating <em>"Revenue increased 3% over the previous quarter"</em> becomes nearly useless without knowing which company, which quarter, or which revenue stream is being discussed.</p>
+      <p>This context loss creates a specific failure mode: <strong>the relevant chunk exists in the knowledge base but cannot be retrieved</strong> because neither its embedding nor its keywords carry enough information to match the user's query. Anthropic found this "failed retrieval" problem to be the dominant source of errors in production RAG systems, more damaging than the generation step itself.</p>
+    </div>
+
+    <!-- Architecture Overview -->
+    <div class="subsection">
+      <h3>Architecture Overview</h3>
+      <p>Contextual Retrieval addresses failed retrievals through three layered techniques applied during ingestion and query time:</p>
+      <ul>
+        <li><strong>Contextual Embeddings:</strong> Before embedding each chunk, an LLM is called with both the full document and the individual chunk. The LLM generates a short explanatory context snippet (e.g., <em>"This chunk is from Acme Corp's Q2 2024 SEC filing, specifically the revenue breakdown section discussing North American operations"</em>). This context is prepended to the chunk, and the enriched chunk is then embedded. The richer embedding captures the chunk's meaning within its document.</li>
+        <li><strong>Contextual BM25:</strong> The same enriched chunks are also indexed in a BM25 (keyword/lexical) index. This ensures that exact entity names, acronyms, and domain-specific terms that appear in the prepended context are searchable via keyword matching — catching cases where semantic similarity alone would fail.</li>
+        <li><strong>Hybrid Search + Reranking:</strong> At query time, the user's query is run against both the vector index (semantic) and the BM25 index (keyword). Results from both are merged, then passed through a reranker model (e.g., Cohere Rerank) that re-scores every candidate chunk against the original query. The top-K results after reranking are passed to the LLM for answer generation.</li>
+      </ul>
+
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Retrieval Strategy</th>
+            <th>Failed Retrieval Reduction</th>
+            <th>What It Adds</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Contextual Embeddings only</td>
+            <td><strong>35%</strong></td>
+            <td>Richer semantic representations via prepended context</td>
+          </tr>
+          <tr>
+            <td>Contextual Embeddings + BM25 (Hybrid)</td>
+            <td><strong>49%</strong></td>
+            <td>Keyword matching catches exact terms embeddings miss</td>
+          </tr>
+          <tr>
+            <td>Hybrid + Reranking</td>
+            <td><strong>67%</strong></td>
+            <td>Cross-attention reranker re-scores merged results with high precision</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Key Design Decisions -->
+    <div class="subsection">
+      <h3>Key Design Decisions</h3>
+      <ul>
+        <li><strong>Why hybrid search over embeddings-only?</strong> Embedding models compress meaning into dense vectors, which excel at capturing semantic similarity (synonyms, paraphrases) but can lose exact terms — especially rare entity names, product codes, or acronyms. BM25 is the inverse: it matches on exact token overlap and handles rare, specific terms well but misses paraphrases entirely. Combining both covers the full spectrum. Anthropic's data showed a 14 percentage-point improvement (35% to 49%) from adding BM25, confirming that a significant share of retrieval failures were keyword-match problems, not semantic ones.</li>
+        <li><strong>Why prepend context instead of other approaches?</strong> Alternative strategies include fine-tuning the embedding model on domain data, using larger chunk sizes, or adding metadata fields. Prepending context is appealing because it is model-agnostic (works with any off-the-shelf embedding model), requires no retraining, and directly addresses the root cause — the chunk text itself lacks context. The LLM-generated snippet acts as a "situational summary" that travels with the chunk through every downstream stage (embedding, BM25 indexing, reranking, generation).</li>
+        <li><strong>Why reranking matters:</strong> The initial retrieval step (both vector and BM25) uses lightweight, bi-encoder or term-matching models that score each chunk independently. A reranker uses a cross-encoder architecture: it jointly attends to the query and each candidate chunk together, producing much more accurate relevance scores. This is computationally expensive (O(n) forward passes for n candidates), so it is only applied to the top candidates after the fast first-stage retrieval. The jump from 49% to 67% reduction demonstrates that many relevant chunks are retrieved but ranked too low without reranking.</li>
+        <li><strong>Cost-quality tradeoff with prompt caching:</strong> Generating context for each chunk requires an LLM call with the full document as input — potentially expensive at scale. Anthropic's prompt caching optimization keeps the full document in the LLM's KV cache and only varies the per-chunk suffix. This reduces the marginal cost per chunk by approximately 90%, making it economically viable to enrich millions of chunks. The tradeoff is that caching works best when chunks from the same document are processed sequentially in a batch, requiring careful orchestration of the ingestion pipeline.</li>
+      </ul>
+    </div>
+
+    <!-- Interview Talking Points -->
+    <div class="subsection">
+      <div class="talking-points">
+        <h4>Interview Talking Points</h4>
+        <ul>
+          <li><strong>Root cause framing:</strong> "The core insight is that failed retrievals — where the right chunk exists but isn't found — are more damaging than generation errors, and they stem from chunks losing context when separated from their source document."</li>
+          <li><strong>The enrichment step:</strong> "Each chunk is sent to an LLM alongside the full document, and the LLM generates a concise context snippet that is prepended to the chunk before embedding. This is a one-time ingestion cost, not a query-time cost."</li>
+          <li><strong>Hybrid search rationale:</strong> "Embeddings handle semantic similarity well but miss exact keyword matches. BM25 catches those. Combining them reduced failed retrievals by 49%, compared to 35% with embeddings alone — meaning roughly a third of the remaining failures were keyword-match problems."</li>
+          <li><strong>Reranking as a precision layer:</strong> "A cross-encoder reranker jointly attends to query-chunk pairs, producing much more accurate relevance scores than bi-encoder retrieval. It's too expensive for the full corpus but highly effective on the top candidates from first-stage retrieval."</li>
+          <li><strong>Cost engineering:</strong> "Prompt caching keeps the document in the LLM's KV cache while varying only the chunk text per call, cutting enrichment cost by ~90%. This makes the approach practical at scale — you batch chunks from the same document sequentially to maximize cache hits."</li>
+          <li><strong>Layered improvement story:</strong> "Each technique compounds: contextual embeddings (35%), plus BM25 (49%), plus reranking (67%). In an interview, I'd frame this as a lesson in systematic ablation — each layer addresses a distinct failure mode."</li>
+          <li><strong>Model-agnostic design:</strong> "Prepending context works with any embedding model and any BM25 implementation. There's no fine-tuning required, which makes it easy to swap in better models later without re-engineering the pipeline."</li>
+          <li><strong>Tradeoff awareness:</strong> "The main tradeoff is ingestion latency and cost vs. retrieval quality. The context generation step adds an LLM call per chunk during ingestion, but prompt caching and batching mitigate this. Query-time latency is only marginally affected since the reranker runs on a small candidate set."</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Sources -->
+    <div class="sources">
+      <strong style="color: var(--text-muted); font-size: 0.8rem;">Sources:</strong>
+      <a href="https://www.anthropic.com/news/contextual-retrieval" target="_blank" rel="noopener">Anthropic — Introducing Contextual Retrieval</a>
+    </div>
+
+  </div>
+</div>
