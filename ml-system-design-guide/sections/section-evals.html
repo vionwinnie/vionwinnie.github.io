@@ -1,0 +1,307 @@
+<div class="system-section">
+  <div class="section-header">
+    <span class="company-badge badge-anthropic">Anthropic</span>
+    <h2>AI Agent Evaluations <span class="subtitle">— Systematic eval pipelines for non-deterministic AI agents</span></h2>
+    <span class="toggle-icon">&#9660;</span>
+  </div>
+  <div class="section-content">
+
+    <!-- Architecture Overview -->
+    <div class="subsection">
+      <h3>Architecture Overview</h3>
+      <p>Agent evaluations provide a systematic framework for measuring AI agent performance across non-deterministic outputs. The core pipeline flows from task definition through an agent harness that produces transcripts, which are then scored by one or more graders to produce outcomes. Suites of 100s-1000s of tasks run in parallel, with pass@k and pass^k metrics capturing both capability ceilings and reliability floors. Anthropic advocates a Swiss Cheese model where automated evals, production monitoring, A/B testing, user feedback, manual review, and human studies form complementary layers — no single method catches everything.</p>
+      <p style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">Based on <a href="https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents" target="_blank" style="color: var(--accent-cyan);">Demystifying evals for AI agents (Jan 2026)</a></p>
+      <div class="diagram-container">
+        <div class="mermaid">
+graph TD
+    subgraph Suite["Evaluation Suite"]
+        direction TB
+        TASK["Task Definition<br/>Input + expected behavior"]
+        TRIAL1["Trial 1"]
+        TRIAL2["Trial 2"]
+        TRIALN["Trial N"]
+    end
+
+    subgraph Harness["Agent Harness"]
+        direction TB
+        ENV["Environment Setup<br/>Isolated sandbox per trial"]
+        AGENT["Agent Under Test<br/>Model + tools + prompts"]
+        EXEC["Execution<br/>Multi-step tool use"]
+    end
+
+    subgraph Transcript["Transcript"]
+        direction TB
+        STEPS["Step-by-step log<br/>Actions, tool calls, outputs"]
+    end
+
+    subgraph Graders["Grading Layer"]
+        direction LR
+        CODE["Code-Based Grader<br/>Deterministic checks,<br/>unit tests, regex"]
+        MODEL["Model-Based Grader<br/>LLM judge with rubric,<br/>semantic matching"]
+        HUMAN["Human Grader<br/>Gold-standard review,<br/>calibration baseline"]
+    end
+
+    subgraph Outcome["Outcome and Metrics"]
+        direction LR
+        SCORE["Score per Trial<br/>Pass/fail or 0-1"]
+        PASSK["pass@k<br/>At least 1 success in k trials"]
+        PASSK2["pass^k<br/>All k trials succeed"]
+    end
+
+    TASK --> TRIAL1
+    TASK --> TRIAL2
+    TASK --> TRIALN
+    TRIAL1 --> ENV
+    TRIAL2 --> ENV
+    TRIALN --> ENV
+    ENV --> AGENT --> EXEC
+    EXEC --> STEPS
+    STEPS --> CODE
+    STEPS --> MODEL
+    STEPS --> HUMAN
+    CODE --> SCORE
+    MODEL --> SCORE
+    HUMAN --> SCORE
+    SCORE --> PASSK
+    SCORE --> PASSK2
+
+    style Suite fill:#1c2333,stroke:#58a6ff,stroke-width:2px,color:#e6edf3
+    style Harness fill:#1c2333,stroke:#3fb950,stroke-width:2px,color:#e6edf3
+    style Transcript fill:#1c2333,stroke:#d29922,stroke-width:2px,color:#e6edf3
+    style Graders fill:#1c2333,stroke:#bc8cff,stroke-width:2px,color:#e6edf3
+    style Outcome fill:#1c2333,stroke:#39d2c0,stroke-width:2px,color:#e6edf3
+        </div>
+      </div>
+    </div>
+
+    <!-- Eval Terminology -->
+    <div class="subsection">
+      <h3>Eval Terminology</h3>
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Term</th>
+            <th>Definition</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Task</strong></td>
+            <td>A single problem instance with defined inputs and success criteria. The atomic unit of evaluation.</td>
+          </tr>
+          <tr>
+            <td><strong>Trial</strong></td>
+            <td>One execution of a task by the agent. Multiple trials per task capture non-deterministic variation.</td>
+          </tr>
+          <tr>
+            <td><strong>Grader</strong></td>
+            <td>A function that scores agent output against expected behavior. Can be code-based, model-based, or human.</td>
+          </tr>
+          <tr>
+            <td><strong>Transcript</strong></td>
+            <td>The full step-by-step record of an agent's actions, tool calls, and outputs during a trial.</td>
+          </tr>
+          <tr>
+            <td><strong>Outcome</strong></td>
+            <td>The grader's verdict on a trial — typically pass/fail or a score between 0 and 1.</td>
+          </tr>
+          <tr>
+            <td><strong>Evaluation harness</strong></td>
+            <td>The infrastructure that orchestrates task selection, trial execution, grading, and metric aggregation.</td>
+          </tr>
+          <tr>
+            <td><strong>Agent harness</strong></td>
+            <td>The wrapper that provides the agent with its environment (tools, sandbox, credentials) for each trial.</td>
+          </tr>
+          <tr>
+            <td><strong>Evaluation suite</strong></td>
+            <td>A curated collection of 100s-1000s of tasks designed to measure a specific capability or track regressions.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Types of Graders -->
+    <div class="subsection">
+      <h3>Types of Graders</h3>
+      <p>Choosing the right grader type is a core design decision. Most production eval suites use a combination, with code-based graders for objective checks and model-based graders for subjective quality assessment.</p>
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Dimension</th>
+            <th>Code-Based</th>
+            <th>Model-Based</th>
+            <th>Human</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Methods</strong></td>
+            <td>Unit tests, regex matching, string comparison, assertion checks, execution-based verification</td>
+            <td>LLM-as-judge with rubric, pairwise comparison, semantic similarity scoring</td>
+            <td>Expert review with scoring rubric, A/B preference testing, calibration sessions</td>
+          </tr>
+          <tr>
+            <td><strong>Strengths</strong></td>
+            <td>Fast, deterministic, zero cost per run, perfectly reproducible, no false positives from grader errors</td>
+            <td>Handles open-ended outputs, captures nuance and partial credit, scales to 1000s of tasks</td>
+            <td>Gold-standard accuracy, catches subtle quality issues, provides calibration baseline for other graders</td>
+          </tr>
+          <tr>
+            <td><strong>Weaknesses</strong></td>
+            <td>Cannot assess subjective quality, brittle to valid alternative solutions, high upfront authoring cost</td>
+            <td>Non-deterministic (grader itself varies), can hallucinate scores, requires careful prompt engineering</td>
+            <td>Expensive ($5-50 per task), slow (hours to days), does not scale, inter-rater disagreement</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Evaluating Agent Types -->
+    <div class="subsection">
+      <h3>Evaluating Agent Types</h3>
+      <p>Different agent categories require distinct eval strategies because their outputs, environments, and failure modes vary significantly.</p>
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Agent Type</th>
+            <th>Focus</th>
+            <th>Key Benchmarks</th>
+            <th>Grading Strategy</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Coding Agents</strong></td>
+            <td>End-to-end code generation, bug fixing, test writing</td>
+            <td>SWE-bench (resolve real GitHub issues), HumanEval</td>
+            <td>Code-based: run test suites against generated code. Pass/fail based on test outcomes.</td>
+          </tr>
+          <tr>
+            <td><strong>Conversational Agents</strong></td>
+            <td>Multi-turn dialogue, tool use in conversation, user satisfaction</td>
+            <td>tau-Bench (simulated retail and airline customer service)</td>
+            <td>Model-based: LLM judges conversation quality. Hybrid with code checks for tool call correctness.</td>
+          </tr>
+          <tr>
+            <td><strong>Research Agents</strong></td>
+            <td>Information gathering, synthesis, multi-step web browsing</td>
+            <td>BrowseComp (find hard-to-locate facts on the web)</td>
+            <td>Code-based for factual accuracy (exact match). Model-based for synthesis quality and completeness.</td>
+          </tr>
+          <tr>
+            <td><strong>Computer Use Agents</strong></td>
+            <td>GUI interaction, form filling, multi-app workflows</td>
+            <td>WebArena (web tasks), OSWorld (desktop OS tasks)</td>
+            <td>Code-based: check final application state (DOM, file system). Screenshot comparison for visual tasks.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Non-Determinism -->
+    <div class="subsection">
+      <h3>Non-Determinism: pass@k vs pass^k</h3>
+      <p>AI agents are inherently non-deterministic — the same task can produce different results across runs. Two complementary metrics capture different aspects of this variability:</p>
+      <ul>
+        <li><strong>pass@k (capability ceiling):</strong> The probability that at least 1 out of k independent trials succeeds. Answers "can the agent do this at all?" A task with pass@5 = 80% means the agent can solve it most of the time if given multiple attempts. Useful for capability evals where you want to know the frontier of what the agent can achieve.</li>
+        <li><strong>pass^k (reliability floor):</strong> The probability that all k independent trials succeed. Answers "can the agent do this reliably?" A task with pass^5 = 30% means the agent only consistently solves it 30% of the time across all attempts. Useful for regression evals and production readiness where every run must succeed.</li>
+        <li><strong>The gap between pass@k and pass^k reveals flakiness:</strong> If pass@5 is 90% but pass^5 is 20%, the agent has the capability but lacks reliability. This gap is the signal to investigate — read transcripts of failing trials to find the failure modes causing inconsistency.</li>
+        <li><strong>Practical guidance:</strong> Run at least 3-5 trials per task. For high-stakes production decisions, run more. Track both metrics over time — a rising pass@k with flat pass^k means the agent is getting more capable but not more reliable.</li>
+      </ul>
+    </div>
+
+    <!-- 8-Step Roadmap -->
+    <div class="subsection">
+      <h3>The 8-Step Eval Roadmap</h3>
+      <p>Anthropic recommends this progression for building an eval suite, from first prototype to production-grade evaluation infrastructure:</p>
+      <ol style="margin-top: 0.75rem; padding-left: 1.5rem;">
+        <li style="margin-bottom: 0.5rem;"><strong>Start early:</strong> Build evals from day one, not after the agent is "ready." Even 5-10 hand-written tasks provide signal that manual testing cannot.</li>
+        <li style="margin-bottom: 0.5rem;"><strong>Harvest manual tests:</strong> Every time you manually test the agent, convert that interaction into a reproducible eval task. Your manual testing backlog is your best task source.</li>
+        <li style="margin-bottom: 0.5rem;"><strong>Write unambiguous tasks:</strong> Each task must have a clear, objectively verifiable success criterion. Ambiguous tasks produce noisy signals that waste engineering time.</li>
+        <li style="margin-bottom: 0.5rem;"><strong>Build balanced problem sets:</strong> Include easy (sanity checks), medium (core capability), and hard (frontier) tasks. An all-hard suite cannot distinguish "completely broken" from "slightly degraded."</li>
+        <li style="margin-bottom: 0.5rem;"><strong>Stabilize the harness:</strong> Invest in reproducible environments — deterministic setup, isolated sandboxes, pinned dependencies. Flaky infrastructure produces flaky results indistinguishable from agent flakiness.</li>
+        <li style="margin-bottom: 0.5rem;"><strong>Design thoughtful graders:</strong> Match grader type to output type. Use code-based graders for verifiable outputs, model-based for subjective quality. Calibrate model graders against human judgments.</li>
+        <li style="margin-bottom: 0.5rem;"><strong>Read transcripts:</strong> Aggregate metrics tell you what failed; transcripts tell you why. Regularly read 10-20 failing transcripts to identify systematic failure patterns.</li>
+        <li style="margin-bottom: 0.5rem;"><strong>Monitor saturation:</strong> When pass rates approach 90-95%, the suite is saturating. Add harder tasks or move to the next capability frontier. A saturated eval gives false confidence.</li>
+      </ol>
+    </div>
+
+    <!-- Key Design Decisions -->
+    <div class="subsection">
+      <h3>Key Design Decisions</h3>
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Decision</th>
+            <th>Chosen Approach</th>
+            <th>Alternative</th>
+            <th>Rationale</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Grading approach</strong></td>
+            <td>Code-based graders for verifiable outputs</td>
+            <td>Model-based (LLM-as-judge)</td>
+            <td>Code graders are deterministic and free to run. Use model graders only when output is subjective or open-ended — they add non-determinism to the eval itself.</td>
+          </tr>
+          <tr>
+            <td><strong>Eval type</strong></td>
+            <td>Capability evals for development, regression evals for CI</td>
+            <td>Single eval suite for both</td>
+            <td>Capability evals explore frontiers (pass@k matters); regression evals guard against breakage (pass^k matters). Mixing them conflates "can it?" with "does it still?"</td>
+          </tr>
+          <tr>
+            <td><strong>Success metric</strong></td>
+            <td>pass@k for capability, pass^k for reliability</td>
+            <td>Single pass rate (1 trial per task)</td>
+            <td>Single-trial pass rate conflates capability with luck. Running k=3-5 trials and tracking both metrics separates "the agent can do it" from "the agent reliably does it."</td>
+          </tr>
+          <tr>
+            <td><strong>Task design</strong></td>
+            <td>Narrow, specific tasks with unambiguous success criteria</td>
+            <td>Broad, realistic end-to-end scenarios</td>
+            <td>Narrow tasks produce cleaner signal for development. Broad tasks are better for final validation but harder to grade and debug. Start narrow, add broad tasks later.</td>
+          </tr>
+          <tr>
+            <td><strong>Environment</strong></td>
+            <td>Isolated sandbox per trial (fresh state)</td>
+            <td>Shared state across trials</td>
+            <td>Shared state creates ordering dependencies — trial 3 might pass only because trial 2 left artifacts. Isolation ensures each trial is an independent measurement.</td>
+          </tr>
+          <tr>
+            <td><strong>Grader calibration</strong></td>
+            <td>Human-calibrated model graders (validate against human scores)</td>
+            <td>Fixed rubric without human baseline</td>
+            <td>Model graders drift and hallucinate scores. Periodic human calibration (score 50-100 tasks manually) catches grader bugs before they corrupt metrics.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Interview Talking Points -->
+    <div class="subsection">
+      <div class="talking-points">
+        <h4>Interview Talking Points</h4>
+        <ul>
+          <li><strong>Agent evals require fundamentally different infrastructure than model evals:</strong> Traditional model evals test single input-output pairs. Agent evals must orchestrate multi-step execution with tool use, manage sandboxed environments, capture full transcripts, and handle non-deterministic outputs across 3-5+ trials per task. The evaluation harness is itself a complex system.</li>
+          <li><strong>The pass@k vs pass^k gap is the most actionable metric for agent reliability:</strong> If pass@5 = 90% but pass^5 = 20%, the agent has the capability but fails 4 out of 5 times. This 70-point gap directly quantifies flakiness and tells you exactly where to invest — read the failing transcripts to find the systematic failure mode.</li>
+          <li><strong>Code-based graders should be the default, not model-based:</strong> Model-based graders add a second source of non-determinism on top of the agent's own variability. For coding agents, SWE-bench uses test suite execution — deterministic, zero-cost, and perfectly reproducible. Reserve LLM judges for genuinely subjective outputs like conversation quality.</li>
+          <li><strong>The Swiss Cheese model of evaluation layers catches what no single method can:</strong> Automated evals, production monitoring, A/B testing, user feedback, manual review, and human studies each have blind spots. Like Swiss cheese slices, each layer has holes — but stacking 6 layers makes it unlikely a serious regression passes through all of them undetected.</li>
+          <li><strong>Eval suite saturation is a hidden failure mode:</strong> When pass rates hit 90-95%, teams celebrate — but the eval has stopped providing signal. Saturated benchmarks give false confidence. The fix is continuously adding harder tasks and retiring solved ones, treating the eval suite as a living system that evolves with the agent.</li>
+          <li><strong>Harvesting manual tests is the highest-ROI eval strategy:</strong> Every manual test session generates 5-10 potential eval tasks for free. Teams that systematically convert manual testing into automated evals build 100+ task suites in weeks. Teams that try to design eval suites from scratch often stall at 20-30 tasks.</li>
+          <li><strong>Environment isolation is non-negotiable for meaningful metrics:</strong> Shared state across trials creates hidden dependencies — trial 3 passes because trial 2 left a file behind. Running each trial in a fresh sandbox with pinned dependencies is the only way to ensure each measurement is independent. The infrastructure cost pays for itself in debuggability.</li>
+          <li><strong>Transcript reading is the most underrated eval practice:</strong> Aggregate metrics show what failed but not why. Reading 10-20 failing transcripts per week reveals systematic patterns — the agent always fails at the same step, misuses a specific tool, or gives up too early. These patterns are invisible in dashboards but obvious in transcripts.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Sources -->
+    <div class="sources">
+      <strong style="color: var(--text-muted); font-size: 0.8rem;">Sources:</strong><br>
+      <a href="https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents" target="_blank">Anthropic — Demystifying evals for AI agents (Jan 2026)</a>
+    </div>
+
+  </div>
+</div>
