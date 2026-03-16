@@ -1,9 +1,6 @@
 ---
 title: "I Taught a Robot Arm to Sort Vials at NVIDIA GTC — Here's What I Learned About Sim-to-Real Transfer"
-category: engineering
-excerpt: "Hands-on learnings from NVIDIA GTC's Sim2Real robotics workshop, bridging imitation learning theory from CS285 with the messy reality of deploying robot policies on physical hardware."
-tags: robotics sim2real reinforcement-learning nvidia-gtc imitation-learning
-comments: true
+layout: page
 ---
 
 *I just came out of an 8-hour robotics workshop at NVIDIA GTC 2026 where we trained a robot arm to pick up centrifuge vials and place them into a rack — first in simulation, then on a real SO-101 robot. This post is part workshop recap, part reflection on how the theory I've been studying in [CS285 (Deep RL, UC Berkeley)](http://rail.berkeley.edu/deeprlcourse/) actually plays out when you put a policy on physical hardware.*
