@@ -11,7 +11,7 @@ layout: page
 
 The setup was deceptively simple. You have an [SO-101 robot arm](https://github.com/TheRobotStudio/SO-ARM100) — a 6-DOF arm with a parallel jaw gripper — sitting inside a white lightbox. On a foam mat in front of it: three centrifuge vials and a yellow rack with four holes. The job? Pick up the vials and place them in the rack.
 
-![The SO-101 workspace with vials and rack](/assets/img/blog/nvidia-gtc-sim2real/so101_workspace.jpg){:class="img-responsive"}
+![Our workshop station — SO-101 robot arm inside the lightbox with vials and yellow rack](/assets/img/blog/nvidia-gtc-sim2real/IMG_1606.jpg){:class="img-responsive"}
 
 Simple for a human. Extremely non-trivial for a robot that's learned entirely from demonstrations.
 
@@ -52,6 +52,8 @@ From a CS285 perspective, this is **behavioral cloning** at scale. You collect e
 The action chunking is also interesting from a controls perspective. Predicting a short horizon of actions (rather than one at a time) produces smoother, temporally consistent motions — but trades off reactivity. A short action horizon (4-8 steps) is more reactive but jerky; a long one (32+) is smooth but slow to correct mistakes.
 
 ## Four Strategies to Close the Gap
+
+![Isaac Sim environment — the simulated SO-101 picking up a vial](/assets/img/blog/nvidia-gtc-sim2real/IMG_1590.jpg){:class="img-responsive"}
 
 The workshop structured the afternoon around three progressively more sophisticated strategies (plus a fourth I'll cover in a future post). Here's the breakdown.
 
@@ -107,13 +109,28 @@ Each time you reset, the domain randomization kicks in — new lighting, new obj
 
 The quality of your demonstrations directly impacts policy performance. Jerky or sloppy teleop produces jerky policies. This is one of those things that sounds obvious in a lecture but really clicks when you see the robot reproduce your exact bad habits.
 
+![Rerun Viewer showing camera feeds and joint action plots during teleoperation](/assets/img/blog/nvidia-gtc-sim2real/IMG_1586.jpg){:class="img-responsive"}
+
 ## What Actually Happened on the Real Robot
 
 Alright, enough theory. Here's what actually happened.
 
+![The SO-101 reaching for vials during real-world evaluation](/assets/img/blog/nvidia-gtc-sim2real/IMG_1609.jpg){:class="img-responsive"}
+
 ### Baseline (Sim-only + DR): Decent in Sim, Struggled in Reality
 
 The baseline model achieved ~70% success in simulation, but on the real robot, the story was different. It didn't know how to recover from boundary conditions — when the arm reached the edge of the workspace, it would get stuck rather than resetting. Gripping was unreliable. Interestingly, performance improved slightly when we hand-held the foam mat to stabilize the visual scene, which tells you how sensitive the vision pipeline is to small perturbations.
+
+<div style="display: flex; gap: 10px; flex-wrap: wrap;">
+<iframe width="48%" height="250" src="https://www.youtube.com/embed/UnguBmzah_s?mute=1" frameborder="0" allowfullscreen></iframe>
+<iframe width="48%" height="250" src="https://www.youtube.com/embed/Wgo2Fcp8FPg?mute=1" frameborder="0" allowfullscreen></iframe>
+</div>
+
+*Left: a baseline success case. Right: the baseline struggling and needing lots of help.*
+
+<iframe width="100%" height="400" src="https://www.youtube.com/embed/zGG7bdCx0UU?mute=1" frameborder="0" allowfullscreen></iframe>
+
+*The robot getting stuck at the workspace boundary — it doesn't know how to recover.*
 
 ### Co-Trained Model: Noticeably Better
 
@@ -125,7 +142,9 @@ But it had a spatial reasoning limitation that I found really interesting: it co
 
 The model trained with 75 sim episodes + 70 Cosmos-augmented episodes was the clear winner. In our setup, it could reliably get **2 out of 3 vials placed correctly** with minimal human intervention. The movements were fluid and confident.
 
-<!-- TODO: Add YouTube clips demoing the real robot behavior -->
+<!-- TODO: Replace with YouTube embed once Cosmos70.MOV is uploaded -->
+<!-- <iframe width="100%" height="400" src="https://www.youtube.com/embed/VIDEO_ID?mute=1" frameborder="0" allowfullscreen></iframe> -->
+<!-- *Cosmos 70 model — smoother, more confident movements.* -->
 
 ## The Fun Part: Breaking Things on Purpose
 
@@ -135,6 +154,8 @@ After running the standard evaluations, we got to experiment. This was honestly 
 
 We changed the VLA instruction from *"to a yellow rack"* to *"to the leftmost hole of the yellow rack"*.
 
+<iframe width="100%" height="400" src="https://www.youtube.com/embed/-ZZt0t6N9zA?mute=1" frameborder="0" allowfullscreen></iframe>
+
 **Result:** The robot's motion became noticeably jerkier, and it still dropped the vial at the closest hole — not the leftmost one. The jerkiness is a telltale sign of **out-of-distribution (OOD) inputs**. The model had never seen this instruction during training, so it's extrapolating in language-embedding space, producing less confident (and therefore less smooth) action predictions.
 
 This really made me wish the model could output an **epistemic uncertainty estimate** — basically a signal saying "I don't understand this instruction." In Bayesian deep learning terms, epistemic uncertainty captures what the model doesn't know due to limited training data, as opposed to **aleatoric uncertainty** (inherent noise in the environment). A VLA that could tell you "I'm uncertain about this instruction" would be so much more useful in deployment than one that confidently does the wrong thing.
@@ -142,6 +163,9 @@ This really made me wish the model could output an **epistemic uncertainty estim
 ### Experiment B: Swapping the Target Object
 
 We changed the instruction to *"to a blue cup"* and physically replaced the yellow rack with a blue cup.
+
+<!-- TODO: Replace with YouTube embed once BlueCup.MOV is uploaded -->
+<!-- <iframe width="100%" height="400" src="https://www.youtube.com/embed/VIDEO_ID?mute=1" frameborder="0" allowfullscreen></iframe> -->
 
 **Result:** Jerky movement again, and the robot still dropped the vial at the same height and position as where the yellow rack used to be — not where the blue cup actually was. It had basically memorized "the yellow rack is *here*" and had no idea what to do with the blue cup.
 
