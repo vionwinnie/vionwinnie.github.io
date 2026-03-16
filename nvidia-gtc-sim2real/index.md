@@ -69,7 +69,9 @@ This is effectively **data augmentation for the state distribution** — you're 
 - Object positions (vials and rack placement)
 - Probability of vials being pre-placed in slots
 
-The baseline model trained with DR on 75 simulated demonstrations achieved ~50-70% success in simulation. Not bad for a starting point.
+The baseline model trained with DR on 75 simulated demonstrations achieved ~50-70% success in simulation. Not bad for a starting point. Here's an example of some teleop data we recorded — you can visualize it on HuggingFace:
+
+[Visualize our teleoperation dataset on HuggingFace](https://huggingface.co/spaces/lerobot/visualize_dataset?path=%2Fvionwinnie%2Fso101_teleop_vials_cleaned%2Fepisode_1)
 
 ### Strategy 2: Co-Training with Real Data
 
@@ -122,10 +124,6 @@ But it had a spatial reasoning limitation that I found really interesting: it co
 ### Best Performer: Sim + Cosmos 70
 
 The model trained with 75 sim episodes + 70 Cosmos-augmented episodes was the clear winner. In our setup, it could reliably get **2 out of 3 vials placed correctly** with minimal human intervention. The movements were fluid and confident.
-
-Here's the simulated data we recorded using teleop — you can visualize it on HuggingFace:
-
-[Visualize our teleoperation dataset on HuggingFace](https://huggingface.co/spaces/lerobot/visualize_dataset?path=%2Fvionwinnie%2Fso101_teleop_vials_cleaned%2Fepisode_1)
 
 <!-- TODO: Add YouTube clips demoing the real robot behavior -->
 
