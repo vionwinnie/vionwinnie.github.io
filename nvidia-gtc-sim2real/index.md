@@ -1,5 +1,5 @@
 ---
-title: "I Taught a Robot Arm to Sort Vials at NVIDIA GTC — Here's What I Learned About Sim-to-Real Transfer"
+title: "Exploring Robot Imitation Learning Using SO101 and Isaac Sim"
 layout: page
 ---
 
