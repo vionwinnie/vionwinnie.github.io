@@ -122,33 +122,18 @@ Alright, enough theory. Here's what actually happened.
 The baseline model achieved ~70% success in simulation, but on the real robot, the story was different. It didn't know how to recover from boundary conditions — when the arm reached the edge of the workspace, it would get stuck rather than resetting. Gripping was unreliable. Interestingly, performance improved slightly when we hand-held the foam mat to stabilize the visual scene, which tells you how sensitive the vision pipeline is to small perturbations.
 
 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-<iframe width="48%" height="250" src="https://www.youtube.com/embed/UnguBmzah_s?mute=1" frameborder="0" allowfullscreen></iframe>
 <iframe width="48%" height="250" src="https://www.youtube.com/embed/xRGI2uCbPHg?mute=1" frameborder="0" allowfullscreen></iframe>
-</div>
-
-*Baseline success cases — the robot completes the pick-and-place when conditions are favorable.*
-
-<div style="display: flex; gap: 10px; flex-wrap: wrap;">
-<iframe width="48%" height="250" src="https://www.youtube.com/embed/Wgo2Fcp8FPg?mute=1" frameborder="0" allowfullscreen></iframe>
 <iframe width="48%" height="250" src="https://www.youtube.com/embed/HEY4VYVNI8Q?mute=1" frameborder="0" allowfullscreen></iframe>
 </div>
 
-*The baseline struggling — needs lots of manual intervention to complete the task.*
+*Left: a baseline success case. Right: the baseline struggling and needing lots of help.*
 
 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-<iframe width="48%" height="250" src="https://www.youtube.com/embed/dwXvhVFP98k?mute=1" frameborder="0" allowfullscreen></iframe>
-<iframe width="48%" height="250" src="https://www.youtube.com/embed/xKZsR0kO79w?mute=1" frameborder="0" allowfullscreen></iframe>
+<iframe width="48%" height="250" src="https://www.youtube.com/embed/zGG7bdCx0UU?mute=1" frameborder="0" allowfullscreen></iframe>
+<iframe width="48%" height="250" src="https://www.youtube.com/embed/7fHPk8951jk?mute=1" frameborder="0" allowfullscreen></iframe>
 </div>
 
-*More examples of the baseline needing help — inconsistent gripping and recovery.*
-
-<iframe width="100%" height="400" src="https://www.youtube.com/embed/zGG7bdCx0UU?mute=1" frameborder="0" allowfullscreen></iframe>
-
-*The robot getting stuck at the workspace boundary — it doesn't know how to recover.*
-
-<iframe width="100%" height="400" src="https://www.youtube.com/embed/7fHPk8951jk?mute=1" frameborder="0" allowfullscreen></iframe>
-
-*The robot doesn't know the task has ended — it keeps searching for more vials after completing the objective.*
+*Left: getting stuck at the workspace boundary — it doesn't know how to recover. Right: the robot doesn't know the task has ended — it keeps searching for more vials.*
 
 ### Co-Trained Model: Noticeably Better
 
