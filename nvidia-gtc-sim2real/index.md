@@ -128,12 +128,9 @@ The baseline model achieved ~70% success in simulation, but on the real robot, t
 
 *Left: a baseline success case. Right: the baseline struggling and needing lots of help.*
 
-<div style="display: flex; gap: 10px; flex-wrap: wrap;">
-<iframe width="48%" height="250" src="https://www.youtube.com/embed/zGG7bdCx0UU?mute=1" frameborder="0" allowfullscreen></iframe>
-<iframe width="48%" height="250" src="https://www.youtube.com/embed/7fHPk8951jk?mute=1" frameborder="0" allowfullscreen></iframe>
-</div>
+<iframe width="100%" height="400" src="https://www.youtube.com/embed/zGG7bdCx0UU?mute=1" frameborder="0" allowfullscreen></iframe>
 
-*Left: getting stuck at the workspace boundary — it doesn't know how to recover. Right: the robot doesn't know the task has ended — it keeps searching for more vials.*
+*The robot getting stuck at the workspace boundary — it doesn't know how to recover.*
 
 ### Co-Trained Model: Noticeably Better
 
@@ -148,10 +145,6 @@ But it had a spatial reasoning limitation that I found really interesting: it co
 
 *Co-trained model (Cosmos 7) — smoother movements than baseline, but still biased toward nearest holes.*
 
-<iframe width="100%" height="400" src="https://www.youtube.com/embed/QmRhRBJ3nS0?mute=1" frameborder="0" allowfullscreen></iframe>
-
-*Another example of the robot not recognizing when the task is complete.*
-
 ### Best Performer: Sim + Cosmos 70
 
 The model trained with 75 sim episodes + 70 Cosmos-augmented episodes was the clear winner. In our setup, it could reliably get **2 out of 3 vials placed correctly** with minimal human intervention. The movements were fluid and confident.
@@ -159,6 +152,17 @@ The model trained with 75 sim episodes + 70 Cosmos-augmented episodes was the cl
 <iframe width="100%" height="400" src="https://www.youtube.com/embed/gZJ4vttYAbc?mute=1" frameborder="0" allowfullscreen></iframe>
 
 *Cosmos 70 model — smoother, more confident movements.*
+
+### Persistent Issue: Not Knowing When to Stop
+
+One behavior showed up across all model iterations — the robot doesn't know when the task is complete. After placing all vials, it keeps searching for more rather than stopping. This makes sense: behavioral cloning learns *how* to do the task but not *when it's done*. The training data always has more vials to pick up, so the policy never learned a "finished" state.
+
+<div style="display: flex; gap: 10px; flex-wrap: wrap;">
+<iframe width="48%" height="250" src="https://www.youtube.com/embed/7fHPk8951jk?mute=1" frameborder="0" allowfullscreen></iframe>
+<iframe width="48%" height="250" src="https://www.youtube.com/embed/QmRhRBJ3nS0?mute=1" frameborder="0" allowfullscreen></iframe>
+</div>
+
+*The robot keeps searching for vials after completing the objective — observed in both the baseline (left) and co-trained (right) models.*
 
 ## The Fun Part: Breaking Things on Purpose
 
