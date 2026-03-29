@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="700" height="340">
+  <!-- Title -->
+  <text x="350" y="22" fill="#333" font-size="14" font-weight="bold" text-anchor="middle">SAM vs SAM 2: From Single Image to Video</text>
+
+  <defs>
+    <marker id="a" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6" fill="none" stroke="#555" stroke-width="1"/>
+    </marker>
+  </defs>
+
+  <!-- ====== LEFT: SAM (Image) ====== -->
+  <rect x="20" y="40" width="310" height="220" rx="4" fill="#3498db" fill-opacity="0.04" stroke="#3498db" stroke-width="1" stroke-dasharray="5,4"/>
+  <text x="175" y="60" fill="#3498db" font-size="12" font-weight="bold" text-anchor="middle">SAM (2023) -- Image Only</text>
+
+  <!-- Single image box -->
+  <rect x="40" y="75" width="60" height="45" rx="4" fill="#3498db" fill-opacity="0.12" stroke="#3498db" stroke-width="1"/>
+  <text x="70" y="100" fill="#3498db" font-size="9" text-anchor="middle">Image</text>
+
+  <line x1="100" y1="98" x2="125" y2="98" stroke="#555" stroke-width="1" marker-end="url(#a)"/>
+
+  <!-- ViT-H -->
+  <rect x="133" y="75" width="70" height="45" rx="4" fill="#3498db" fill-opacity="0.08" stroke="#3498db" stroke-width="1"/>
+  <text x="168" y="95" fill="#3498db" font-size="9" font-weight="bold" text-anchor="middle">ViT-H</text>
+  <text x="168" y="108" fill="#666" font-size="8" text-anchor="middle">632M params</text>
+
+  <line x1="203" y1="98" x2="228" y2="98" stroke="#555" stroke-width="1" marker-end="url(#a)"/>
+
+  <!-- Decoder -->
+  <rect x="236" y="75" width="75" height="45" rx="4" fill="#27ae60" fill-opacity="0.08" stroke="#27ae60" stroke-width="1"/>
+  <text x="274" y="95" fill="#27ae60" font-size="9" font-weight="bold" text-anchor="middle">Decoder</text>
+  <text x="274" y="108" fill="#666" font-size="8" text-anchor="middle">4M params</text>
+
+  <!-- Key properties -->
+  <text x="50" y="148" fill="#666" font-size="9">No temporal reasoning</text>
+  <text x="50" y="163" fill="#666" font-size="9">Prompt per frame (independent)</text>
+  <text x="50" y="178" fill="#666" font-size="9">SA-1B dataset (11M images)</text>
+  <text x="50" y="193" fill="#666" font-size="9">~50ms per mask</text>
+  <text x="50" y="208" fill="#666" font-size="9">No memory / no tracking</text>
+
+  <!-- Limitation callout -->
+  <rect x="50" y="220" width="260" height="24" rx="4" fill="#e74c3c" fill-opacity="0.08" stroke="#e74c3c" stroke-width="1"/>
+  <text x="180" y="236" fill="#e74c3c" font-size="9" text-anchor="middle">Each frame is segmented independently -- no object persistence</text>
+
+  <!-- ====== RIGHT: SAM 2 (Video) ====== -->
+  <rect x="370" y="40" width="310" height="220" rx="4" fill="#9b59b6" fill-opacity="0.04" stroke="#9b59b6" stroke-width="1" stroke-dasharray="5,4"/>
+  <text x="525" y="60" fill="#9b59b6" font-size="12" font-weight="bold" text-anchor="middle">SAM 2 (2024) -- Image + Video</text>
+
+  <!-- Multi-frame box -->
+  <rect x="390" y="75" width="60" height="45" rx="4" fill="#9b59b6" fill-opacity="0.12" stroke="#9b59b6" stroke-width="1"/>
+  <text x="420" y="95" fill="#9b59b6" font-size="9" text-anchor="middle">Frame</text>
+  <text x="420" y="108" fill="#9b59b6" font-size="8" text-anchor="middle">stream</text>
+
+  <line x1="450" y1="98" x2="475" y2="98" stroke="#555" stroke-width="1" marker-end="url(#a)"/>
+
+  <!-- Hiera -->
+  <rect x="483" y="75" width="70" height="45" rx="4" fill="#9b59b6" fill-opacity="0.08" stroke="#9b59b6" stroke-width="1"/>
+  <text x="518" y="93" fill="#9b59b6" font-size="9" font-weight="bold" text-anchor="middle">Hiera</text>
+  <text x="518" y="106" fill="#666" font-size="8" text-anchor="middle">hierarchical</text>
+
+  <line x1="553" y1="98" x2="578" y2="98" stroke="#555" stroke-width="1" marker-end="url(#a)"/>
+
+  <!-- Decoder + Memory -->
+  <rect x="586" y="75" width="75" height="45" rx="4" fill="#27ae60" fill-opacity="0.08" stroke="#27ae60" stroke-width="1"/>
+  <text x="624" y="91" fill="#27ae60" font-size="9" font-weight="bold" text-anchor="middle">Decoder +</text>
+  <text x="624" y="103" fill="#27ae60" font-size="9" font-weight="bold" text-anchor="middle">Memory</text>
+
+  <!-- Key properties -->
+  <text x="400" y="148" fill="#666" font-size="9">Temporal memory attention</text>
+  <text x="400" y="163" fill="#666" font-size="9">Prompt once, track across video</text>
+  <text x="400" y="178" fill="#666" font-size="9">SA-V dataset (50.9K videos)</text>
+  <text x="400" y="193" fill="#666" font-size="9">~44 FPS streaming</text>
+  <text x="400" y="208" fill="#666" font-size="9">Memory bank + object pointers</text>
+
+  <!-- Improvement callout -->
+  <rect x="400" y="220" width="260" height="24" rx="4" fill="#27ae60" fill-opacity="0.08" stroke="#27ae60" stroke-width="1"/>
+  <text x="530" y="236" fill="#27ae60" font-size="9" text-anchor="middle">Objects persist across frames via learned memory mechanism</text>
+
+  <!-- Bottom note box -->
+  <rect x="100" y="286" width="500" height="40" rx="6" fill="#f5f5f5" stroke="#333" stroke-width="1"/>
+  <text x="350" y="302" fill="#333" font-size="10" text-anchor="middle">SAM 2 is a strict superset of SAM: it handles images (memory disabled)</text>
+  <text x="350" y="316" fill="#333" font-size="10" text-anchor="middle">and videos (memory enabled) in a single unified model, 6x faster than SAM on images.</text>
+</svg>

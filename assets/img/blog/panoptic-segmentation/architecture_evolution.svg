@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="700" height="380">
+  <!-- Title -->
+  <text x="350" y="22" font-size="14" fill="#333" font-weight="bold" text-anchor="middle">Architectural Evolution: From Two Heads to Unified Queries</text>
+
+  <defs>
+    <marker id="arrow3" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6" fill="none" stroke="#555" stroke-width="1"/>
+    </marker>
+    <marker id="arrow3-blue" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6" fill="none" stroke="#3498db" stroke-width="1"/>
+    </marker>
+    <marker id="arrow3-green" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6" fill="none" stroke="#27ae60" stroke-width="1"/>
+    </marker>
+  </defs>
+
+  <!-- Era 1: Top-down / Two-branch (left column) -->
+  <text x="175" y="50" font-size="11" fill="#e74c3c" font-weight="bold" text-anchor="middle">Era 1: Two Separate Branches</text>
+  <text x="175" y="65" font-size="9" fill="#999" text-anchor="middle">Panoptic FPN (2019)</text>
+
+  <!-- Backbone -->
+  <rect x="110" y="80" width="130" height="28" rx="4" fill="#ecf0f1" stroke="#999" stroke-width="1"/>
+  <text x="175" y="98" font-size="9" fill="#333" text-anchor="middle">Shared Backbone (FPN)</text>
+
+  <!-- Split arrow -->
+  <line x1="145" y1="108" x2="115" y2="130" stroke="#3498db" stroke-width="1" marker-end="url(#arrow3-blue)"/>
+  <line x1="205" y1="108" x2="235" y2="130" stroke="#e67e22" stroke-width="1" marker-end="url(#arrow3)"/>
+
+  <!-- Semantic head -->
+  <rect x="60" y="133" width="110" height="28" rx="4" fill="#3498db" opacity="0.1" stroke="#3498db" stroke-width="1"/>
+  <text x="115" y="151" font-size="9" fill="#3498db" text-anchor="middle">Semantic Head</text>
+
+  <!-- Instance head -->
+  <rect x="185" y="133" width="110" height="28" rx="4" fill="#e67e22" opacity="0.1" stroke="#e67e22" stroke-width="1"/>
+  <text x="240" y="151" font-size="9" fill="#e67e22" text-anchor="middle">Instance Head</text>
+
+  <!-- Merge arrows -->
+  <line x1="115" y1="161" x2="155" y2="185" stroke="#3498db" stroke-width="1" marker-end="url(#arrow3-blue)"/>
+  <line x1="240" y1="161" x2="200" y2="185" stroke="#e67e22" stroke-width="1" marker-end="url(#arrow3)"/>
+
+  <!-- Heuristic merge -->
+  <rect x="115" y="188" width="120" height="28" rx="4" fill="#e74c3c" opacity="0.1" stroke="#e74c3c" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="175" y="206" font-size="9" fill="#e74c3c" text-anchor="middle">Heuristic Merge</text>
+
+  <text x="175" y="232" font-size="8" fill="#999" text-anchor="middle">Overlap resolution via</text>
+  <text x="175" y="243" font-size="8" fill="#999" text-anchor="middle">confidence thresholds</text>
+
+  <!-- Vertical divider -->
+  <line x1="350" y1="40" x2="350" y2="330" stroke="#ecf0f1" stroke-width="2"/>
+
+  <!-- Era 2: Unified queries (right column) -->
+  <text x="525" y="50" font-size="11" fill="#27ae60" font-weight="bold" text-anchor="middle">Era 2: Unified Mask Queries</text>
+  <text x="525" y="65" font-size="9" fill="#999" text-anchor="middle">Mask2Former (2022)</text>
+
+  <!-- Backbone -->
+  <rect x="460" y="80" width="130" height="28" rx="4" fill="#ecf0f1" stroke="#999" stroke-width="1"/>
+  <text x="525" y="98" font-size="9" fill="#333" text-anchor="middle">Backbone + Pixel Decoder</text>
+
+  <!-- Arrow down -->
+  <line x1="525" y1="108" x2="525" y2="128" stroke="#555" stroke-width="1" marker-end="url(#arrow3)"/>
+
+  <!-- Transformer decoder -->
+  <rect x="440" y="130" width="170" height="35" rx="4" fill="#27ae60" opacity="0.1" stroke="#27ae60" stroke-width="1.5"/>
+  <text x="525" y="148" font-size="9" fill="#27ae60" text-anchor="middle">Transformer Decoder</text>
+  <text x="525" y="160" font-size="8" fill="#27ae60" text-anchor="middle">N learnable queries</text>
+
+  <!-- Arrow down -->
+  <line x1="525" y1="165" x2="525" y2="185" stroke="#555" stroke-width="1" marker-end="url(#arrow3)"/>
+
+  <!-- Per-query outputs -->
+  <rect x="400" y="188" width="250" height="55" rx="4" fill="#f5f5f5" stroke="#27ae60" stroke-width="1"/>
+  <text x="525" y="206" font-size="9" fill="#333" text-anchor="middle" font-weight="bold">Per-query output (all N queries identical):</text>
+  <!-- Class logit -->
+  <rect x="410" y="215" width="70" height="20" rx="3" fill="#3498db" opacity="0.15" stroke="#3498db" stroke-width="1"/>
+  <text x="445" y="229" font-size="8" fill="#3498db" text-anchor="middle">class logits</text>
+  <!-- Mask embedding -->
+  <rect x="490" y="215" width="70" height="20" rx="3" fill="#e67e22" opacity="0.15" stroke="#e67e22" stroke-width="1"/>
+  <text x="525" y="229" font-size="8" fill="#e67e22" text-anchor="middle">mask embed</text>
+  <!-- Confidence -->
+  <rect x="570" y="215" width="70" height="20" rx="3" fill="#9b59b6" opacity="0.15" stroke="#9b59b6" stroke-width="1"/>
+  <text x="605" y="229" font-size="8" fill="#9b59b6" text-anchor="middle">confidence</text>
+
+  <text x="525" y="262" font-size="8" fill="#27ae60" text-anchor="middle">Stuff and things treated identically --</text>
+  <text x="525" y="274" font-size="8" fill="#27ae60" text-anchor="middle">no heuristic merge needed</text>
+
+  <!-- Comparison arrow -->
+  <line x1="310" y1="290" x2="390" y2="290" stroke="#555" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <text x="350" y="305" font-size="9" fill="#333" text-anchor="middle" font-weight="bold">paradigm shift</text>
+
+  <!-- Bottom note -->
+  <rect x="100" y="340" width="500" height="30" rx="6" fill="#f5f5f5" stroke="#333" stroke-width="1"/>
+  <text x="350" y="359" fill="#333" font-size="10" text-anchor="middle">Unified query-based models eliminate the merge step and treat all segments the same way.</text>
+</svg>
