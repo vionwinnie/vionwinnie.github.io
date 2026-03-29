@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 650 300" font-family="sans-serif">
+  <!-- Row labels -->
+  <text x="12" y="62" font-size="12" font-weight="bold" fill="#333">Early</text>
+  <text x="12" y="77" font-size="12" font-weight="bold" fill="#333">Fusion</text>
+
+  <text x="12" y="152" font-size="12" font-weight="bold" fill="#333">Mid</text>
+  <text x="12" y="167" font-size="12" font-weight="bold" fill="#333">Fusion</text>
+
+  <text x="12" y="237" font-size="12" font-weight="bold" fill="#333">Late</text>
+  <text x="12" y="252" font-size="12" font-weight="bold" fill="#333">Fusion</text>
+
+  <!-- === EARLY FUSION === -->
+  <!-- Camera Raw -->
+  <rect x="70" y="40" width="95" height="30" rx="8" fill="rgba(52,152,219,0.15)" stroke="#3498db" stroke-width="1.5"/>
+  <text x="117" y="60" text-anchor="middle" font-size="11" fill="#3498db">Camera Raw</text>
+  <!-- LiDAR Raw -->
+  <rect x="70" y="76" width="95" height="30" rx="8" fill="rgba(39,174,96,0.15)" stroke="#27ae60" stroke-width="1.5"/>
+  <text x="117" y="96" text-anchor="middle" font-size="11" fill="#27ae60">LiDAR Raw</text>
+  <!-- Plus sign -->
+  <text x="142" y="74" text-anchor="middle" font-size="16" font-weight="bold" fill="#555">+</text>
+  <!-- Arrow -->
+  <line x1="170" y1="68" x2="200" y2="68" stroke="#555" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <!-- Fused Features -->
+  <rect x="205" y="53" width="110" height="30" rx="8" fill="rgba(155,89,182,0.15)" stroke="#9b59b6" stroke-width="1.5"/>
+  <text x="260" y="73" text-anchor="middle" font-size="11" fill="#9b59b6">Fused Features</text>
+  <!-- Arrow -->
+  <line x1="320" y1="68" x2="350" y2="68" stroke="#555" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <!-- Detection -->
+  <rect x="355" y="53" width="90" height="30" rx="8" fill="rgba(85,85,85,0.15)" stroke="#555" stroke-width="1.5"/>
+  <text x="400" y="73" text-anchor="middle" font-size="11" fill="#333">Detection</text>
+
+  <!-- === MID FUSION === -->
+  <!-- Camera Features -->
+  <rect x="70" y="130" width="115" height="30" rx="8" fill="rgba(52,152,219,0.15)" stroke="#3498db" stroke-width="1.5"/>
+  <text x="127" y="150" text-anchor="middle" font-size="11" fill="#3498db">Camera Features</text>
+  <!-- LiDAR Features -->
+  <rect x="70" y="166" width="115" height="30" rx="8" fill="rgba(39,174,96,0.15)" stroke="#27ae60" stroke-width="1.5"/>
+  <text x="127" y="186" text-anchor="middle" font-size="11" fill="#27ae60">LiDAR Features</text>
+  <!-- Plus -->
+  <text x="152" y="164" text-anchor="middle" font-size="16" font-weight="bold" fill="#555">+</text>
+  <!-- Arrow -->
+  <line x1="190" y1="158" x2="220" y2="158" stroke="#555" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <!-- BEV Fusion -->
+  <rect x="225" y="143" width="100" height="30" rx="8" fill="rgba(155,89,182,0.15)" stroke="#9b59b6" stroke-width="1.5"/>
+  <text x="275" y="163" text-anchor="middle" font-size="11" fill="#9b59b6">BEV Fusion</text>
+  <!-- Arrow -->
+  <line x1="330" y1="158" x2="360" y2="158" stroke="#555" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <!-- Detection -->
+  <rect x="365" y="143" width="90" height="30" rx="8" fill="rgba(85,85,85,0.15)" stroke="#555" stroke-width="1.5"/>
+  <text x="410" y="163" text-anchor="middle" font-size="11" fill="#333">Detection</text>
+
+  <!-- === LATE FUSION === -->
+  <!-- Camera Detector -->
+  <rect x="70" y="220" width="120" height="30" rx="8" fill="rgba(52,152,219,0.15)" stroke="#3498db" stroke-width="1.5"/>
+  <text x="130" y="240" text-anchor="middle" font-size="11" fill="#3498db">Camera Detector</text>
+  <!-- LiDAR Detector -->
+  <rect x="70" y="256" width="120" height="30" rx="8" fill="rgba(39,174,96,0.15)" stroke="#27ae60" stroke-width="1.5"/>
+  <text x="130" y="276" text-anchor="middle" font-size="11" fill="#27ae60">LiDAR Detector</text>
+  <!-- Plus -->
+  <text x="160" y="254" text-anchor="middle" font-size="16" font-weight="bold" fill="#555">+</text>
+  <!-- Arrow -->
+  <line x1="195" y1="248" x2="225" y2="248" stroke="#555" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <!-- NMS/Merge -->
+  <rect x="230" y="233" width="100" height="30" rx="8" fill="rgba(155,89,182,0.15)" stroke="#9b59b6" stroke-width="1.5"/>
+  <text x="280" y="253" text-anchor="middle" font-size="11" fill="#9b59b6">NMS / Merge</text>
+  <!-- Arrow -->
+  <line x1="335" y1="248" x2="365" y2="248" stroke="#555" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <!-- Final Output -->
+  <rect x="370" y="233" width="100" height="30" rx="8" fill="rgba(85,85,85,0.15)" stroke="#555" stroke-width="1.5"/>
+  <text x="420" y="253" text-anchor="middle" font-size="11" fill="#333">Final Output</text>
+
+  <!-- Arrow marker definition -->
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#555"/>
+    </marker>
+  </defs>
+
+  <!-- Caption -->
+  <text x="325" y="296" text-anchor="middle" font-size="11" fill="#666" font-style="italic">Early fusion operates on raw data; mid-level on learned features; late on independent decisions.</text>
+</svg>

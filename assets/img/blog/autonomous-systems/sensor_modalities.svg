@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 280" font-family="sans-serif">
+  <!-- Sensor Suite box at top -->
+  <rect x="225" y="15" width="150" height="36" rx="8" fill="rgba(85,85,85,0.15)" stroke="#555" stroke-width="2"/>
+  <text x="300" y="38" text-anchor="middle" font-size="14" font-weight="bold" fill="#333">Sensor Suite</text>
+
+  <!-- Connector lines from Sensor Suite to each sensor -->
+  <line x1="240" y1="51" x2="82" y2="90" stroke="#555" stroke-width="1.5"/>
+  <line x1="280" y1="51" x2="220" y2="90" stroke="#555" stroke-width="1.5"/>
+  <line x1="320" y1="51" x2="380" y2="90" stroke="#555" stroke-width="1.5"/>
+  <line x1="360" y1="51" x2="518" y2="90" stroke="#555" stroke-width="1.5"/>
+
+  <!-- Camera (blue) -->
+  <rect x="22" y="90" width="120" height="42" rx="8" fill="rgba(52,152,219,0.15)" stroke="#3498db" stroke-width="2"/>
+  <text x="82" y="116" text-anchor="middle" font-size="13" font-weight="bold" fill="#3498db">Camera</text>
+  <!-- Camera icon -->
+  <rect x="62" y="140" width="40" height="28" rx="4" fill="rgba(52,152,219,0.15)" stroke="#3498db" stroke-width="1.5"/>
+  <circle cx="82" cy="154" r="8" fill="none" stroke="#3498db" stroke-width="1.5"/>
+  <circle cx="82" cy="154" r="3" fill="#3498db"/>
+  <!-- Properties -->
+  <text x="82" y="183" text-anchor="middle" font-size="10" fill="#333">Dense 2D</text>
+  <text x="82" y="197" text-anchor="middle" font-size="10" fill="#333">No depth</text>
+  <text x="82" y="211" text-anchor="middle" font-size="10" fill="#333">Cheap</text>
+
+  <!-- LiDAR (green) -->
+  <rect x="160" y="90" width="120" height="42" rx="8" fill="rgba(39,174,96,0.15)" stroke="#27ae60" stroke-width="2"/>
+  <text x="220" y="116" text-anchor="middle" font-size="13" font-weight="bold" fill="#27ae60">LiDAR</text>
+  <!-- LiDAR icon - radiating lines -->
+  <circle cx="220" cy="152" r="12" fill="rgba(39,174,96,0.15)" stroke="#27ae60" stroke-width="1.5"/>
+  <line x1="220" y1="140" x2="220" y2="134" stroke="#27ae60" stroke-width="1.5"/>
+  <line x1="210" y1="143" x2="206" y2="138" stroke="#27ae60" stroke-width="1.5"/>
+  <line x1="230" y1="143" x2="234" y2="138" stroke="#27ae60" stroke-width="1.5"/>
+  <line x1="208" y1="152" x2="203" y2="152" stroke="#27ae60" stroke-width="1.5"/>
+  <line x1="232" y1="152" x2="237" y2="152" stroke="#27ae60" stroke-width="1.5"/>
+  <!-- Properties -->
+  <text x="220" y="183" text-anchor="middle" font-size="10" fill="#333">Sparse 3D</text>
+  <text x="220" y="197" text-anchor="middle" font-size="10" fill="#333">Accurate depth</text>
+  <text x="220" y="211" text-anchor="middle" font-size="10" fill="#333">Expensive</text>
+
+  <!-- Radar (orange) -->
+  <rect x="320" y="90" width="120" height="42" rx="8" fill="rgba(243,156,18,0.15)" stroke="#f39c12" stroke-width="2"/>
+  <text x="380" y="116" text-anchor="middle" font-size="13" font-weight="bold" fill="#f39c12">Radar</text>
+  <!-- Radar icon - concentric arcs -->
+  <circle cx="380" cy="155" r="6" fill="#f39c12" opacity="0.4"/>
+  <path d="M 368 148 A 14 14 0 0 1 392 148" fill="none" stroke="#f39c12" stroke-width="1.5"/>
+  <path d="M 364 144 A 19 19 0 0 1 396 144" fill="none" stroke="#f39c12" stroke-width="1.5"/>
+  <!-- Properties -->
+  <text x="380" y="183" text-anchor="middle" font-size="10" fill="#333">Velocity</text>
+  <text x="380" y="197" text-anchor="middle" font-size="10" fill="#333">All weather</text>
+  <text x="380" y="211" text-anchor="middle" font-size="10" fill="#333">Low res</text>
+
+  <!-- IMU (purple) -->
+  <rect x="458" y="90" width="120" height="42" rx="8" fill="rgba(155,89,182,0.15)" stroke="#9b59b6" stroke-width="2"/>
+  <text x="518" y="116" text-anchor="middle" font-size="13" font-weight="bold" fill="#9b59b6">IMU</text>
+  <!-- IMU icon - axes -->
+  <line x1="506" y1="162" x2="506" y2="142" stroke="#9b59b6" stroke-width="1.5"/>
+  <line x1="506" y1="162" x2="526" y2="162" stroke="#9b59b6" stroke-width="1.5"/>
+  <line x1="506" y1="162" x2="496" y2="168" stroke="#9b59b6" stroke-width="1.5"/>
+  <polygon points="506,142 503,147 509,147" fill="#9b59b6"/>
+  <polygon points="526,162 521,159 521,165" fill="#9b59b6"/>
+  <polygon points="496,168 500,164 498,171" fill="#9b59b6"/>
+  <!-- Properties -->
+  <text x="518" y="183" text-anchor="middle" font-size="10" fill="#333">Ego motion</text>
+  <text x="518" y="197" text-anchor="middle" font-size="10" fill="#333">High rate</text>
+  <text x="518" y="211" text-anchor="middle" font-size="10" fill="#333">Drift</text>
+
+  <!-- Caption -->
+  <text x="300" y="248" text-anchor="middle" font-size="11" fill="#666" font-style="italic">Each sensor has complementary strengths; fusion combines them for robust perception.</text>
+</svg>

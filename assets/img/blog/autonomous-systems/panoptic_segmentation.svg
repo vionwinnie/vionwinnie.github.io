@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 280" font-family="sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#555"/>
+    </marker>
+  </defs>
+
+  <!-- Scene strip at top -->
+  <rect x="50" y="15" width="500" height="55" rx="6" fill="none" stroke="#555" stroke-width="1.5"/>
+  <!-- Sky (light blue stuff) -->
+  <rect x="50" y="15" width="500" height="22" rx="0" fill="rgba(52,152,219,0.12)"/>
+  <text x="300" y="31" text-anchor="middle" font-size="9" fill="#3498db">sky (stuff)</text>
+  <!-- Road (green stuff) -->
+  <rect x="50" y="47" width="500" height="23" fill="rgba(39,174,96,0.15)"/>
+  <text x="80" y="62" font-size="9" fill="#27ae60">road (stuff)</text>
+  <!-- Car 1 (blue thing) -->
+  <rect x="140" y="30" width="70" height="30" rx="5" fill="rgba(52,152,219,0.25)" stroke="#3498db" stroke-width="1.5"/>
+  <text x="175" y="49" text-anchor="middle" font-size="10" font-weight="bold" fill="#3498db">Car 1</text>
+  <!-- Car 2 (blue thing) -->
+  <rect x="350" y="32" width="60" height="26" rx="5" fill="rgba(52,152,219,0.25)" stroke="#3498db" stroke-width="1.5"/>
+  <text x="380" y="49" text-anchor="middle" font-size="10" font-weight="bold" fill="#3498db">Car 2</text>
+  <!-- Top corners for clipping -->
+  <rect x="50" y="15" width="500" height="2" fill="rgba(52,152,219,0.12)"/>
+
+  <!-- Dividing line -->
+  <line x1="300" y1="78" x2="300" y2="90" stroke="#555" stroke-width="1"/>
+
+  <!-- Two branches -->
+  <!-- Left branch: Semantic Segmentation -->
+  <line x1="200" y1="78" x2="200" y2="105" stroke="#555" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="110" y="110" width="180" height="36" rx="8" fill="rgba(231,76,60,0.15)" stroke="#e74c3c" stroke-width="2"/>
+  <text x="200" y="133" text-anchor="middle" font-size="12" font-weight="bold" fill="#e74c3c">Semantic Segmentation</text>
+  <text x="200" y="160" text-anchor="middle" font-size="10" fill="#333">Every pixel gets a class</text>
+
+  <!-- Right branch: Instance Segmentation -->
+  <line x1="400" y1="78" x2="400" y2="105" stroke="#555" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="310" y="110" width="180" height="36" rx="8" fill="rgba(52,152,219,0.15)" stroke="#3498db" stroke-width="2"/>
+  <text x="400" y="133" text-anchor="middle" font-size="12" font-weight="bold" fill="#3498db">Instance Segmentation</text>
+  <text x="400" y="160" text-anchor="middle" font-size="10" fill="#333">Each object gets an ID</text>
+
+  <!-- Merge lines down -->
+  <line x1="200" y1="165" x2="200" y2="185" stroke="#555" stroke-width="1.5"/>
+  <line x1="400" y1="165" x2="400" y2="185" stroke="#555" stroke-width="1.5"/>
+  <line x1="200" y1="185" x2="400" y2="185" stroke="#555" stroke-width="1.5"/>
+  <line x1="300" y1="185" x2="300" y2="200" stroke="#555" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Bottom merge: Panoptic Segmentation -->
+  <rect x="170" y="205" width="260" height="36" rx="8" fill="rgba(155,89,182,0.15)" stroke="#9b59b6" stroke-width="2"/>
+  <text x="300" y="228" text-anchor="middle" font-size="13" font-weight="bold" fill="#9b59b6">Panoptic Segmentation</text>
+  <text x="300" y="253" text-anchor="middle" font-size="10" fill="#333">Class + Instance for everything</text>
+
+  <!-- Caption -->
+  <text x="300" y="275" text-anchor="middle" font-size="11" fill="#666" font-style="italic">Panoptic segmentation unifies semantic (stuff) and instance (things) segmentation.</text>
+</svg>

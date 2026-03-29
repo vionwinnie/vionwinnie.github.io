@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="280" font-family="sans-serif">
+  <!-- Background -->
+  <rect width="600" height="280" fill="white"/>
+
+  <!-- Base (gray circle) -->
+  <circle cx="120" cy="190" r="12" fill="rgba(128,128,128,0.15)" stroke="#888" stroke-width="2"/>
+  <text x="120" y="215" text-anchor="middle" font-size="11" fill="#666">Base</text>
+
+  <!-- Ground line -->
+  <line x1="90" y1="202" x2="150" y2="202" stroke="#888" stroke-width="1.5"/>
+  <line x1="95" y1="202" x2="88" y2="210" stroke="#888" stroke-width="1"/>
+  <line x1="105" y1="202" x2="98" y2="210" stroke="#888" stroke-width="1"/>
+  <line x1="115" y1="202" x2="108" y2="210" stroke="#888" stroke-width="1"/>
+  <line x1="125" y1="202" x2="118" y2="210" stroke="#888" stroke-width="1"/>
+  <line x1="135" y1="202" x2="128" y2="210" stroke="#888" stroke-width="1"/>
+  <line x1="145" y1="202" x2="138" y2="210" stroke="#888" stroke-width="1"/>
+
+  <!-- Link 1 (blue line) -->
+  <line x1="120" y1="190" x2="210" y2="110" stroke="#3498db" stroke-width="4" stroke-linecap="round"/>
+  <text x="148" y="140" font-size="12" fill="#3498db" font-weight="bold">L&#x2081;</text>
+
+  <!-- Angle theta1 arc -->
+  <path d="M 150,190 A 30,30 0 0,0 138,162" fill="none" stroke="#3498db" stroke-width="1.2"/>
+  <text x="155" y="172" font-size="11" fill="#3498db">&#x3b8;&#x2081;</text>
+
+  <!-- Joint 2 (blue circle at elbow) -->
+  <circle cx="210" cy="110" r="8" fill="rgba(52,152,219,0.15)" stroke="#3498db" stroke-width="2"/>
+
+  <!-- Link 2 (green line) -->
+  <line x1="210" y1="110" x2="310" y2="70" stroke="#27ae60" stroke-width="4" stroke-linecap="round"/>
+  <text x="245" y="78" font-size="12" fill="#27ae60" font-weight="bold">L&#x2082;</text>
+
+  <!-- Angle theta2 arc -->
+  <path d="M 240,90 A 30,30 0 0,0 237,108" fill="none" stroke="#27ae60" stroke-width="1.2"/>
+  <text x="248" y="104" font-size="11" fill="#27ae60">&#x3b8;&#x2082;</text>
+
+  <!-- Dashed extension of Link 1 through Joint 2 -->
+  <line x1="210" y1="110" x2="250" y2="80" stroke="#3498db" stroke-width="1" stroke-dasharray="4,3" opacity="0.4"/>
+
+  <!-- End effector (red circle) -->
+  <circle cx="310" cy="70" r="8" fill="rgba(231,76,60,0.15)" stroke="#e74c3c" stroke-width="2"/>
+  <text x="310" y="55" text-anchor="middle" font-size="12" fill="#e74c3c" font-weight="bold">(x, y)</text>
+
+  <!-- Forward Kinematics arrow (blue) -->
+  <rect x="360" y="60" rx="8" ry="8" width="220" height="36" fill="rgba(52,152,219,0.15)" stroke="#3498db" stroke-width="1.5"/>
+  <text x="470" y="74" text-anchor="middle" font-size="11" fill="#3498db" font-weight="bold">Forward Kinematics</text>
+  <text x="470" y="89" text-anchor="middle" font-size="11" fill="#333">(&#x3b8;&#x2081;, &#x3b8;&#x2082;) &#x2192; (x, y)</text>
+
+  <!-- Arrow from FK box pointing right -->
+  <line x1="340" y1="78" x2="358" y2="78" stroke="#3498db" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+
+  <!-- Inverse Kinematics arrow (red) -->
+  <rect x="360" y="110" rx="8" ry="8" width="220" height="36" fill="rgba(231,76,60,0.15)" stroke="#e74c3c" stroke-width="1.5"/>
+  <text x="470" y="124" text-anchor="middle" font-size="11" fill="#e74c3c" font-weight="bold">Inverse Kinematics</text>
+  <text x="470" y="139" text-anchor="middle" font-size="11" fill="#333">(x, y) &#x2192; (&#x3b8;&#x2081;, &#x3b8;&#x2082;)</text>
+
+  <!-- Arrow from IK box pointing left -->
+  <line x1="358" y1="128" x2="340" y2="128" stroke="#e74c3c" stroke-width="1.5" marker-end="url(#arrowRed)"/>
+
+  <!-- Arrow markers -->
+  <defs>
+    <marker id="arrowBlue" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0,0 8,3 0,6" fill="#3498db"/>
+    </marker>
+    <marker id="arrowRed" markerWidth="8" markerHeight="6" refX="0" refY="3" orient="auto">
+      <polygon points="8,0 0,3 8,6" fill="#e74c3c"/>
+    </marker>
+  </defs>
+
+  <!-- Caption -->
+  <text x="300" y="248" text-anchor="middle" font-size="10" fill="#666">Forward kinematics computes end-effector position from joint angles;</text>
+  <text x="300" y="262" text-anchor="middle" font-size="10" fill="#666">inverse kinematics solves the reverse problem.</text>
+</svg>

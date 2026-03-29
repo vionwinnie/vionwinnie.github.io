@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 200" width="700" height="200" font-family="sans-serif">
+  <!-- Sensors -->
+  <rect x="10" y="30" width="85" height="50" rx="8" fill="#999999" fill-opacity="0.15" stroke="#999999" stroke-width="1.5"/>
+  <text x="52" y="58" text-anchor="middle" fill="#333" font-size="13" font-weight="bold">Sensors</text>
+
+  <!-- Arrow 1 -->
+  <line x1="95" y1="55" x2="120" y2="55" stroke="#555" stroke-width="1.5"/>
+  <polygon points="120,50 130,55 120,60" fill="#555"/>
+
+  <!-- Perception -->
+  <rect x="130" y="30" width="95" height="50" rx="8" fill="#3498db" fill-opacity="0.15" stroke="#3498db" stroke-width="1.5"/>
+  <text x="177" y="58" text-anchor="middle" fill="#3498db" font-size="13" font-weight="bold">Perception</text>
+  <text x="177" y="100" text-anchor="middle" fill="#666" font-size="10">"What is around me?"</text>
+
+  <!-- Arrow 2 -->
+  <line x1="225" y1="55" x2="250" y2="55" stroke="#555" stroke-width="1.5"/>
+  <polygon points="250,50 260,55 250,60" fill="#555"/>
+
+  <!-- Prediction -->
+  <rect x="260" y="30" width="95" height="50" rx="8" fill="#27ae60" fill-opacity="0.15" stroke="#27ae60" stroke-width="1.5"/>
+  <text x="307" y="58" text-anchor="middle" fill="#27ae60" font-size="13" font-weight="bold">Prediction</text>
+  <text x="307" y="100" text-anchor="middle" fill="#666" font-size="10">"What will happen?"</text>
+
+  <!-- Arrow 3 -->
+  <line x1="355" y1="55" x2="380" y2="55" stroke="#555" stroke-width="1.5"/>
+  <polygon points="380,50 390,55 380,60" fill="#555"/>
+
+  <!-- Planning -->
+  <rect x="390" y="30" width="95" height="50" rx="8" fill="#f39c12" fill-opacity="0.15" stroke="#f39c12" stroke-width="1.5"/>
+  <text x="437" y="58" text-anchor="middle" fill="#f39c12" font-size="13" font-weight="bold">Planning</text>
+  <text x="437" y="100" text-anchor="middle" fill="#666" font-size="10">"What should I do?"</text>
+
+  <!-- Arrow 4 -->
+  <line x1="485" y1="55" x2="510" y2="55" stroke="#555" stroke-width="1.5"/>
+  <polygon points="510,50 520,55 510,60" fill="#555"/>
+
+  <!-- Control -->
+  <rect x="520" y="30" width="85" height="50" rx="8" fill="#e74c3c" fill-opacity="0.15" stroke="#e74c3c" stroke-width="1.5"/>
+  <text x="562" y="58" text-anchor="middle" fill="#e74c3c" font-size="13" font-weight="bold">Control</text>
+  <text x="562" y="100" text-anchor="middle" fill="#666" font-size="10">"How to execute?"</text>
+
+  <!-- Arrow 5 -->
+  <line x1="605" y1="55" x2="620" y2="55" stroke="#555" stroke-width="1.5"/>
+  <polygon points="620,50 630,55 620,60" fill="#555"/>
+
+  <!-- Actuators -->
+  <rect x="630" y="30" width="60" height="50" rx="8" fill="#999999" fill-opacity="0.15" stroke="#999999" stroke-width="1.5"/>
+  <text x="660" y="58" text-anchor="middle" fill="#333" font-size="11" font-weight="bold">Actuators</text>
+
+  <!-- Caption -->
+  <text x="350" y="140" text-anchor="middle" fill="#666" font-size="11" font-style="italic">The classical modular AV stack processes information left-to-right through specialized modules.</text>
+</svg>

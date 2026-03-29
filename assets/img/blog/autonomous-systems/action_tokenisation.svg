@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="650" height="280" viewBox="0 0 650 280" font-family="sans-serif">
+  <!-- Column headers -->
+  <!-- Column 1: Discrete Bins -->
+  <rect x="15" y="10" width="190" height="220" rx="8" fill="#3498db" fill-opacity="0.06" stroke="#3498db" stroke-width="1.5"/>
+  <text x="110" y="32" text-anchor="middle" fill="#3498db" font-size="13" font-weight="bold">Discrete Bins</text>
+
+  <!-- Continuous number line -->
+  <line x1="35" y1="55" x2="185" y2="55" stroke="#333" stroke-width="1.5"/>
+  <text x="35" y="50" text-anchor="middle" fill="#333" font-size="9">-1.0</text>
+  <text x="185" y="50" text-anchor="middle" fill="#333" font-size="9">+1.0</text>
+  <text x="110" y="50" text-anchor="middle" fill="#666" font-size="8">continuous</text>
+
+  <!-- Bins below -->
+  <g transform="translate(35, 70)">
+    <rect x="0" y="0" width="12" height="18" fill="#3498db" fill-opacity="0.2" stroke="#3498db" stroke-width="0.5"/>
+    <rect x="12" y="0" width="12" height="18" fill="#3498db" fill-opacity="0.3" stroke="#3498db" stroke-width="0.5"/>
+    <rect x="24" y="0" width="12" height="18" fill="#3498db" fill-opacity="0.2" stroke="#3498db" stroke-width="0.5"/>
+    <rect x="36" y="0" width="12" height="18" fill="#3498db" fill-opacity="0.3" stroke="#3498db" stroke-width="0.5"/>
+    <rect x="48" y="0" width="12" height="18" fill="#3498db" fill-opacity="0.2" stroke="#3498db" stroke-width="0.5"/>
+    <rect x="60" y="0" width="12" height="18" fill="#3498db" fill-opacity="0.4" stroke="#3498db" stroke-width="0.5"/>
+    <rect x="72" y="0" width="12" height="18" fill="#3498db" fill-opacity="0.2" stroke="#3498db" stroke-width="0.5"/>
+    <rect x="84" y="0" width="12" height="18" fill="#3498db" fill-opacity="0.3" stroke="#3498db" stroke-width="0.5"/>
+    <rect x="96" y="0" width="12" height="18" fill="#3498db" fill-opacity="0.2" stroke="#3498db" stroke-width="0.5"/>
+    <rect x="108" y="0" width="12" height="18" fill="#3498db" fill-opacity="0.3" stroke="#3498db" stroke-width="0.5"/>
+    <rect x="120" y="0" width="12" height="18" fill="#3498db" fill-opacity="0.2" stroke="#3498db" stroke-width="0.5"/>
+    <rect x="132" y="0" width="12" height="18" fill="#3498db" fill-opacity="0.3" stroke="#3498db" stroke-width="0.5"/>
+  </g>
+  <text x="110" y="104" text-anchor="middle" fill="#666" font-size="9">256 bins</text>
+
+  <!-- Arrow to token -->
+  <line x1="110" y1="108" x2="110" y2="125" stroke="#555" stroke-width="1"/>
+  <polygon points="107,123 110,130 113,123" fill="#555"/>
+
+  <!-- Token output -->
+  <rect x="80" y="132" width="60" height="28" rx="6" fill="#3498db" fill-opacity="0.15" stroke="#3498db" stroke-width="1.5"/>
+  <text x="110" y="151" text-anchor="middle" fill="#3498db" font-size="13" font-weight="bold">128</text>
+
+  <text x="110" y="185" text-anchor="middle" fill="#666" font-size="10">RT-2 approach</text>
+  <text x="110" y="200" text-anchor="middle" fill="#666" font-size="9">value → bin index → token</text>
+
+  <!-- Column 2: Action Chunking -->
+  <rect x="225" y="10" width="190" height="220" rx="8" fill="#27ae60" fill-opacity="0.06" stroke="#27ae60" stroke-width="1.5"/>
+  <text x="320" y="32" text-anchor="middle" fill="#27ae60" font-size="13" font-weight="bold">Action Chunking</text>
+
+  <!-- Single observation -->
+  <rect x="285" y="48" width="70" height="22" rx="5" fill="#27ae60" fill-opacity="0.15" stroke="#27ae60" stroke-width="1"/>
+  <text x="320" y="63" text-anchor="middle" fill="#27ae60" font-size="10">Observation</text>
+
+  <!-- Arrow down -->
+  <line x1="320" y1="70" x2="320" y2="85" stroke="#555" stroke-width="1"/>
+  <polygon points="317,83 320,90 323,83" fill="#555"/>
+
+  <!-- Time steps predicted at once -->
+  <g transform="translate(245, 92)">
+    <rect x="0" y="0" width="28" height="22" rx="4" fill="#27ae60" fill-opacity="0.2" stroke="#27ae60" stroke-width="1"/>
+    <text x="14" y="15" text-anchor="middle" fill="#333" font-size="8">t</text>
+    <rect x="32" y="0" width="28" height="22" rx="4" fill="#27ae60" fill-opacity="0.2" stroke="#27ae60" stroke-width="1"/>
+    <text x="46" y="15" text-anchor="middle" fill="#333" font-size="8">t+1</text>
+    <rect x="64" y="0" width="28" height="22" rx="4" fill="#27ae60" fill-opacity="0.2" stroke="#27ae60" stroke-width="1"/>
+    <text x="78" y="15" text-anchor="middle" fill="#333" font-size="8">t+2</text>
+    <rect x="96" y="0" width="16" height="22" rx="4" fill="#27ae60" fill-opacity="0.15" stroke="#27ae60" stroke-width="1"/>
+    <text x="104" y="15" text-anchor="middle" fill="#666" font-size="8">...</text>
+    <rect x="116" y="0" width="28" height="22" rx="4" fill="#27ae60" fill-opacity="0.2" stroke="#27ae60" stroke-width="1"/>
+    <text x="130" y="15" text-anchor="middle" fill="#333" font-size="8">t+k</text>
+  </g>
+
+  <!-- Bracket -->
+  <text x="320" y="133" text-anchor="middle" fill="#27ae60" font-size="10">all predicted at once</text>
+
+  <!-- Curved trajectory -->
+  <path d="M260,155 Q290,145 310,150 Q330,155 350,148 Q370,142 390,150" fill="none" stroke="#27ae60" stroke-width="1.5" stroke-dasharray="4,2"/>
+  <circle cx="260" cy="155" r="3" fill="#27ae60"/>
+  <circle cx="310" cy="150" r="3" fill="#27ae60"/>
+  <circle cx="350" cy="148" r="3" fill="#27ae60"/>
+  <circle cx="390" cy="150" r="3" fill="#27ae60"/>
+
+  <text x="320" y="185" text-anchor="middle" fill="#666" font-size="10">ACT (Zhao et al.)</text>
+  <text x="320" y="200" text-anchor="middle" fill="#666" font-size="9">reduces compounding error</text>
+
+  <!-- Column 3: Diffusion -->
+  <rect x="435" y="10" width="200" height="220" rx="8" fill="#9b59b6" fill-opacity="0.06" stroke="#9b59b6" stroke-width="1.5"/>
+  <text x="535" y="32" text-anchor="middle" fill="#9b59b6" font-size="13" font-weight="bold">Diffusion</text>
+
+  <!-- Noise blob -->
+  <ellipse cx="480" cy="65" rx="25" ry="18" fill="#9b59b6" fill-opacity="0.1" stroke="#9b59b6" stroke-width="1" stroke-dasharray="3,2"/>
+  <text x="480" y="69" text-anchor="middle" fill="#9b59b6" font-size="9">noise</text>
+
+  <!-- Denoising arrows -->
+  <line x1="505" y1="65" x2="520" y2="65" stroke="#9b59b6" stroke-width="1"/>
+  <polygon points="518,62 524,65 518,68" fill="#9b59b6"/>
+
+  <!-- Intermediate -->
+  <ellipse cx="545" cy="65" rx="20" ry="15" fill="#9b59b6" fill-opacity="0.2" stroke="#9b59b6" stroke-width="1"/>
+  <text x="545" y="69" text-anchor="middle" fill="#9b59b6" font-size="7">denoise</text>
+
+  <line x1="565" y1="65" x2="580" y2="65" stroke="#9b59b6" stroke-width="1"/>
+  <polygon points="578,62 584,65 578,68" fill="#9b59b6"/>
+
+  <!-- Clean result -->
+  <ellipse cx="605" cy="65" rx="22" ry="15" fill="#9b59b6" fill-opacity="0.3" stroke="#9b59b6" stroke-width="1.5"/>
+  <text x="605" y="69" text-anchor="middle" fill="#9b59b6" font-size="7">clean</text>
+
+  <!-- Iterative label -->
+  <path d="M490,90 Q535,105 575,90" fill="none" stroke="#9b59b6" stroke-width="1" stroke-dasharray="3,2"/>
+  <text x="535" y="108" text-anchor="middle" fill="#9b59b6" font-size="9">iterative denoising</text>
+
+  <!-- Clean trajectory output -->
+  <path d="M470,135 Q500,120 520,128 Q540,136 560,125 Q580,115 600,128" fill="none" stroke="#9b59b6" stroke-width="2"/>
+  <circle cx="470" cy="135" r="3" fill="#9b59b6"/>
+  <circle cx="520" cy="128" r="3" fill="#9b59b6"/>
+  <circle cx="560" cy="125" r="3" fill="#9b59b6"/>
+  <circle cx="600" cy="128" r="3" fill="#9b59b6"/>
+  <text x="535" y="155" text-anchor="middle" fill="#666" font-size="9">smooth action trajectory</text>
+
+  <text x="535" y="185" text-anchor="middle" fill="#666" font-size="10">Diffusion Policy</text>
+  <text x="535" y="200" text-anchor="middle" fill="#666" font-size="9">handles multi-modal actions</text>
+
+  <!-- Caption -->
+  <text x="325" y="258" text-anchor="middle" fill="#666" font-size="11" font-style="italic">Three approaches to generating robot actions: discretise into bins, predict chunks, or denoise from noise.</text>
+</svg>

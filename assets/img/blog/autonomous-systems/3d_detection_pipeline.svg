@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 260" font-family="sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#555"/>
+    </marker>
+  </defs>
+
+  <!-- Title annotation -->
+  <text x="340" y="25" text-anchor="middle" font-size="13" font-weight="bold" fill="#333">PointPillars Pipeline</text>
+
+  <!-- Point Cloud -->
+  <rect x="15" y="55" width="90" height="40" rx="8" fill="rgba(39,174,96,0.15)" stroke="#27ae60" stroke-width="2"/>
+  <text x="60" y="80" text-anchor="middle" font-size="11" fill="#27ae60">Point Cloud</text>
+  <!-- Arrow -->
+  <line x1="110" y1="75" x2="135" y2="75" stroke="#555" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Pillar Encoding -->
+  <rect x="140" y="55" width="100" height="40" rx="8" fill="rgba(39,174,96,0.15)" stroke="#27ae60" stroke-width="2"/>
+  <text x="190" y="73" text-anchor="middle" font-size="11" fill="#27ae60">Pillar</text>
+  <text x="190" y="87" text-anchor="middle" font-size="11" fill="#27ae60">Encoding</text>
+  <!-- Arrow -->
+  <line x1="245" y1="75" x2="270" y2="75" stroke="#555" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Scatter to 2D Grid -->
+  <rect x="275" y="55" width="100" height="40" rx="8" fill="rgba(39,174,96,0.15)" stroke="#27ae60" stroke-width="2"/>
+  <text x="325" y="73" text-anchor="middle" font-size="11" fill="#27ae60">Scatter to</text>
+  <text x="325" y="87" text-anchor="middle" font-size="11" fill="#27ae60">2D Grid</text>
+  <!-- Arrow -->
+  <line x1="380" y1="75" x2="405" y2="75" stroke="#555" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- 2D CNN Backbone -->
+  <rect x="410" y="55" width="100" height="40" rx="8" fill="rgba(52,152,219,0.15)" stroke="#3498db" stroke-width="2"/>
+  <text x="460" y="73" text-anchor="middle" font-size="11" fill="#3498db">2D CNN</text>
+  <text x="460" y="87" text-anchor="middle" font-size="11" fill="#3498db">Backbone</text>
+  <!-- Arrow -->
+  <line x1="515" y1="75" x2="540" y2="75" stroke="#555" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Detection Head -->
+  <rect x="545" y="55" width="100" height="40" rx="8" fill="rgba(52,152,219,0.15)" stroke="#3498db" stroke-width="2"/>
+  <text x="595" y="73" text-anchor="middle" font-size="11" fill="#3498db">Detection</text>
+  <text x="595" y="87" text-anchor="middle" font-size="11" fill="#3498db">Head</text>
+
+  <!-- Output: 3D Boxes -->
+  <line x1="595" y1="100" x2="595" y2="125" stroke="#555" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="555" y="130" width="80" height="32" rx="8" fill="rgba(231,76,60,0.15)" stroke="#e74c3c" stroke-width="2"/>
+  <text x="595" y="151" text-anchor="middle" font-size="12" font-weight="bold" fill="#e74c3c">3D Boxes</text>
+
+  <!-- Key insight annotation -->
+  <rect x="195" y="120" width="240" height="40" rx="8" fill="rgba(243,156,18,0.1)" stroke="#f39c12" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="315" y="138" text-anchor="middle" font-size="11" font-weight="bold" fill="#f39c12">Key insight</text>
+  <text x="315" y="153" text-anchor="middle" font-size="11" fill="#333">3D points → 2D pseudo-image</text>
+  <!-- Annotation connector -->
+  <line x1="315" y1="115" x2="315" y2="95" stroke="#f39c12" stroke-width="1" stroke-dasharray="3,3"/>
+
+  <!-- Color legend -->
+  <rect x="30" y="170" width="12" height="12" rx="2" fill="rgba(39,174,96,0.15)" stroke="#27ae60" stroke-width="1"/>
+  <text x="48" y="181" font-size="10" fill="#666">LiDAR processing</text>
+  <rect x="145" y="170" width="12" height="12" rx="2" fill="rgba(52,152,219,0.15)" stroke="#3498db" stroke-width="1"/>
+  <text x="163" y="181" font-size="10" fill="#666">CNN processing</text>
+
+  <!-- Caption -->
+  <text x="340" y="225" text-anchor="middle" font-size="11" fill="#666" font-style="italic">PointPillars converts sparse 3D points into a dense 2D pseudo-image for efficient 2D CNN processing.</text>
+</svg>

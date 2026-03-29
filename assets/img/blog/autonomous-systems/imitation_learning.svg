@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="650" height="300" font-family="sans-serif">
+  <rect width="650" height="300" fill="white"/>
+
+  <defs>
+    <marker id="arrB" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0,0 8,3 0,6" fill="#3498db"/>
+    </marker>
+    <marker id="arrG" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0,0 8,3 0,6" fill="#27ae60"/>
+    </marker>
+    <marker id="arrR" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0,0 8,3 0,6" fill="#e74c3c"/>
+    </marker>
+  </defs>
+
+  <!-- Row labels -->
+  <text x="18" y="75" font-size="13" fill="#3498db" font-weight="bold">BC</text>
+  <text x="18" y="200" font-size="13" fill="#27ae60" font-weight="bold">DAgger</text>
+
+  <!-- ===== ROW 1: Behavioral Cloning ===== -->
+  <!-- Expert Demos -->
+  <rect x="50" y="50" rx="8" ry="8" width="95" height="40" fill="rgba(52,152,219,0.15)" stroke="#3498db" stroke-width="1.5"/>
+  <text x="97" y="66" text-anchor="middle" font-size="10" fill="#333">Expert Demos</text>
+  <text x="97" y="79" text-anchor="middle" font-size="10" fill="#3498db">{s, a}</text>
+
+  <line x1="145" y1="70" x2="165" y2="70" stroke="#3498db" stroke-width="1.5" marker-end="url(#arrB)"/>
+
+  <!-- Supervised Learning -->
+  <rect x="170" y="50" rx="8" ry="8" width="95" height="40" fill="rgba(52,152,219,0.15)" stroke="#3498db" stroke-width="1.5"/>
+  <text x="217" y="66" text-anchor="middle" font-size="10" fill="#333">Supervised</text>
+  <text x="217" y="79" text-anchor="middle" font-size="10" fill="#333">Learning</text>
+
+  <line x1="265" y1="70" x2="285" y2="70" stroke="#3498db" stroke-width="1.5" marker-end="url(#arrB)"/>
+
+  <!-- Policy -->
+  <rect x="290" y="50" rx="8" ry="8" width="70" height="40" fill="rgba(52,152,219,0.15)" stroke="#3498db" stroke-width="1.5"/>
+  <text x="325" y="66" text-anchor="middle" font-size="10" fill="#333">Policy</text>
+  <text x="325" y="79" text-anchor="middle" font-size="11" fill="#3498db" font-weight="bold">&#x3c0;</text>
+
+  <line x1="360" y1="70" x2="380" y2="70" stroke="#3498db" stroke-width="1.5" marker-end="url(#arrB)"/>
+
+  <!-- Deploy -->
+  <rect x="385" y="50" rx="8" ry="8" width="70" height="40" fill="rgba(52,152,219,0.15)" stroke="#3498db" stroke-width="1.5"/>
+  <text x="420" y="74" text-anchor="middle" font-size="10" fill="#333">Deploy</text>
+
+  <line x1="455" y1="70" x2="480" y2="70" stroke="#e74c3c" stroke-width="1.5" marker-end="url(#arrR)"/>
+
+  <!-- Drift box (red) -->
+  <rect x="485" y="50" rx="8" ry="8" width="75" height="40" fill="rgba(231,76,60,0.15)" stroke="#e74c3c" stroke-width="1.5"/>
+  <text x="522" y="68" text-anchor="middle" font-size="11" fill="#e74c3c" font-weight="bold">Drift!</text>
+  <text x="522" y="82" text-anchor="middle" font-size="14" fill="#e74c3c">&#x2717;</text>
+
+  <!-- Curved arrow showing distribution shift -->
+  <path d="M 455,55 Q 475,25 520,40" fill="none" stroke="#e74c3c" stroke-width="1.2" stroke-dasharray="4,3"/>
+  <text x="500" y="28" font-size="9" fill="#e74c3c">Distribution shift</text>
+
+  <!-- Divider -->
+  <line x1="40" y1="120" x2="620" y2="120" stroke="#ddd" stroke-width="1" stroke-dasharray="6,4"/>
+
+  <!-- ===== ROW 2: DAgger ===== -->
+  <!-- Expert Demos -->
+  <rect x="50" y="150" rx="8" ry="8" width="85" height="40" fill="rgba(39,174,96,0.15)" stroke="#27ae60" stroke-width="1.5"/>
+  <text x="92" y="166" text-anchor="middle" font-size="10" fill="#333">Expert</text>
+  <text x="92" y="179" text-anchor="middle" font-size="10" fill="#333">Demos</text>
+
+  <line x1="135" y1="170" x2="155" y2="170" stroke="#27ae60" stroke-width="1.5" marker-end="url(#arrG)"/>
+
+  <!-- Train Policy -->
+  <rect x="160" y="150" rx="8" ry="8" width="80" height="40" fill="rgba(39,174,96,0.15)" stroke="#27ae60" stroke-width="1.5"/>
+  <text x="200" y="166" text-anchor="middle" font-size="10" fill="#333">Train</text>
+  <text x="200" y="179" text-anchor="middle" font-size="10" fill="#333">Policy</text>
+
+  <line x1="240" y1="170" x2="260" y2="170" stroke="#27ae60" stroke-width="1.5" marker-end="url(#arrG)"/>
+
+  <!-- Roll Out -->
+  <rect x="265" y="150" rx="8" ry="8" width="80" height="40" fill="rgba(39,174,96,0.15)" stroke="#27ae60" stroke-width="1.5"/>
+  <text x="305" y="166" text-anchor="middle" font-size="10" fill="#333">Roll Out</text>
+  <text x="305" y="179" text-anchor="middle" font-size="11" fill="#27ae60" font-weight="bold">&#x3c0;</text>
+
+  <line x1="345" y1="170" x2="365" y2="170" stroke="#27ae60" stroke-width="1.5" marker-end="url(#arrG)"/>
+
+  <!-- Query Expert -->
+  <rect x="370" y="150" rx="8" ry="8" width="80" height="40" fill="rgba(39,174,96,0.15)" stroke="#27ae60" stroke-width="1.5"/>
+  <text x="410" y="166" text-anchor="middle" font-size="10" fill="#333">Query</text>
+  <text x="410" y="179" text-anchor="middle" font-size="10" fill="#333">Expert</text>
+
+  <line x1="450" y1="170" x2="470" y2="170" stroke="#27ae60" stroke-width="1.5" marker-end="url(#arrG)"/>
+
+  <!-- Aggregate Data -->
+  <rect x="475" y="150" rx="8" ry="8" width="85" height="40" fill="rgba(39,174,96,0.15)" stroke="#27ae60" stroke-width="1.5"/>
+  <text x="517" y="166" text-anchor="middle" font-size="10" fill="#333">Aggregate</text>
+  <text x="517" y="179" text-anchor="middle" font-size="10" fill="#333">Data</text>
+
+  <!-- Loop arrow from Aggregate back to Train -->
+  <path d="M 517,192 Q 517,230 200,230 Q 160,230 160,195" fill="none" stroke="#27ae60" stroke-width="1.5"/>
+  <polygon points="156,198 160,188 164,198" fill="#27ae60"/>
+  <text x="360" y="242" text-anchor="middle" font-size="10" fill="#27ae60" font-style="italic">Iterative loop</text>
+
+  <!-- Green checkmark -->
+  <text x="580" y="175" font-size="14" fill="#27ae60" font-weight="bold">&#x2713;</text>
+  <text x="570" y="155" font-size="9" fill="#27ae60">Stays on</text>
+  <text x="573" y="165" font-size="9" fill="#27ae60">track</text>
+
+  <!-- Caption -->
+  <text x="325" y="278" text-anchor="middle" font-size="10" fill="#666">DAgger breaks the distribution shift cycle by iteratively collecting expert corrections</text>
+  <text x="325" y="292" text-anchor="middle" font-size="10" fill="#666">on the learned policy's own states.</text>
+</svg>
