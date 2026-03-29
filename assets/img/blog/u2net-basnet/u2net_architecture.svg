@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="700" height="450">
+
+  <!-- Arrow marker definitions -->
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#555"/>
+    </marker>
+    <marker id="arrow-orange" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#e67e22"/>
+    </marker>
+    <marker id="arrow-purple" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#9b59b6"/>
+    </marker>
+    <marker id="arrow-skip" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#888"/>
+    </marker>
+  </defs>
+
+  <!-- ============================================ -->
+  <!-- ENCODER STAGES (left side, going down)       -->
+  <!-- ============================================ -->
+
+  <!-- En_1: RSU-7, 320x320, 64ch -->
+  <rect x="20" y="18" width="120" height="42" rx="4" fill="#3498db" fill-opacity="0.12" stroke="#3498db" stroke-width="1.5"/>
+  <text x="80" y="33" text-anchor="middle" font-size="10" font-weight="bold" fill="#2471a3">En_1: RSU-7</text>
+  <text x="80" y="53" text-anchor="middle" font-size="8" fill="#555">320x320, 64ch</text>
+
+  <!-- En_2: RSU-6, 160x160, 128ch -->
+  <rect x="30" y="85" width="110" height="40" rx="4" fill="#3498db" fill-opacity="0.12" stroke="#3498db" stroke-width="1.5"/>
+  <text x="85" y="100" text-anchor="middle" font-size="10" font-weight="bold" fill="#2471a3">En_2: RSU-6</text>
+  <text x="85" y="118" text-anchor="middle" font-size="8" fill="#555">160x160, 128ch</text>
+
+  <!-- En_3: RSU-5, 80x80, 256ch -->
+  <rect x="40" y="150" width="100" height="38" rx="4" fill="#3498db" fill-opacity="0.12" stroke="#3498db" stroke-width="1.5"/>
+  <text x="90" y="165" text-anchor="middle" font-size="10" font-weight="bold" fill="#2471a3">En_3: RSU-5</text>
+  <text x="90" y="181" text-anchor="middle" font-size="8" fill="#555">80x80, 256ch</text>
+
+  <!-- En_4: RSU-4, 40x40, 512ch -->
+  <rect x="50" y="213" width="90" height="36" rx="4" fill="#3498db" fill-opacity="0.12" stroke="#3498db" stroke-width="1.5"/>
+  <text x="95" y="227" text-anchor="middle" font-size="10" font-weight="bold" fill="#2471a3">En_4: RSU-4</text>
+  <text x="95" y="243" text-anchor="middle" font-size="8" fill="#555">40x40, 512ch</text>
+
+  <!-- En_5: RSU-4F, 20x20, 512ch (red for dilated) -->
+  <rect x="60" y="274" width="80" height="34" rx="4" fill="#e74c3c" fill-opacity="0.10" stroke="#e74c3c" stroke-width="1.5"/>
+  <text x="100" y="288" text-anchor="middle" font-size="10" font-weight="bold" fill="#c0392b">En_5: RSU-4F</text>
+  <text x="100" y="302" text-anchor="middle" font-size="8" fill="#555">20x20, 512ch</text>
+
+  <!-- En_6: RSU-4F, 10x10, 512ch (bottleneck, red) -->
+  <rect x="230" y="340" width="100" height="34" rx="4" fill="#e74c3c" fill-opacity="0.10" stroke="#e74c3c" stroke-width="1.5"/>
+  <text x="280" y="354" text-anchor="middle" font-size="10" font-weight="bold" fill="#c0392b">En_6: RSU-4F</text>
+  <text x="280" y="368" text-anchor="middle" font-size="8" fill="#555">10x10, 512ch (bottleneck)</text>
+
+  <!-- ============================================ -->
+  <!-- DECODER STAGES (right side, going up)        -->
+  <!-- ============================================ -->
+
+  <!-- De_5: RSU-4F, 20x20, 512ch (red) -->
+  <rect x="420" y="274" width="80" height="34" rx="4" fill="#e74c3c" fill-opacity="0.10" stroke="#e74c3c" stroke-width="1.5"/>
+  <text x="460" y="288" text-anchor="middle" font-size="10" font-weight="bold" fill="#c0392b">De_5: RSU-4F</text>
+  <text x="460" y="302" text-anchor="middle" font-size="8" fill="#555">20x20, 512ch</text>
+
+  <!-- De_4: RSU-4, 40x40, 256ch -->
+  <rect x="420" y="213" width="90" height="36" rx="4" fill="#27ae60" fill-opacity="0.12" stroke="#27ae60" stroke-width="1.5"/>
+  <text x="465" y="227" text-anchor="middle" font-size="10" font-weight="bold" fill="#1e8449">De_4: RSU-4</text>
+  <text x="465" y="243" text-anchor="middle" font-size="8" fill="#555">40x40, 256ch</text>
+
+  <!-- De_3: RSU-5, 80x80, 128ch -->
+  <rect x="420" y="150" width="100" height="38" rx="4" fill="#27ae60" fill-opacity="0.12" stroke="#27ae60" stroke-width="1.5"/>
+  <text x="470" y="165" text-anchor="middle" font-size="10" font-weight="bold" fill="#1e8449">De_3: RSU-5</text>
+  <text x="470" y="181" text-anchor="middle" font-size="8" fill="#555">80x80, 128ch</text>
+
+  <!-- De_2: RSU-6, 160x160, 64ch -->
+  <rect x="420" y="85" width="110" height="40" rx="4" fill="#27ae60" fill-opacity="0.12" stroke="#27ae60" stroke-width="1.5"/>
+  <text x="475" y="100" text-anchor="middle" font-size="10" font-weight="bold" fill="#1e8449">De_2: RSU-6</text>
+  <text x="475" y="118" text-anchor="middle" font-size="8" fill="#555">160x160, 64ch</text>
+
+  <!-- De_1: RSU-7, 320x320, 64ch -->
+  <rect x="420" y="18" width="120" height="42" rx="4" fill="#27ae60" fill-opacity="0.12" stroke="#27ae60" stroke-width="1.5"/>
+  <text x="480" y="33" text-anchor="middle" font-size="10" font-weight="bold" fill="#1e8449">De_1: RSU-7</text>
+  <text x="480" y="53" text-anchor="middle" font-size="8" fill="#555">320x320, 64ch</text>
+
+  <!-- ============================================ -->
+  <!-- MAXPOOL ARROWS (encoder downsampling)        -->
+  <!-- ============================================ -->
+
+  <line x1="80" y1="60" x2="85" y2="83" stroke="#555" stroke-width="1" marker-end="url(#arrow)"/>
+  <text x="62" y="75" font-size="7" fill="#777">MaxPool</text>
+
+  <line x1="85" y1="125" x2="90" y2="148" stroke="#555" stroke-width="1" marker-end="url(#arrow)"/>
+  <text x="67" y="140" font-size="7" fill="#777">MaxPool</text>
+
+  <line x1="90" y1="188" x2="95" y2="211" stroke="#555" stroke-width="1" marker-end="url(#arrow)"/>
+  <text x="72" y="203" font-size="7" fill="#777">MaxPool</text>
+
+  <line x1="95" y1="249" x2="100" y2="272" stroke="#555" stroke-width="1" marker-end="url(#arrow)"/>
+  <text x="77" y="264" font-size="7" fill="#777">MaxPool</text>
+
+  <!-- En_5 down to bottleneck En_6 -->
+  <path d="M100,308 L100,357 L228,357" stroke="#555" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+  <text x="130" y="353" font-size="7" fill="#777">MaxPool</text>
+
+  <!-- ============================================ -->
+  <!-- UPSAMPLE ARROWS (decoder upsampling)         -->
+  <!-- ============================================ -->
+
+  <!-- En_6 up to De_5 -->
+  <path d="M330,357 L460,357 L460,310" stroke="#555" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+  <text x="370" y="353" font-size="7" fill="#777">Upsample</text>
+
+  <line x1="460" y1="274" x2="465" y2="251" stroke="#555" stroke-width="1" marker-end="url(#arrow)"/>
+  <text x="468" y="264" font-size="7" fill="#777">Upsample</text>
+
+  <line x1="465" y1="213" x2="470" y2="190" stroke="#555" stroke-width="1" marker-end="url(#arrow)"/>
+  <text x="473" y="203" font-size="7" fill="#777">Upsample</text>
+
+  <line x1="470" y1="150" x2="475" y2="127" stroke="#555" stroke-width="1" marker-end="url(#arrow)"/>
+  <text x="478" y="140" font-size="7" fill="#777">Upsample</text>
+
+  <line x1="475" y1="85" x2="480" y2="62" stroke="#555" stroke-width="1" marker-end="url(#arrow)"/>
+  <text x="483" y="75" font-size="7" fill="#777">Upsample</text>
+
+  <!-- ============================================ -->
+  <!-- SKIP CONNECTIONS (dashed horizontal arrows)  -->
+  <!-- ============================================ -->
+
+  <!-- En_1 to De_1 -->
+  <line x1="140" y1="39" x2="418" y2="39" stroke="#888" stroke-width="1" stroke-dasharray="5,3" marker-end="url(#arrow-skip)"/>
+  <text x="265" y="35" text-anchor="middle" font-size="7" fill="#888">concat</text>
+
+  <!-- En_2 to De_2 -->
+  <line x1="140" y1="105" x2="418" y2="105" stroke="#888" stroke-width="1" stroke-dasharray="5,3" marker-end="url(#arrow-skip)"/>
+  <text x="270" y="101" text-anchor="middle" font-size="7" fill="#888">concat</text>
+
+  <!-- En_3 to De_3 -->
+  <line x1="140" y1="169" x2="418" y2="169" stroke="#888" stroke-width="1" stroke-dasharray="5,3" marker-end="url(#arrow-skip)"/>
+  <text x="275" y="165" text-anchor="middle" font-size="7" fill="#888">concat</text>
+
+  <!-- En_4 to De_4 -->
+  <line x1="140" y1="231" x2="418" y2="231" stroke="#888" stroke-width="1" stroke-dasharray="5,3" marker-end="url(#arrow-skip)"/>
+  <text x="275" y="227" text-anchor="middle" font-size="7" fill="#888">concat</text>
+
+  <!-- En_5 to De_5 -->
+  <line x1="140" y1="291" x2="418" y2="291" stroke="#888" stroke-width="1" stroke-dasharray="5,3" marker-end="url(#arrow-skip)"/>
+  <text x="275" y="287" text-anchor="middle" font-size="7" fill="#888">concat</text>
+
+  <!-- ============================================ -->
+  <!-- SIDE OUTPUTS (Sup_1 through Sup_6)           -->
+  <!-- ============================================ -->
+
+  <!-- Side output from De_1 (Sup_1) -->
+  <rect x="560" y="22" width="48" height="18" rx="3" fill="#e67e22" fill-opacity="0.12" stroke="#e67e22" stroke-width="1"/>
+  <text x="584" y="34" text-anchor="middle" font-size="7" font-weight="bold" fill="#d35400">Sup_1</text>
+  <line x1="540" y1="35" x2="558" y2="31" stroke="#e67e22" stroke-width="1" marker-end="url(#arrow-orange)"/>
+
+  <!-- Side output from De_2 (Sup_2) -->
+  <rect x="560" y="90" width="48" height="18" rx="3" fill="#e67e22" fill-opacity="0.12" stroke="#e67e22" stroke-width="1"/>
+  <text x="584" y="102" text-anchor="middle" font-size="7" font-weight="bold" fill="#d35400">Sup_2</text>
+  <line x1="530" y1="101" x2="558" y2="99" stroke="#e67e22" stroke-width="1" marker-end="url(#arrow-orange)"/>
+
+  <!-- Side output from De_3 (Sup_3) -->
+  <rect x="560" y="156" width="48" height="18" rx="3" fill="#e67e22" fill-opacity="0.12" stroke="#e67e22" stroke-width="1"/>
+  <text x="584" y="168" text-anchor="middle" font-size="7" font-weight="bold" fill="#d35400">Sup_3</text>
+  <line x1="520" y1="165" x2="558" y2="165" stroke="#e67e22" stroke-width="1" marker-end="url(#arrow-orange)"/>
+
+  <!-- Side output from De_4 (Sup_4) -->
+  <rect x="560" y="220" width="48" height="18" rx="3" fill="#e67e22" fill-opacity="0.12" stroke="#e67e22" stroke-width="1"/>
+  <text x="584" y="232" text-anchor="middle" font-size="7" font-weight="bold" fill="#d35400">Sup_4</text>
+  <line x1="510" y1="231" x2="558" y2="229" stroke="#e67e22" stroke-width="1" marker-end="url(#arrow-orange)"/>
+
+  <!-- Side output from De_5 (Sup_5) -->
+  <rect x="560" y="280" width="48" height="18" rx="3" fill="#e67e22" fill-opacity="0.12" stroke="#e67e22" stroke-width="1"/>
+  <text x="584" y="292" text-anchor="middle" font-size="7" font-weight="bold" fill="#d35400">Sup_5</text>
+  <line x1="500" y1="291" x2="558" y2="289" stroke="#e67e22" stroke-width="1" marker-end="url(#arrow-orange)"/>
+
+  <!-- Side output from En_6 (Sup_6) -->
+  <rect x="560" y="344" width="48" height="18" rx="3" fill="#e67e22" fill-opacity="0.12" stroke="#e67e22" stroke-width="1"/>
+  <text x="584" y="356" text-anchor="middle" font-size="7" font-weight="bold" fill="#d35400">Sup_6</text>
+  <line x1="330" y1="352" x2="558" y2="353" stroke="#e67e22" stroke-width="1" marker-end="url(#arrow-orange)"/>
+
+  <!-- Side output shared label -->
+  <text x="584" y="55" text-anchor="middle" font-size="6" fill="#d35400">each: 3x3 Conv</text>
+  <text x="584" y="63" text-anchor="middle" font-size="6" fill="#d35400">+ upsample + sigmoid</text>
+
+  <!-- ============================================ -->
+  <!-- FUSION: 1x1 Conv -> final output d0          -->
+  <!-- ============================================ -->
+
+  <!-- Gather lines from all Sup boxes to fusion -->
+  <line x1="608" y1="40" x2="668" y2="40" stroke="#e67e22" stroke-width="0.8"/>
+  <line x1="668" y1="40" x2="668" y2="404" stroke="#e67e22" stroke-width="0.8"/>
+  <line x1="608" y1="108" x2="668" y2="108" stroke="#e67e22" stroke-width="0.8"/>
+  <line x1="608" y1="174" x2="668" y2="174" stroke="#e67e22" stroke-width="0.8"/>
+  <line x1="608" y1="238" x2="668" y2="238" stroke="#e67e22" stroke-width="0.8"/>
+  <line x1="608" y1="298" x2="668" y2="298" stroke="#e67e22" stroke-width="0.8"/>
+  <line x1="608" y1="362" x2="668" y2="362" stroke="#e67e22" stroke-width="0.8"/>
+
+  <!-- Fusion box -->
+  <rect x="558" y="396" width="70" height="20" rx="4" fill="#9b59b6" fill-opacity="0.15" stroke="#9b59b6" stroke-width="1.5"/>
+  <text x="593" y="409" text-anchor="middle" font-size="8" font-weight="bold" fill="#7d3c98">1x1 Conv Fuse</text>
+  <line x1="668" y1="404" x2="630" y2="404" stroke="#e67e22" stroke-width="0.8" marker-end="url(#arrow-orange)"/>
+
+  <!-- Final output d0 -->
+  <rect x="558" y="420" width="70" height="18" rx="4" fill="#9b59b6" fill-opacity="0.20" stroke="#9b59b6" stroke-width="2"/>
+  <text x="593" y="432" text-anchor="middle" font-size="9" font-weight="bold" fill="#6c3483">d0 (final)</text>
+  <line x1="593" y1="416" x2="593" y2="418" stroke="#9b59b6" stroke-width="1.5" marker-end="url(#arrow-purple)"/>
+
+  <!-- ============================================ -->
+  <!-- INPUT LABEL                                  -->
+  <!-- ============================================ -->
+  <text x="80" y="14" text-anchor="middle" font-size="8" font-weight="bold" fill="#333">Input (320x320x3)</text>
+
+  <!-- ============================================ -->
+  <!-- LEGEND (top-right area)                      -->
+  <!-- ============================================ -->
+  <rect x="188" y="5" width="8" height="8" rx="2" fill="#3498db" fill-opacity="0.3" stroke="#3498db" stroke-width="1"/>
+  <text x="200" y="12" font-size="6.5" fill="#555">Encoder</text>
+  <rect x="238" y="5" width="8" height="8" rx="2" fill="#27ae60" fill-opacity="0.3" stroke="#27ae60" stroke-width="1"/>
+  <text x="250" y="12" font-size="6.5" fill="#555">Decoder</text>
+  <rect x="283" y="5" width="8" height="8" rx="2" fill="#e74c3c" fill-opacity="0.3" stroke="#e74c3c" stroke-width="1"/>
+  <text x="295" y="12" font-size="6.5" fill="#555">RSU-4F (dilated)</text>
+  <rect x="370" y="5" width="8" height="8" rx="2" fill="#e67e22" fill-opacity="0.3" stroke="#e67e22" stroke-width="1"/>
+  <text x="382" y="12" font-size="6.5" fill="#555">Side output</text>
+  <line x1="428" y1="9" x2="450" y2="9" stroke="#888" stroke-width="1" stroke-dasharray="4,2"/>
+  <text x="454" y="12" font-size="6.5" fill="#555">Skip</text>
+
+  <!-- ============================================ -->
+  <!-- BOTTOM NOTE                                  -->
+  <!-- ============================================ -->
+  <rect x="20" y="393" width="520" height="42" rx="4" fill="#f5f5f5" stroke="#ccc" stroke-width="1"/>
+  <text x="280" y="409" text-anchor="middle" font-size="7.5" fill="#444" font-weight="bold">U&#xB2;-Net nests U-structures inside U-structures: each RSU block is itself a small U-Net,</text>
+  <text x="280" y="422" text-anchor="middle" font-size="7.5" fill="#444">enabling multi-scale feature extraction at every stage.</text>
+  <text x="280" y="432" text-anchor="middle" font-size="6.5" fill="#888">Deep supervision: losses applied to Sup_1...Sup_6 + d0 during training</text>
+
+</svg>

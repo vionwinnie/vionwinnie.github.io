@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- BASNet Hybrid Loss Function Diagram -->
+<!-- Three complementary loss components operating at different spatial scales -->
+<svg xmlns="http://www.w3.org/2000/svg" width="700" height="320">
+
+  <!-- Arrow marker definitions -->
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#555"/>
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="350" y="18" font-size="14" fill="#333" font-weight="bold" text-anchor="middle">BASNet Hybrid Loss: Three Complementary Scales</text>
+
+  <!-- ============================================================ -->
+  <!-- Column 1: BCE Loss (pixel-level) — Blue #3498db              -->
+  <!-- ============================================================ -->
+  <g transform="translate(20,30)">
+    <rect x="0" y="0" width="210" height="140" rx="4" fill="rgba(52,152,219,0.08)" stroke="#3498db" stroke-width="1.5"/>
+    <text x="105" y="18" font-size="11" fill="#3498db" font-weight="bold" text-anchor="middle">Binary Cross-Entropy</text>
+
+    <!-- Prediction grid -->
+    <text x="36" y="36" font-size="9" fill="#666" text-anchor="middle">Pred</text>
+    <g transform="translate(12,40)">
+      <rect x="0"  y="0"  width="12" height="12" fill="#3498db" opacity="0.8" stroke="#3498db" stroke-width="0.5"/>
+      <rect x="12" y="0"  width="12" height="12" fill="#3498db" opacity="0.3" stroke="#3498db" stroke-width="0.5"/>
+      <rect x="24" y="0"  width="12" height="12" fill="#3498db" opacity="0.7" stroke="#3498db" stroke-width="0.5"/>
+      <rect x="36" y="0"  width="12" height="12" fill="#3498db" opacity="0.2" stroke="#3498db" stroke-width="0.5"/>
+      <rect x="0"  y="12" width="12" height="12" fill="#3498db" opacity="0.6" stroke="#3498db" stroke-width="0.5"/>
+      <rect x="12" y="12" width="12" height="12" fill="#3498db" opacity="0.9" stroke="#3498db" stroke-width="0.5"/>
+      <rect x="24" y="12" width="12" height="12" fill="#3498db" opacity="0.4" stroke="#3498db" stroke-width="0.5"/>
+      <rect x="36" y="12" width="12" height="12" fill="#3498db" opacity="0.1" stroke="#3498db" stroke-width="0.5"/>
+      <rect x="0"  y="24" width="12" height="12" fill="#3498db" opacity="0.3" stroke="#3498db" stroke-width="0.5"/>
+      <rect x="12" y="24" width="12" height="12" fill="#3498db" opacity="0.85" stroke="#3498db" stroke-width="0.5"/>
+      <rect x="24" y="24" width="12" height="12" fill="#3498db" opacity="0.5" stroke="#3498db" stroke-width="0.5"/>
+      <rect x="36" y="24" width="12" height="12" fill="#3498db" opacity="0.7" stroke="#3498db" stroke-width="0.5"/>
+    </g>
+
+    <!-- "vs" label -->
+    <text x="77" y="60" font-size="9" fill="#666" text-anchor="middle">vs</text>
+
+    <!-- Ground truth grid -->
+    <text x="130" y="36" font-size="9" fill="#666" text-anchor="middle">GT</text>
+    <g transform="translate(106,40)">
+      <rect x="0"  y="0"  width="12" height="12" fill="#333" opacity="1.0" stroke="#333" stroke-width="0.5"/>
+      <rect x="12" y="0"  width="12" height="12" fill="#333" opacity="0.0" stroke="#ccc" stroke-width="0.5"/>
+      <rect x="24" y="0"  width="12" height="12" fill="#333" opacity="1.0" stroke="#333" stroke-width="0.5"/>
+      <rect x="36" y="0"  width="12" height="12" fill="#333" opacity="0.0" stroke="#ccc" stroke-width="0.5"/>
+      <rect x="0"  y="12" width="12" height="12" fill="#333" opacity="1.0" stroke="#333" stroke-width="0.5"/>
+      <rect x="12" y="12" width="12" height="12" fill="#333" opacity="1.0" stroke="#333" stroke-width="0.5"/>
+      <rect x="24" y="12" width="12" height="12" fill="#333" opacity="0.0" stroke="#ccc" stroke-width="0.5"/>
+      <rect x="36" y="12" width="12" height="12" fill="#333" opacity="0.0" stroke="#ccc" stroke-width="0.5"/>
+      <rect x="0"  y="24" width="12" height="12" fill="#333" opacity="0.0" stroke="#ccc" stroke-width="0.5"/>
+      <rect x="12" y="24" width="12" height="12" fill="#333" opacity="1.0" stroke="#333" stroke-width="0.5"/>
+      <rect x="24" y="24" width="12" height="12" fill="#333" opacity="1.0" stroke="#333" stroke-width="0.5"/>
+      <rect x="36" y="24" width="12" height="12" fill="#333" opacity="1.0" stroke="#333" stroke-width="0.5"/>
+    </g>
+
+    <!-- Pixel-level arrows between grids -->
+    <line x1="62" y1="52" x2="72" y2="52" stroke="#3498db" stroke-width="0.8" stroke-dasharray="2,2"/>
+    <line x1="62" y1="64" x2="72" y2="64" stroke="#3498db" stroke-width="0.8" stroke-dasharray="2,2"/>
+
+    <!-- Annotation -->
+    <text x="105" y="96" font-size="9" fill="#666" text-anchor="middle">Pixel-level: compares each</text>
+    <text x="105" y="107" font-size="9" fill="#666" text-anchor="middle">pixel independently</text>
+
+    <!-- Formula -->
+    <text x="105" y="128" font-size="10" fill="#3498db" text-anchor="middle">-Σ [y log p + (1-y) log(1-p)]</text>
+  </g>
+
+  <!-- ============================================================ -->
+  <!-- Column 2: SSIM Loss (patch-level) — Orange #e67e22           -->
+  <!-- ============================================================ -->
+  <g transform="translate(245,30)">
+    <rect x="0" y="0" width="210" height="140" rx="4" fill="rgba(230,126,34,0.08)" stroke="#e67e22" stroke-width="1.5"/>
+    <text x="105" y="18" font-size="11" fill="#e67e22" font-weight="bold" text-anchor="middle">Structural Similarity</text>
+
+    <!-- Image area with sliding window -->
+    <rect x="25" y="30" width="60" height="60" rx="2" fill="rgba(230,126,34,0.06)" stroke="#ccc" stroke-width="0.5"/>
+    <!-- Grid lines for the image -->
+    <line x1="25" y1="45" x2="85" y2="45" stroke="#ddd" stroke-width="0.3"/>
+    <line x1="25" y1="60" x2="85" y2="60" stroke="#ddd" stroke-width="0.3"/>
+    <line x1="25" y1="75" x2="85" y2="75" stroke="#ddd" stroke-width="0.3"/>
+    <line x1="40" y1="30" x2="40" y2="90" stroke="#ddd" stroke-width="0.3"/>
+    <line x1="55" y1="30" x2="55" y2="90" stroke="#ddd" stroke-width="0.3"/>
+    <line x1="70" y1="30" x2="70" y2="90" stroke="#ddd" stroke-width="0.3"/>
+
+    <!-- Sliding NxN window (highlighted patch) -->
+    <rect x="37" y="42" width="33" height="33" rx="1" fill="rgba(230,126,34,0.2)" stroke="#e67e22" stroke-width="1.5" stroke-dasharray="3,2"/>
+
+    <!-- Sliding arrows -->
+    <path d="M72,50 L80,50" stroke="#e67e22" stroke-width="1" marker-end="url(#arrow)"/>
+    <path d="M56,77 L56,85" stroke="#e67e22" stroke-width="1" marker-end="url(#arrow)"/>
+
+    <!-- Stats box -->
+    <g transform="translate(100,32)">
+      <text x="45" y="8" font-size="8" fill="#e67e22" text-anchor="middle">Within each patch:</text>
+      <text x="45" y="22" font-size="8" fill="#666" text-anchor="middle">&#956;  (mean)</text>
+      <text x="45" y="34" font-size="8" fill="#666" text-anchor="middle">&#963;  (variance)</text>
+      <text x="45" y="46" font-size="8" fill="#666" text-anchor="middle">&#963;  (covariance)</text>
+      <text x="28" y="22" font-size="7" fill="#666">x</text>
+      <text x="28" y="34" font-size="7" fill="#666">x</text>
+      <text x="30" y="46" font-size="7" fill="#666">xy</text>
+    </g>
+
+    <!-- Annotation -->
+    <text x="105" y="96" font-size="9" fill="#666" text-anchor="middle">Patch-level: captures local</text>
+    <text x="105" y="107" font-size="9" fill="#666" text-anchor="middle">structural patterns</text>
+
+    <!-- Formula -->
+    <text x="105" y="128" font-size="10" fill="#e67e22" text-anchor="middle">1 - SSIM(p, y)</text>
+  </g>
+
+  <!-- ============================================================ -->
+  <!-- Column 3: IoU Loss (map-level) — Green #27ae60               -->
+  <!-- ============================================================ -->
+  <g transform="translate(470,30)">
+    <rect x="0" y="0" width="210" height="140" rx="4" fill="rgba(39,174,96,0.08)" stroke="#27ae60" stroke-width="1.5"/>
+    <text x="105" y="18" font-size="11" fill="#27ae60" font-weight="bold" text-anchor="middle">Intersection over Union</text>
+
+    <!-- Prediction ellipse -->
+    <ellipse cx="80" cy="58" rx="35" ry="25" fill="rgba(39,174,96,0.15)" stroke="#27ae60" stroke-width="1"/>
+    <!-- Ground truth ellipse -->
+    <ellipse cx="110" cy="58" rx="35" ry="25" fill="rgba(39,174,96,0.15)" stroke="#27ae60" stroke-width="1" stroke-dasharray="3,2"/>
+
+    <!-- Intersection highlight -->
+    <clipPath id="clip-pred">
+      <ellipse cx="80" cy="58" rx="35" ry="25"/>
+    </clipPath>
+    <ellipse cx="110" cy="58" rx="35" ry="25" fill="rgba(39,174,96,0.4)" clip-path="url(#clip-pred)"/>
+
+    <!-- Labels -->
+    <text x="62" y="62" font-size="8" fill="#27ae60">Pred</text>
+    <text x="120" y="62" font-size="8" fill="#27ae60">GT</text>
+    <text x="94" y="55" font-size="7" fill="#27ae60" font-weight="bold">&#8745;</text>
+
+    <!-- Annotation -->
+    <text x="105" y="96" font-size="9" fill="#666" text-anchor="middle">Map-level: measures global</text>
+    <text x="105" y="107" font-size="9" fill="#666" text-anchor="middle">region overlap</text>
+
+    <!-- Formula -->
+    <text x="105" y="128" font-size="10" fill="#27ae60" text-anchor="middle">1 - |P &#8745; G| / |P &#8746; G|</text>
+  </g>
+
+  <!-- ============================================================ -->
+  <!-- Fusion / combination section                                 -->
+  <!-- ============================================================ -->
+
+  <!-- Down arrows from each column -->
+  <line x1="125" y1="172" x2="125" y2="186" stroke="#3498db" stroke-width="1" marker-end="url(#arrow)"/>
+  <line x1="350" y1="172" x2="350" y2="186" stroke="#e67e22" stroke-width="1" marker-end="url(#arrow)"/>
+  <line x1="575" y1="172" x2="575" y2="186" stroke="#27ae60" stroke-width="1" marker-end="url(#arrow)"/>
+
+  <!-- Hybrid loss combination box -->
+  <rect x="50" y="190" width="600" height="36" rx="4" fill="rgba(0,0,0,0.04)" stroke="#555" stroke-width="1"/>
+
+  <!-- Per-output hybrid loss formula -->
+  <text x="350" y="205" font-size="11" fill="#333" font-weight="bold" text-anchor="middle">Per-output hybrid loss:</text>
+  <text x="350" y="220" font-size="11" fill="#333" text-anchor="middle">
+    <tspan fill="#3498db">&#8467;</tspan><tspan fill="#3498db" font-size="8" dy="2">bce</tspan><tspan dy="-2"> </tspan>
+    <tspan fill="#555">+</tspan>
+    <tspan fill="#e67e22"> &#8467;</tspan><tspan fill="#e67e22" font-size="8" dy="2">ssim</tspan><tspan dy="-2"> </tspan>
+    <tspan fill="#555">+</tspan>
+    <tspan fill="#27ae60"> &#8467;</tspan><tspan fill="#27ae60" font-size="8" dy="2">iou</tspan>
+  </text>
+
+  <!-- Arrow down to total loss -->
+  <line x1="350" y1="228" x2="350" y2="242" stroke="#555" stroke-width="1" marker-end="url(#arrow)"/>
+
+  <!-- Total loss box -->
+  <rect x="120" y="246" width="460" height="30" rx="4" fill="rgba(0,0,0,0.06)" stroke="#333" stroke-width="1.5"/>
+  <text x="350" y="265" font-size="11" fill="#333" font-weight="bold" text-anchor="middle">Total loss:  L = &#931; &#945;&#8342; &#183; &#8467;&#8317;&#8342;&#8318;     (k = 1..8: 7 side outputs + 1 refinement)</text>
+
+  <!-- ============================================================ -->
+  <!-- Bottom note box                                              -->
+  <!-- ============================================================ -->
+  <rect x="20" y="286" width="660" height="28" rx="4" fill="#f5f5f5" stroke="#333" stroke-width="1"/>
+  <text x="350" y="304" font-size="9" fill="#555" text-anchor="middle">BCE maintains pixel gradients, SSIM focuses on boundaries, IoU captures global shape &#8212; together they supervise at three complementary scales.</text>
+
+</svg>

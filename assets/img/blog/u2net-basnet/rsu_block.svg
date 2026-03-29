@@ -1,0 +1,238 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="700" height="415">
+
+  <!-- Arrow marker definition -->
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#555"/>
+    </marker>
+    <marker id="arrow-purple" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#9b59b6"/>
+    </marker>
+  </defs>
+
+  <!-- ============================================ -->
+  <!-- LEFT SIDE: RSU-7 (Standard RSU with pooling) -->
+  <!-- ============================================ -->
+
+  <!-- Title -->
+  <text x="175" y="22" font-size="14" fill="#333" font-weight="bold" text-anchor="middle">RSU-L (e.g. RSU-7)</text>
+  <text x="175" y="36" font-size="9" fill="#666" text-anchor="middle">Standard residual U-block with pooling</text>
+
+  <!-- Input -->
+  <text x="175" y="56" font-size="10" fill="#666" text-anchor="middle">Input: H x W x C_in</text>
+
+  <!-- Input Conv producing F(x) -->
+  <rect x="110" y="62" width="130" height="22" rx="4" fill="rgba(52,152,219,0.12)" stroke="#3498db" stroke-width="1.5"/>
+  <text x="175" y="77" font-size="10" fill="#3498db" text-anchor="middle">Conv+BN+ReLU</text>
+  <text x="248" y="77" font-size="9" fill="#9b59b6">F(x)</text>
+
+  <!-- Residual branch line going right then down -->
+  <line x1="240" y1="73" x2="270" y2="73" stroke="#9b59b6" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <line x1="270" y1="73" x2="270" y2="340" stroke="#9b59b6" stroke-width="1.5" stroke-dasharray="4,3"/>
+
+  <!-- Arrow from input conv down -->
+  <line x1="175" y1="84" x2="175" y2="96" stroke="#555" stroke-width="1" marker-end="url(#arrow)"/>
+
+  <!-- ENCODER PATH (left column) -->
+  <!-- En1: 1x -->
+  <rect x="120" y="97" width="110" height="18" rx="4" fill="rgba(52,152,219,0.08)" stroke="#3498db" stroke-width="1"/>
+  <text x="175" y="110" font-size="9" fill="#3498db" text-anchor="middle">Conv+BN+ReLU</text>
+  <text x="95" y="110" font-size="8" fill="#666" text-anchor="end">1x</text>
+
+  <line x1="175" y1="115" x2="175" y2="123" stroke="#555" stroke-width="1" marker-end="url(#arrow)"/>
+  <text x="185" y="122" font-size="7" fill="#888">Pool</text>
+
+  <!-- En2: 1/2x -->
+  <rect x="120" y="124" width="110" height="18" rx="4" fill="rgba(52,152,219,0.08)" stroke="#3498db" stroke-width="1"/>
+  <text x="175" y="137" font-size="9" fill="#3498db" text-anchor="middle">Conv+BN+ReLU</text>
+  <text x="95" y="137" font-size="8" fill="#666" text-anchor="end">1/2x</text>
+
+  <line x1="175" y1="142" x2="175" y2="150" stroke="#555" stroke-width="1" marker-end="url(#arrow)"/>
+  <text x="185" y="149" font-size="7" fill="#888">Pool</text>
+
+  <!-- En3: 1/4x -->
+  <rect x="120" y="151" width="110" height="18" rx="4" fill="rgba(52,152,219,0.08)" stroke="#3498db" stroke-width="1"/>
+  <text x="175" y="164" font-size="9" fill="#3498db" text-anchor="middle">Conv+BN+ReLU</text>
+  <text x="95" y="164" font-size="8" fill="#666" text-anchor="end">1/4x</text>
+
+  <line x1="175" y1="169" x2="175" y2="177" stroke="#555" stroke-width="1" marker-end="url(#arrow)"/>
+  <text x="185" y="176" font-size="7" fill="#888">Pool</text>
+
+  <!-- Dots to indicate more levels -->
+  <text x="175" y="188" font-size="11" fill="#999" text-anchor="middle">...</text>
+
+  <line x1="175" y1="192" x2="175" y2="200" stroke="#555" stroke-width="1" marker-end="url(#arrow)"/>
+
+  <!-- En6: 1/32x -->
+  <rect x="120" y="201" width="110" height="18" rx="4" fill="rgba(52,152,219,0.08)" stroke="#3498db" stroke-width="1"/>
+  <text x="175" y="214" font-size="9" fill="#3498db" text-anchor="middle">Conv+BN+ReLU</text>
+  <text x="95" y="214" font-size="8" fill="#666" text-anchor="end">1/32x</text>
+
+  <line x1="175" y1="219" x2="175" y2="227" stroke="#555" stroke-width="1" marker-end="url(#arrow)"/>
+
+  <!-- Bottleneck: dilated conv -->
+  <rect x="110" y="228" width="130" height="20" rx="4" fill="rgba(230,126,34,0.15)" stroke="#e67e22" stroke-width="1.5"/>
+  <text x="175" y="242" font-size="9" fill="#e67e22" text-anchor="middle">Dilated Conv (d=2)</text>
+  <text x="95" y="242" font-size="8" fill="#666" text-anchor="end">1/32x</text>
+
+  <line x1="175" y1="248" x2="175" y2="256" stroke="#555" stroke-width="1" marker-end="url(#arrow)"/>
+
+  <!-- DECODER PATH -->
+  <!-- De5 -->
+  <rect x="120" y="257" width="110" height="18" rx="4" fill="rgba(39,174,96,0.1)" stroke="#27ae60" stroke-width="1"/>
+  <text x="175" y="270" font-size="9" fill="#27ae60" text-anchor="middle">Conv+BN+ReLU</text>
+
+  <!-- Skip connection from En6 to De5 -->
+  <line x1="230" y1="210" x2="248" y2="210" stroke="#27ae60" stroke-width="1" stroke-dasharray="5,4"/>
+  <line x1="248" y1="210" x2="248" y2="266" stroke="#27ae60" stroke-width="1" stroke-dasharray="5,4"/>
+  <line x1="248" y1="266" x2="230" y2="266" stroke="#27ae60" stroke-width="1" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+  <text x="254" y="240" font-size="7" fill="#27ae60">skip + Up</text>
+
+  <!-- Dots for decoder -->
+  <text x="175" y="287" font-size="11" fill="#999" text-anchor="middle">...</text>
+
+  <!-- De1 -->
+  <rect x="120" y="293" width="110" height="18" rx="4" fill="rgba(39,174,96,0.1)" stroke="#27ae60" stroke-width="1"/>
+  <text x="175" y="306" font-size="9" fill="#27ae60" text-anchor="middle">Conv+BN+ReLU</text>
+  <text x="95" y="306" font-size="8" fill="#666" text-anchor="end">1x</text>
+
+  <!-- Residual addition -->
+  <line x1="175" y1="311" x2="175" y2="330" stroke="#555" stroke-width="1"/>
+
+  <!-- Addition circle -->
+  <circle cx="175" cy="340" r="10" fill="rgba(155,89,182,0.12)" stroke="#9b59b6" stroke-width="1.5"/>
+  <text x="175" y="344" font-size="12" fill="#9b59b6" text-anchor="middle" font-weight="bold">+</text>
+
+  <!-- Residual arrow into addition -->
+  <line x1="270" y1="340" x2="186" y2="340" stroke="#9b59b6" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrow-purple)"/>
+
+  <!-- Output arrow -->
+  <line x1="175" y1="350" x2="175" y2="365" stroke="#555" stroke-width="1" marker-end="url(#arrow)"/>
+  <text x="175" y="376" font-size="10" fill="#666" text-anchor="middle">Output: H x W x C_out</text>
+
+  <!-- Resolution annotation bracket (left side) -->
+  <line x1="85" y1="100" x2="85" y2="245" stroke="#aaa" stroke-width="0.7"/>
+  <line x1="82" y1="100" x2="88" y2="100" stroke="#aaa" stroke-width="0.7"/>
+  <line x1="82" y1="245" x2="88" y2="245" stroke="#aaa" stroke-width="0.7"/>
+  <text x="80" y="175" font-size="8" fill="#999" text-anchor="end" transform="rotate(-90,80,175)">resolution shrinks</text>
+
+
+  <!-- ============================================== -->
+  <!-- RIGHT SIDE: RSU-4F (Dilated RSU, no pooling)   -->
+  <!-- ============================================== -->
+
+  <!-- Title -->
+  <text x="525" y="22" font-size="14" fill="#333" font-weight="bold" text-anchor="middle">RSU-LF (e.g. RSU-4F)</text>
+  <text x="525" y="36" font-size="9" fill="#666" text-anchor="middle">Dilated residual U-block, no pooling</text>
+
+  <!-- Input -->
+  <text x="525" y="56" font-size="10" fill="#666" text-anchor="middle">Input: H x W x C_in</text>
+
+  <!-- Input Conv producing F(x) -->
+  <rect x="460" y="62" width="130" height="22" rx="4" fill="rgba(52,152,219,0.12)" stroke="#3498db" stroke-width="1.5"/>
+  <text x="525" y="77" font-size="10" fill="#3498db" text-anchor="middle">Conv+BN+ReLU</text>
+  <text x="598" y="77" font-size="9" fill="#9b59b6">F(x)</text>
+
+  <!-- Residual branch line -->
+  <line x1="590" y1="73" x2="620" y2="73" stroke="#9b59b6" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <line x1="620" y1="73" x2="620" y2="340" stroke="#9b59b6" stroke-width="1.5" stroke-dasharray="4,3"/>
+
+  <!-- Arrow from input conv down -->
+  <line x1="525" y1="84" x2="525" y2="100" stroke="#555" stroke-width="1" marker-end="url(#arrow)"/>
+
+  <!-- Same resolution annotation on left -->
+  <line x1="435" y1="104" x2="435" y2="310" stroke="#aaa" stroke-width="0.7"/>
+  <line x1="432" y1="104" x2="438" y2="104" stroke="#aaa" stroke-width="0.7"/>
+  <line x1="432" y1="310" x2="438" y2="310" stroke="#aaa" stroke-width="0.7"/>
+  <text x="430" y="210" font-size="8" fill="#999" text-anchor="end" transform="rotate(-90,430,210)">same resolution (H x W)</text>
+
+  <!-- ENCODER: dilated convolutions -->
+  <!-- d=1 -->
+  <rect x="465" y="101" width="120" height="20" rx="4" fill="rgba(52,152,219,0.08)" stroke="#3498db" stroke-width="1"/>
+  <text x="525" y="115" font-size="9" fill="#3498db" text-anchor="middle">Conv+BN+ReLU</text>
+  <text x="445" y="115" font-size="8" fill="#e67e22" text-anchor="end">d=1</text>
+
+  <line x1="525" y1="121" x2="525" y2="133" stroke="#555" stroke-width="1" marker-end="url(#arrow)"/>
+
+  <!-- d=2 -->
+  <rect x="465" y="134" width="120" height="20" rx="4" fill="rgba(230,126,34,0.1)" stroke="#e67e22" stroke-width="1"/>
+  <text x="525" y="148" font-size="9" fill="#e67e22" text-anchor="middle">Dilated Conv (d=2)</text>
+  <text x="445" y="148" font-size="8" fill="#e67e22" text-anchor="end">d=2</text>
+
+  <line x1="525" y1="154" x2="525" y2="166" stroke="#555" stroke-width="1" marker-end="url(#arrow)"/>
+
+  <!-- d=4 -->
+  <rect x="465" y="167" width="120" height="20" rx="4" fill="rgba(230,126,34,0.1)" stroke="#e67e22" stroke-width="1"/>
+  <text x="525" y="181" font-size="9" fill="#e67e22" text-anchor="middle">Dilated Conv (d=4)</text>
+  <text x="445" y="181" font-size="8" fill="#e67e22" text-anchor="end">d=4</text>
+
+  <line x1="525" y1="187" x2="525" y2="199" stroke="#555" stroke-width="1" marker-end="url(#arrow)"/>
+
+  <!-- d=8 (bottleneck) -->
+  <rect x="460" y="200" width="130" height="22" rx="4" fill="rgba(230,126,34,0.18)" stroke="#e67e22" stroke-width="1.5"/>
+  <text x="525" y="215" font-size="9" fill="#e67e22" text-anchor="middle">Dilated Conv (d=8)</text>
+  <text x="445" y="215" font-size="8" fill="#e67e22" text-anchor="end">d=8</text>
+
+  <line x1="525" y1="222" x2="525" y2="237" stroke="#555" stroke-width="1" marker-end="url(#arrow)"/>
+
+  <!-- DECODER: dilated convolutions with skip connections -->
+  <!-- d=4 decode -->
+  <rect x="465" y="238" width="120" height="20" rx="4" fill="rgba(39,174,96,0.1)" stroke="#27ae60" stroke-width="1"/>
+  <text x="525" y="252" font-size="9" fill="#27ae60" text-anchor="middle">Dilated Conv (d=4)</text>
+  <text x="445" y="252" font-size="8" fill="#e67e22" text-anchor="end">d=4</text>
+
+  <!-- Skip from d=4 encoder to d=4 decoder -->
+  <line x1="585" y1="177" x2="603" y2="177" stroke="#27ae60" stroke-width="1" stroke-dasharray="5,4"/>
+  <line x1="603" y1="177" x2="603" y2="248" stroke="#27ae60" stroke-width="1" stroke-dasharray="5,4"/>
+  <line x1="603" y1="248" x2="585" y2="248" stroke="#27ae60" stroke-width="1" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+  <text x="609" y="214" font-size="7" fill="#27ae60">skip</text>
+
+  <line x1="525" y1="258" x2="525" y2="270" stroke="#555" stroke-width="1" marker-end="url(#arrow)"/>
+
+  <!-- d=2 decode -->
+  <rect x="465" y="271" width="120" height="20" rx="4" fill="rgba(39,174,96,0.1)" stroke="#27ae60" stroke-width="1"/>
+  <text x="525" y="285" font-size="9" fill="#27ae60" text-anchor="middle">Dilated Conv (d=2)</text>
+  <text x="445" y="285" font-size="8" fill="#e67e22" text-anchor="end">d=2</text>
+
+  <!-- Skip from d=2 encoder to d=2 decoder -->
+  <line x1="585" y1="144" x2="612" y2="144" stroke="#27ae60" stroke-width="1" stroke-dasharray="5,4"/>
+  <line x1="612" y1="144" x2="612" y2="281" stroke="#27ae60" stroke-width="1" stroke-dasharray="5,4"/>
+  <line x1="612" y1="281" x2="585" y2="281" stroke="#27ae60" stroke-width="1" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+
+  <line x1="525" y1="291" x2="525" y2="303" stroke="#555" stroke-width="1" marker-end="url(#arrow)"/>
+
+  <!-- d=1 decode -->
+  <rect x="465" y="304" width="120" height="20" rx="4" fill="rgba(39,174,96,0.1)" stroke="#27ae60" stroke-width="1"/>
+  <text x="525" y="318" font-size="9" fill="#27ae60" text-anchor="middle">Conv+BN+ReLU</text>
+  <text x="445" y="318" font-size="8" fill="#e67e22" text-anchor="end">d=1</text>
+
+  <!-- Skip from d=1 encoder to d=1 decoder -->
+  <line x1="585" y1="111" x2="621" y2="111" stroke="#27ae60" stroke-width="1" stroke-dasharray="5,4"/>
+  <line x1="621" y1="111" x2="621" y2="314" stroke="#27ae60" stroke-width="1" stroke-dasharray="5,4"/>
+  <line x1="621" y1="314" x2="585" y2="314" stroke="#27ae60" stroke-width="1" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+
+  <!-- Residual addition -->
+  <line x1="525" y1="324" x2="525" y2="330" stroke="#555" stroke-width="1"/>
+
+  <circle cx="525" cy="340" r="10" fill="rgba(155,89,182,0.12)" stroke="#9b59b6" stroke-width="1.5"/>
+  <text x="525" y="344" font-size="12" fill="#9b59b6" text-anchor="middle" font-weight="bold">+</text>
+
+  <!-- Residual arrow into addition -->
+  <line x1="620" y1="340" x2="536" y2="340" stroke="#9b59b6" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrow-purple)"/>
+
+  <!-- Output arrow -->
+  <line x1="525" y1="350" x2="525" y2="365" stroke="#555" stroke-width="1" marker-end="url(#arrow)"/>
+  <text x="525" y="376" font-size="10" fill="#666" text-anchor="middle">Output: H x W x C_out</text>
+
+  <!-- ============================================== -->
+  <!-- Divider line between the two variants          -->
+  <!-- ============================================== -->
+  <line x1="350" y1="15" x2="350" y2="380" stroke="#ddd" stroke-width="1" stroke-dasharray="6,4"/>
+
+  <!-- ============================================== -->
+  <!-- Bottom note box                                -->
+  <!-- ============================================== -->
+  <rect x="30" y="385" width="640" height="22" rx="4" fill="#f5f5f5" stroke="#333" stroke-width="1"/>
+  <text x="350" y="400" font-size="9" fill="#333" text-anchor="middle">RSU-L uses pooling to capture multi-scale context (like a mini U-Net); RSU-LF replaces pooling with dilated convolutions to preserve spatial resolution.</text>
+
+</svg>
