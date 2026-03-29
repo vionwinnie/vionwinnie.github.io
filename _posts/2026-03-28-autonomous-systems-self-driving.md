@@ -98,9 +98,9 @@ The stack described above is the **modular** approach: each module is developed,
 
 Two landmark papers represent these paradigms:
 
-- **UniAD** (Hu et al., CVPR 2023 Best Paper) is a structured end-to-end model: it retains five cascaded modules (tracking, mapping, motion prediction, occupancy prediction, planning) but connects them with transformer queries and trains them jointly. It demonstrated that planning-oriented joint optimization beats independently optimized modules by large margins (-28% planning error on nuScenes). See the [motion planning survey](motion_planning_vlm_survey.md) for a detailed breakdown.
+- **UniAD** (Hu et al., CVPR 2023 Best Paper) is a structured end-to-end model: it retains five cascaded modules (tracking, mapping, motion prediction, occupancy prediction, planning) but connects them with transformer queries and trains them jointly. It demonstrated that planning-oriented joint optimization beats independently optimized modules by large margins (-28% planning error on nuScenes). See the [motion planning survey]({% post_url 2026-03-28-motion-planning-vlm-survey %}) for a detailed breakdown.
 
-- **EMMA** (Hwang, Hung et al., Waymo, 2024) takes unification further: it feeds raw camera images into Gemini (a multimodal large language model) and represents *all* outputs — trajectories, 3D detections, road graphs — as natural language text. There are no task-specific modules at all. See both the [motion planning survey](motion_planning_vlm_survey.md) and the [segmentation survey](segmentation_autonomous_driving_survey.md) for deep dives on EMMA's architecture and results.
+- **EMMA** (Hwang, Hung et al., Waymo, 2024) takes unification further: it feeds raw camera images into Gemini (a multimodal large language model) and represents *all* outputs — trajectories, 3D detections, road graphs — as natural language text. There are no task-specific modules at all. See both the [motion planning survey]({% post_url 2026-03-28-motion-planning-vlm-survey %}) and the [segmentation survey]({% post_url 2026-03-28-segmentation-autonomous-driving-survey %}) for deep dives on EMMA's architecture and results.
 
 The field has not converged on one paradigm. Waymo revealed their production architecture in December 2025 with the **Waymo Foundation Model** blog post, which describes a "Think Fast / Think Slow" dual-system design:
 
@@ -230,13 +230,13 @@ Three major paradigms have emerged:
 1. A probability distribution over the K anchors (which motion mode?)
 2. Per-anchor residual offsets that adjust the anchor to the specific situation
 
-The output is a **Gaussian Mixture Model (GMM)**: K Gaussian components, each centered on an anchor + residual, weighted by mode probabilities. This decomposition of prediction into *mode selection* + *residual regression* proved highly effective and influenced Waymo's production prediction system. See the [motion planning survey](motion_planning_vlm_survey.md) for details on MultiPath and its successor MultiPath++.
+The output is a **Gaussian Mixture Model (GMM)**: K Gaussian components, each centered on an anchor + residual, weighted by mode probabilities. This decomposition of prediction into *mode selection* + *residual regression* proved highly effective and influenced Waymo's production prediction system. See the [motion planning survey]({% post_url 2026-03-28-motion-planning-vlm-survey %}) for details on MultiPath and its successor MultiPath++.
 
 #### Autoregressive: MotionLM (Waymo, ICCV 2023)
 
 **MotionLM** (Seff et al., 2023) reframes prediction as **language modeling**: continuous trajectories are discretized into a vocabulary of motion tokens (short trajectory segments), and a transformer decoder autoregressively generates the sequence of tokens that composes each agent's future trajectory.
 
-Key insight: a single autoregressive pass can jointly model *multiple agents* by interleaving their tokens in a shared sequence. This naturally captures interactions — Agent A's next step depends on Agent B's last step. MotionLM achieved #1 on the WOMD interaction prediction benchmark. It is also a direct precursor to EMMA's philosophy of "everything as language." See the [motion planning survey](motion_planning_vlm_survey.md) for the detailed MotionLM summary.
+Key insight: a single autoregressive pass can jointly model *multiple agents* by interleaving their tokens in a shared sequence. This naturally captures interactions — Agent A's next step depends on Agent B's last step. MotionLM achieved #1 on the WOMD interaction prediction benchmark. It is also a direct precursor to EMMA's philosophy of "everything as language." See the [motion planning survey]({% post_url 2026-03-28-motion-planning-vlm-survey %}) for the detailed MotionLM summary.
 
 #### Scaling Laws for Driving (Waymo, 2025)
 
@@ -247,7 +247,7 @@ Key insight: a single autoregressive pass can jointly model *multiple agents* by
 - **Closed-loop correlation**: closed-loop driving metrics (safety, comfort) correlate with pre-training loss — bigger models produce safer drivers
 - **Cross-agent transfer**: training on other agents' driving logs improves ego-agent planning
 
-This validates that the autoregressive approach to driving scales predictably with compute and data, providing principled guidance for resource allocation. See the [motion planning survey](motion_planning_vlm_survey.md) for the complete analysis.
+This validates that the autoregressive approach to driving scales predictably with compute and data, providing principled guidance for resource allocation. See the [motion planning survey]({% post_url 2026-03-28-motion-planning-vlm-survey %}) for the complete analysis.
 
 #### Diffusion-Based
 
@@ -313,13 +313,13 @@ This is the classical approach used in production by most AV companies. The core
 
 **ChauffeurNet** (Bansal et al., RSS 2019) learns a driving policy from human demonstrations. The scene is rendered as a top-down BEV image (road map, traffic lights, detected objects, past trajectories), and a CNN predicts a future ego trajectory.
 
-The key innovation was **synthesized perturbations**: pure behavioral cloning (supervised learning on expert state-action pairs) suffers from **distribution shift** — the model only sees states along the expert's trajectory during training, so it doesn't know how to recover from mistakes. ChauffeurNet addresses this by artificially perturbing the ego position during training and requiring the model to recover back to the expert path. This reduced collisions by ~60%. See the [motion planning survey](motion_planning_vlm_survey.md) for the full ChauffeurNet analysis.
+The key innovation was **synthesized perturbations**: pure behavioral cloning (supervised learning on expert state-action pairs) suffers from **distribution shift** — the model only sees states along the expert's trajectory during training, so it doesn't know how to recover from mistakes. ChauffeurNet addresses this by artificially perturbing the ego position during training and requiring the model to recover back to the expert path. This reduced collisions by ~60%. See the [motion planning survey]({% post_url 2026-03-28-motion-planning-vlm-survey %}) for the full ChauffeurNet analysis.
 
 #### End-to-End Learned: UniAD, VAD
 
 **UniAD** and **VAD** (Jiang et al., ICCV 2023) jointly optimize perception, prediction, and planning in a single network. The planner benefits from features learned for perception — for example, a subtle visual cue (a turning signal, a pedestrian's body orientation) that a modular pipeline might discard at the perception-planning interface can flow directly to the planner.
 
-**VAD** introduced an important efficiency idea: representing the scene as **vectorized** polylines (lane boundaries as point sequences, agent trajectories as coordinate lists) rather than dense BEV grids. This is more memory-efficient and preserves instance-level structure. VAD achieved 2.5x faster inference than UniAD with lower planning error. See the [motion planning survey](motion_planning_vlm_survey.md) for detailed VAD results.
+**VAD** introduced an important efficiency idea: representing the scene as **vectorized** polylines (lane boundaries as point sequences, agent trajectories as coordinate lists) rather than dense BEV grids. This is more memory-efficient and preserves instance-level structure. VAD achieved 2.5x faster inference than UniAD with lower planning error. See the [motion planning survey]({% post_url 2026-03-28-motion-planning-vlm-survey %}) for detailed VAD results.
 
 #### VLM-Based: EMMA, DriveVLM
 
@@ -328,7 +328,7 @@ The newest paradigm uses pre-trained **Vision-Language Models (VLMs)** for plann
 - **EMMA** feeds camera images into Gemini and outputs trajectory waypoints as text. Chain-of-thought reasoning (scene description → critical objects → behavior predictions → meta-decision) improves planning by 6.7%.
 - **DriveVLM** (Tian et al., 2024) uses a VLM for CoT reasoning and hierarchical planning, with a practical **dual-system** variant (DriveVLM-Dual) that runs a slow VLM for strategic reasoning alongside a fast classical planner for reactive control.
 
-See the [motion planning survey](motion_planning_vlm_survey.md) for detailed coverage of GPT-Driver, DriveVLM, LMDrive, and DriveLM.
+See the [motion planning survey]({% post_url 2026-03-28-motion-planning-vlm-survey %}) for detailed coverage of GPT-Driver, DriveVLM, LMDrive, and DriveLM.
 
 ### 4.4 Classical vs Learned Planning Comparison
 
@@ -338,7 +338,7 @@ See the [motion planning survey](motion_planning_vlm_survey.md) for detailed cov
 | **Weaknesses** | Hand-designed cost functions; struggles with complex multi-agent interactions | Distribution shift; causal confusion; struggles with rare events | Black-box; harder to verify safety; requires massive data | High latency; limited spatial precision; hallucination risk |
 | **Production use** | Waymo, Cruise (core planner) | ChauffeurNet (historical) | Tesla FSD v12+ | DriveVLM-Dual (BYD) |
 
-*This table is adapted from the [motion planning survey](motion_planning_vlm_survey.md), which provides a more detailed comparison.*
+*This table is adapted from the [motion planning survey]({% post_url 2026-03-28-motion-planning-vlm-survey %}), which provides a more detailed comparison.*
 
 ### 4.5 Cost Function Design
 
@@ -380,7 +380,7 @@ Multi-camera images
 
 The key architectural idea is **query-based information passing**: each module maintains a set of learned queries (e.g., TrackFormer has one query per tracked object). These queries are passed downstream — MotionFormer receives the track queries and produces motion-augmented queries, which OccFormer and the Planner consume. This allows end-to-end gradient flow while maintaining interpretable intermediate outputs.
 
-Results on nuScenes: +20% tracking accuracy, +30% mapping accuracy, -38% motion forecasting error, -28% planning error vs prior independently-optimized modules. The [segmentation survey](segmentation_autonomous_driving_survey.md) and [motion planning survey](motion_planning_vlm_survey.md) both contain detailed UniAD summaries.
+Results on nuScenes: +20% tracking accuracy, +30% mapping accuracy, -38% motion forecasting error, -28% planning error vs prior independently-optimized modules. The [segmentation survey]({% post_url 2026-03-28-segmentation-autonomous-driving-survey %}) and [motion planning survey]({% post_url 2026-03-28-motion-planning-vlm-survey %}) both contain detailed UniAD summaries.
 
 ### 5.3 EMMA Architecture
 
@@ -413,7 +413,7 @@ This CoT improves planning L2 error by 6.7% and provides an interpretability mec
 - **Multi-decoding aggregation**: uses nucleus sampling to generate diverse trajectory candidates, then aggregates them for robust planning
 - **Self-supervised training**: all supervision signals come from raw driving logs (ego trajectories, vehicle dynamics) rather than human-labeled perception annotations
 
-Results: SOTA on nuScenes planning (Avg L2: 0.31m self-supervised, vs 0.37m for VAD supervised). On WOMD-Planning-ADE (103K scenarios): ADE@5s 0.655. A self-supervised model beating supervised methods demonstrates that expensive human labels are not necessary for competitive E2E driving. See the [motion planning survey](motion_planning_vlm_survey.md) for the full S4-Driver analysis.
+Results: SOTA on nuScenes planning (Avg L2: 0.31m self-supervised, vs 0.37m for VAD supervised). On WOMD-Planning-ADE (103K scenarios): ADE@5s 0.655. A self-supervised model beating supervised methods demonstrates that expensive human labels are not necessary for competitive E2E driving. See the [motion planning survey]({% post_url 2026-03-28-motion-planning-vlm-survey %}) for the full S4-Driver analysis.
 
 ### 5.5 VAD: Vectorized Autonomous Driving
 
@@ -423,7 +423,7 @@ Results: SOTA on nuScenes planning (Avg L2: 0.31m self-supervised, vs 0.37m for 
 - Agent motions are trajectory sequences
 - The ego trajectory is optimized via attention to these vectorized elements
 
-This is more memory-efficient than dense grids and preserves instance-level structure. **VADv2** extended this to probabilistic planning with 4096 discrete trajectory tokens, achieving SOTA closed-loop performance on CARLA. See the [motion planning survey](motion_planning_vlm_survey.md) for the complete VAD/VADv2 breakdown.
+This is more memory-efficient than dense grids and preserves instance-level structure. **VADv2** extended this to probabilistic planning with 4096 discrete trajectory tokens, achieving SOTA closed-loop performance on CARLA. See the [motion planning survey]({% post_url 2026-03-28-motion-planning-vlm-survey %}) for the complete VAD/VADv2 breakdown.
 
 ### 5.6 Tesla FSD v12–v13
 
@@ -435,7 +435,7 @@ Tesla deployed the first production end-to-end driving system in 2024:
 - **Scale**: over 8.3 billion FSD miles driven by February 2026
 - **Impact**: replaced ~300,000 lines of C++ (the previous rule-based stack) with neural networks
 
-Details remain proprietary, but Tesla has described using **occupancy networks** (predicting which 3D voxels in the scene are occupied, similar to the occupancy prediction work covered in the [segmentation survey](segmentation_autonomous_driving_survey.md) — see TPVFormer and SurroundOcc) and learned lane detection without HD maps.
+Details remain proprietary, but Tesla has described using **occupancy networks** (predicting which 3D voxels in the scene are occupied, similar to the occupancy prediction work covered in the [segmentation survey]({% post_url 2026-03-28-segmentation-autonomous-driving-survey %}) — see TPVFormer and SurroundOcc) and learned lane detection without HD maps.
 
 ### 5.7 The Core Insight
 
@@ -472,7 +472,7 @@ The most common benchmark is **Town05 Long**: 10 predefined routes in an unseen 
 
 nuPlan's closed-loop evaluation revealed that models performing well on open-loop metrics can fail catastrophically in closed-loop: small errors compound over time as the ego deviates from the recorded trajectory, encountering states the model has never seen.
 
-GameFormer (Huang et al., NVIDIA, ICCV 2023) achieved top performance on the nuPlan closed-loop reactive benchmark with a game-theoretic approach to interactive prediction and planning. See the [motion planning survey](motion_planning_vlm_survey.md) for GameFormer and DTPP details.
+GameFormer (Huang et al., NVIDIA, ICCV 2023) achieved top performance on the nuPlan closed-loop reactive benchmark with a game-theoretic approach to interactive prediction and planning. See the [motion planning survey]({% post_url 2026-03-28-motion-planning-vlm-survey %}) for GameFormer and DTPP details.
 
 ### 6.4 Open-Loop vs Closed-Loop Evaluation
 
@@ -492,7 +492,7 @@ The critical insight: **open-loop metrics can be misleading**. A model that alwa
 
 One of the largest autonomous driving datasets, used by 36,000+ researchers worldwide:
 
-- **Perception benchmark**: 3D object detection (LiDAR and camera), semantic segmentation, panoramic video panoptic segmentation (100K images from 5 cameras, 28 classes — see the [segmentation survey](segmentation_autonomous_driving_survey.md) for details on Waymo's panoramic video panoptic segmentation dataset)
+- **Perception benchmark**: 3D object detection (LiDAR and camera), semantic segmentation, panoramic video panoptic segmentation (100K images from 5 cameras, 28 classes — see the [segmentation survey]({% post_url 2026-03-28-segmentation-autonomous-driving-survey %}) for details on Waymo's panoramic video panoptic segmentation dataset)
 - **Motion prediction benchmark (WOMD)**: 100K+ scenes with agent trajectories, enabling behavior prediction research. Includes the WOMD Sim Agents challenge for scalable closed-loop evaluation
 - **WOMD-Reasoning**: 3M question-answer pairs for map recognition, motion narratives, and interaction reasoning — bridging the gap between trajectory data and language understanding
 - **2025 challenges**: vision-based end-to-end driving, long-tail scenario handling, interaction prediction
@@ -503,13 +503,13 @@ One of the largest autonomous driving datasets, used by 36,000+ researchers worl
 
 WOD-E2E introduces the **Rater Feedback Score (RFS)**: expert raters score trajectory candidates (0–10) at critical moments. Unlike ADE/L2 which compare to a single ground truth, RFS captures multi-modal acceptability — multiple safe trajectories can score well even if they differ from the recorded ground truth. This addresses a fundamental limitation of standard metrics: ADE penalizes safe evasive maneuvers that diverge from what the human driver happened to do.
 
-WOD-E2E has significantly higher rarity scores than nuScenes and WOMD across all percentiles, representing the field's shift from nominal-driving benchmarks to long-tail evaluation. Already used for the 2025 Waymo Open Dataset Challenge. See the [motion planning survey](motion_planning_vlm_survey.md) for details.
+WOD-E2E has significantly higher rarity scores than nuScenes and WOMD across all percentiles, representing the field's shift from nominal-driving benchmarks to long-tail evaluation. Already used for the 2025 Waymo Open Dataset Challenge. See the [motion planning survey]({% post_url 2026-03-28-motion-planning-vlm-survey %}) for details.
 
 ### 6.7 World Models for Simulation
 
 The newest frontier in simulation: **world models** that generate photorealistic driving scenarios from learned models rather than hand-built graphics engines.
 
-- **GAIA-1** (Wayve, 2023): a generative world model that produces driving video by predicting future frames conditioned on past frames and an action (steering, acceleration). It can generate novel scenarios including weather changes and rare events. See the [segmentation survey](segmentation_autonomous_driving_survey.md) for context on world models and simulation.
+- **GAIA-1** (Wayve, 2023): a generative world model that produces driving video by predicting future frames conditioned on past frames and an action (steering, acceleration). It can generate novel scenarios including weather changes and rare events. See the [segmentation survey]({% post_url 2026-03-28-segmentation-autonomous-driving-survey %}) for context on world models and simulation.
 - **Waymo's Genie 3-based world model** (2026): uses Google DeepMind's Genie 3 architecture to generate photorealistic 3D driving scenarios. Can simulate rare events (animals on road, unusual weather) that are difficult to encounter in real-world testing.
 
 World models promise to solve the sim-to-real gap by generating data that is visually indistinguishable from real driving footage, while also enabling controllable generation of rare and dangerous scenarios.
@@ -585,7 +585,7 @@ Approaches to mitigating these challenges:
 
 Production AV systems employ defense-in-depth:
 
-1. **Sensor redundancy**: multiple sensor types (camera, LiDAR, radar) provide overlapping coverage. If one sensor fails or is occluded, others compensate. BEVFusion-style architectures (see [segmentation survey](segmentation_autonomous_driving_survey.md)) enable systematic multi-modal fusion.
+1. **Sensor redundancy**: multiple sensor types (camera, LiDAR, radar) provide overlapping coverage. If one sensor fails or is occluded, others compensate. BEVFusion-style architectures (see [segmentation survey]({% post_url 2026-03-28-segmentation-autonomous-driving-survey %})) enable systematic multi-modal fusion.
 2. **Computational redundancy**: dual compute platforms can take over if one fails.
 3. **Algorithmic redundancy**: a learned planner may produce the primary trajectory, but a classical safety checker verifies it against hard constraints (minimum following distance, maximum deceleration, lane boundaries) before execution.
 4. **Operational fallback**: if the system detects a condition it cannot handle (sensor failure, ODD violation), it executes a **minimal risk condition** — typically pulling over safely and stopping.
@@ -664,6 +664,6 @@ The unifying trend is **learning from data at scale**: more data, larger models,
 
 This guide provides a breadth-first overview. For deeper dives into specific areas:
 
-- **Segmentation, BEV fusion, occupancy prediction, open-vocabulary perception, and foundation models for driving**: see [segmentation_autonomous_driving_survey.md](segmentation_autonomous_driving_survey.md), which covers panoptic segmentation (Kirillov et al.), Mask2Former, BEVFusion, SAM/SAM 2, occupancy prediction (TPVFormer, SurroundOcc), and open-vocabulary 3D panoptic segmentation (Hung et al., ECCV 2024).
+- **Segmentation, BEV fusion, occupancy prediction, open-vocabulary perception, and foundation models for driving**: see [segmentation survey]({% post_url 2026-03-28-segmentation-autonomous-driving-survey %}), which covers panoptic segmentation (Kirillov et al.), Mask2Former, BEVFusion, SAM/SAM 2, occupancy prediction (TPVFormer, SurroundOcc), and open-vocabulary 3D panoptic segmentation (Hung et al., ECCV 2024).
 
-- **Motion planning, imitation learning, end-to-end models, VLM-based driving, and game-theoretic planning**: see [motion_planning_vlm_survey.md](motion_planning_vlm_survey.md), which covers ChauffeurNet, MultiPath, UniAD, VAD, MotionLM, GPT-Driver, DriveVLM, LMDrive, DriveLM, GameFormer, DTPP, EMMA, S4-Driver, Scaling Laws for Driving, WOD-E2E, and the Waymo Foundation Model in detail.
+- **Motion planning, imitation learning, end-to-end models, VLM-based driving, and game-theoretic planning**: see [motion planning survey]({% post_url 2026-03-28-motion-planning-vlm-survey %}), which covers ChauffeurNet, MultiPath, UniAD, VAD, MotionLM, GPT-Driver, DriveVLM, LMDrive, DriveLM, GameFormer, DTPP, EMMA, S4-Driver, Scaling Laws for Driving, WOD-E2E, and the Waymo Foundation Model in detail.
