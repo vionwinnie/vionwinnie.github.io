@@ -1,0 +1,308 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 300" width="700" height="300" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <style>
+      .title { font-size: 11px; font-weight: 700; }
+      .prompt { font-size: 8.5px; fill: #555; font-style: italic; }
+      .label { font-size: 8px; fill: #444; }
+      .label-bold { font-size: 8px; fill: #333; font-weight: 600; }
+      .result { font-size: 9px; font-weight: 600; }
+      .caption { font-size: 7.5px; fill: #666; }
+      .note { font-size: 7px; fill: #888; font-style: italic; }
+      .matrix-label { font-size: 5.5px; fill: #666; }
+      .axis-label { font-size: 5px; fill: #999; }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="700" height="300" fill="#fafafa" rx="6"/>
+
+  <!-- ============ LEFT PANEL: Keyword Matching ============ -->
+  <rect x="10" y="10" width="335" height="248" rx="4" fill="#fdf2f2" stroke="#e74c3c" stroke-width="1" stroke-opacity="0.3"/>
+  <!-- Title -->
+  <text x="178" y="30" text-anchor="middle" class="title" fill="#c0392b">Keyword Matching</text>
+
+  <!-- Prompt box -->
+  <rect x="30" y="40" width="220" height="22" rx="3" fill="#fff" stroke="#ddd" stroke-width="0.5"/>
+  <text x="40" y="54" class="prompt">"A woman wearing a red dress in a garden"</text>
+
+  <!-- Arrow down -->
+  <line x1="140" y1="62" x2="140" y2="78" stroke="#c0392b" stroke-width="1.2" marker-end="url(#arrowRed)"/>
+  <defs>
+    <marker id="arrowRed" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 Z" fill="#c0392b"/>
+    </marker>
+  </defs>
+
+  <!-- Keyword chips -->
+  <rect x="60" y="68" width="36" height="14" rx="2" fill="#e74c3c" fill-opacity="0.12" stroke="#e74c3c" stroke-width="0.5"/>
+  <text x="78" y="78" text-anchor="middle" class="axis-label" fill="#c0392b" font-size="6.5">red dress</text>
+  <rect x="100" y="68" width="30" height="14" rx="2" fill="#e74c3c" fill-opacity="0.12" stroke="#e74c3c" stroke-width="0.5"/>
+  <text x="115" y="78" text-anchor="middle" class="axis-label" fill="#c0392b" font-size="6.5">garden</text>
+  <rect x="134" y="68" width="38" height="14" rx="2" fill="#e74c3c" fill-opacity="0.12" stroke="#e74c3c" stroke-width="0.5"/>
+  <text x="153" y="78" text-anchor="middle" class="axis-label" fill="#c0392b" font-size="6.5">wearing</text>
+
+  <!-- Arrow to result -->
+  <line x1="140" y1="82" x2="140" y2="96" stroke="#c0392b" stroke-width="1.2" marker-end="url(#arrowRed)"/>
+
+  <!-- Classification result -->
+  <rect x="80" y="96" width="120" height="20" rx="3" fill="#fff" stroke="#e74c3c" stroke-width="1"/>
+  <text x="115" y="109" class="result" fill="#c0392b" text-anchor="middle">Fashion (S9)</text>
+  <!-- Red X -->
+  <text x="186" y="110" font-size="13" fill="#e74c3c" font-weight="700">&#x2717;</text>
+
+  <!-- Coverage matrix (skewed) -->
+  <text x="30" y="132" class="label-bold">Coverage Matrix</text>
+
+  <!-- Matrix grid -->
+  <g transform="translate(30, 136)">
+    <!-- Column headers T1-T5 -->
+    <text x="22" y="8" class="axis-label" text-anchor="middle">T1</text>
+    <text x="42" y="8" class="axis-label" text-anchor="middle">T2</text>
+    <text x="62" y="8" class="axis-label" text-anchor="middle">T3</text>
+    <text x="82" y="8" class="axis-label" text-anchor="middle">T4</text>
+    <text x="102" y="8" class="axis-label" text-anchor="middle">T5</text>
+
+    <!-- Row headers S1-S10 (abbreviated) -->
+    <text x="-2" y="19" class="axis-label" text-anchor="end">S1</text>
+    <text x="-2" y="29" class="axis-label" text-anchor="end">S2</text>
+    <text x="-2" y="39" class="axis-label" text-anchor="end">S3</text>
+    <text x="-2" y="49" class="axis-label" text-anchor="end">S4</text>
+    <text x="-2" y="59" class="axis-label" text-anchor="end">S5</text>
+    <text x="-2" y="69" class="axis-label" text-anchor="end">S6</text>
+    <text x="-2" y="79" class="axis-label" text-anchor="end">S7</text>
+    <text x="-2" y="89" class="axis-label" text-anchor="end">S8</text>
+    <text x="-2" y="99" class="axis-label" text-anchor="end">S9</text>
+    <text x="-2" y="109" class="axis-label" text-anchor="end">S10</text>
+
+    <!-- Grid cells (10 rows x 5 cols) - heavy in T1 column -->
+    <!-- S1xT1 - heavy -->
+    <rect x="12" y="12" width="18" height="9" rx="1" fill="#e74c3c" fill-opacity="0.7"/>
+    <!-- S2xT1 - heavy -->
+    <rect x="12" y="22" width="18" height="9" rx="1" fill="#e74c3c" fill-opacity="0.6"/>
+    <!-- S3xT1 -->
+    <rect x="12" y="32" width="18" height="9" rx="1" fill="#e74c3c" fill-opacity="0.15"/>
+    <!-- S4xT1 -->
+    <rect x="12" y="42" width="18" height="9" rx="1" fill="#e74c3c" fill-opacity="0.08"/>
+    <!-- S5xT1 -->
+    <rect x="12" y="52" width="18" height="9" rx="1" fill="#ddd" fill-opacity="0.5"/>
+    <!-- S6xT1 -->
+    <rect x="12" y="62" width="18" height="9" rx="1" fill="#ddd" fill-opacity="0.5"/>
+    <!-- S7xT1 -->
+    <rect x="12" y="72" width="18" height="9" rx="1" fill="#ddd" fill-opacity="0.5"/>
+    <!-- S8xT1 -->
+    <rect x="12" y="82" width="18" height="9" rx="1" fill="#ddd" fill-opacity="0.5"/>
+    <!-- S9xT1 -->
+    <rect x="12" y="92" width="18" height="9" rx="1" fill="#e74c3c" fill-opacity="0.4"/>
+    <!-- S10xT1 - heavy -->
+    <rect x="12" y="102" width="18" height="9" rx="1" fill="#e74c3c" fill-opacity="0.55"/>
+
+    <!-- T2 column - sparse -->
+    <rect x="32" y="12" width="18" height="9" rx="1" fill="#e74c3c" fill-opacity="0.12"/>
+    <rect x="32" y="22" width="18" height="9" rx="1" fill="#ddd" fill-opacity="0.5"/>
+    <rect x="32" y="32" width="18" height="9" rx="1" fill="#ddd" fill-opacity="0.5"/>
+    <rect x="32" y="42" width="18" height="9" rx="1" fill="#ddd" fill-opacity="0.5"/>
+    <rect x="32" y="52" width="18" height="9" rx="1" fill="#ddd" fill-opacity="0.5"/>
+    <rect x="32" y="62" width="18" height="9" rx="1" fill="#ddd" fill-opacity="0.5"/>
+    <rect x="32" y="72" width="18" height="9" rx="1" fill="#ddd" fill-opacity="0.5"/>
+    <rect x="32" y="82" width="18" height="9" rx="1" fill="#ddd" fill-opacity="0.5"/>
+    <rect x="32" y="92" width="18" height="9" rx="1" fill="#ddd" fill-opacity="0.5"/>
+    <rect x="32" y="102" width="18" height="9" rx="1" fill="#e74c3c" fill-opacity="0.1"/>
+
+    <!-- T3 column - mostly empty -->
+    <rect x="52" y="12" width="18" height="9" rx="1" fill="#ddd" fill-opacity="0.5"/>
+    <rect x="52" y="22" width="18" height="9" rx="1" fill="#ddd" fill-opacity="0.5"/>
+    <rect x="52" y="32" width="18" height="9" rx="1" fill="#ddd" fill-opacity="0.5"/>
+    <rect x="52" y="42" width="18" height="9" rx="1" fill="#ddd" fill-opacity="0.5"/>
+    <rect x="52" y="52" width="18" height="9" rx="1" fill="#ddd" fill-opacity="0.5"/>
+    <rect x="52" y="62" width="18" height="9" rx="1" fill="#ddd" fill-opacity="0.5"/>
+    <rect x="52" y="72" width="18" height="9" rx="1" fill="#ddd" fill-opacity="0.5"/>
+    <rect x="52" y="82" width="18" height="9" rx="1" fill="#ddd" fill-opacity="0.5"/>
+    <rect x="52" y="92" width="18" height="9" rx="1" fill="#ddd" fill-opacity="0.5"/>
+    <rect x="52" y="102" width="18" height="9" rx="1" fill="#e74c3c" fill-opacity="0.08"/>
+
+    <!-- T4 column - empty -->
+    <rect x="72" y="12" width="18" height="9" rx="1" fill="#ddd" fill-opacity="0.5"/>
+    <rect x="72" y="22" width="18" height="9" rx="1" fill="#ddd" fill-opacity="0.5"/>
+    <rect x="72" y="32" width="18" height="9" rx="1" fill="#ddd" fill-opacity="0.5"/>
+    <rect x="72" y="42" width="18" height="9" rx="1" fill="#ddd" fill-opacity="0.5"/>
+    <rect x="72" y="52" width="18" height="9" rx="1" fill="#ddd" fill-opacity="0.5"/>
+    <rect x="72" y="62" width="18" height="9" rx="1" fill="#ddd" fill-opacity="0.5"/>
+    <rect x="72" y="72" width="18" height="9" rx="1" fill="#ddd" fill-opacity="0.5"/>
+    <rect x="72" y="82" width="18" height="9" rx="1" fill="#ddd" fill-opacity="0.5"/>
+    <rect x="72" y="92" width="18" height="9" rx="1" fill="#ddd" fill-opacity="0.5"/>
+    <rect x="72" y="102" width="18" height="9" rx="1" fill="#ddd" fill-opacity="0.5"/>
+
+    <!-- T5 column - empty -->
+    <rect x="92" y="12" width="18" height="9" rx="1" fill="#ddd" fill-opacity="0.5"/>
+    <rect x="92" y="22" width="18" height="9" rx="1" fill="#ddd" fill-opacity="0.5"/>
+    <rect x="92" y="32" width="18" height="9" rx="1" fill="#ddd" fill-opacity="0.5"/>
+    <rect x="92" y="42" width="18" height="9" rx="1" fill="#ddd" fill-opacity="0.5"/>
+    <rect x="92" y="52" width="18" height="9" rx="1" fill="#ddd" fill-opacity="0.5"/>
+    <rect x="92" y="62" width="18" height="9" rx="1" fill="#ddd" fill-opacity="0.5"/>
+    <rect x="92" y="72" width="18" height="9" rx="1" fill="#ddd" fill-opacity="0.5"/>
+    <rect x="92" y="82" width="18" height="9" rx="1" fill="#ddd" fill-opacity="0.5"/>
+    <rect x="92" y="92" width="18" height="9" rx="1" fill="#ddd" fill-opacity="0.5"/>
+    <rect x="92" y="102" width="18" height="9" rx="1" fill="#ddd" fill-opacity="0.5"/>
+  </g>
+
+  <!-- Caption for left matrix -->
+  <text x="30" y="252" class="caption" fill="#c0392b" font-weight="600">Skewed: 80% in Photorealistic, 17 empty cells</text>
+
+  <!-- Legend on right side of left panel -->
+  <g transform="translate(160, 140)">
+    <rect x="0" y="0" width="10" height="8" rx="1" fill="#e74c3c" fill-opacity="0.7"/>
+    <text x="14" y="7" class="axis-label" font-size="6">High count</text>
+    <rect x="0" y="12" width="10" height="8" rx="1" fill="#e74c3c" fill-opacity="0.15"/>
+    <text x="14" y="19" class="axis-label" font-size="6">Low count</text>
+    <rect x="0" y="24" width="10" height="8" rx="1" fill="#ddd" fill-opacity="0.5"/>
+    <text x="14" y="31" class="axis-label" font-size="6">Empty</text>
+
+    <text x="0" y="50" class="label" font-size="7" fill="#999">Matches surface</text>
+    <text x="0" y="60" class="label" font-size="7" fill="#999">keywords only.</text>
+    <text x="0" y="70" class="label" font-size="7" fill="#999">"red dress" triggers</text>
+    <text x="0" y="80" class="label" font-size="7" fill="#c0392b" font-weight="600">Fashion, not People.</text>
+  </g>
+
+  <!-- ============ RIGHT PANEL: Claude Classification ============ -->
+  <rect x="355" y="10" width="335" height="248" rx="4" fill="#f0faf4" stroke="#27ae60" stroke-width="1" stroke-opacity="0.3"/>
+  <!-- Title -->
+  <text x="523" y="30" text-anchor="middle" class="title" fill="#1e8449">Claude Classification</text>
+
+  <!-- Prompt box -->
+  <rect x="375" y="40" width="220" height="22" rx="3" fill="#fff" stroke="#ddd" stroke-width="0.5"/>
+  <text x="385" y="54" class="prompt">"A woman wearing a red dress in a garden"</text>
+
+  <!-- Arrow down -->
+  <line x1="485" y1="62" x2="485" y2="78" stroke="#1e8449" stroke-width="1.2" marker-end="url(#arrowGreen)"/>
+  <defs>
+    <marker id="arrowGreen" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 Z" fill="#1e8449"/>
+    </marker>
+  </defs>
+
+  <!-- Semantic understanding bubble -->
+  <rect x="415" y="68" width="140" height="14" rx="7" fill="#27ae60" fill-opacity="0.1" stroke="#27ae60" stroke-width="0.5"/>
+  <text x="485" y="78" text-anchor="middle" class="axis-label" fill="#1e8449" font-size="6.5">semantic: primary subject = person</text>
+
+  <!-- Arrow to result -->
+  <line x1="485" y1="82" x2="485" y2="96" stroke="#1e8449" stroke-width="1.2" marker-end="url(#arrowGreen)"/>
+
+  <!-- Classification result -->
+  <rect x="425" y="96" width="120" height="20" rx="3" fill="#fff" stroke="#27ae60" stroke-width="1"/>
+  <text x="460" y="109" class="result" fill="#1e8449" text-anchor="middle">People (S1)</text>
+  <!-- Green checkmark -->
+  <text x="531" y="110" font-size="13" fill="#27ae60" font-weight="700">&#x2713;</text>
+
+  <!-- Coverage matrix (balanced) -->
+  <text x="375" y="132" class="label-bold">Coverage Matrix</text>
+
+  <g transform="translate(375, 136)">
+    <!-- Column headers T1-T5 -->
+    <text x="22" y="8" class="axis-label" text-anchor="middle">T1</text>
+    <text x="42" y="8" class="axis-label" text-anchor="middle">T2</text>
+    <text x="62" y="8" class="axis-label" text-anchor="middle">T3</text>
+    <text x="82" y="8" class="axis-label" text-anchor="middle">T4</text>
+    <text x="102" y="8" class="axis-label" text-anchor="middle">T5</text>
+
+    <!-- Row headers -->
+    <text x="-2" y="19" class="axis-label" text-anchor="end">S1</text>
+    <text x="-2" y="29" class="axis-label" text-anchor="end">S2</text>
+    <text x="-2" y="39" class="axis-label" text-anchor="end">S3</text>
+    <text x="-2" y="49" class="axis-label" text-anchor="end">S4</text>
+    <text x="-2" y="59" class="axis-label" text-anchor="end">S5</text>
+    <text x="-2" y="69" class="axis-label" text-anchor="end">S6</text>
+    <text x="-2" y="79" class="axis-label" text-anchor="end">S7</text>
+    <text x="-2" y="89" class="axis-label" text-anchor="end">S8</text>
+    <text x="-2" y="99" class="axis-label" text-anchor="end">S9</text>
+    <text x="-2" y="109" class="axis-label" text-anchor="end">S10</text>
+
+    <!-- Balanced distribution - all cells filled with varying green -->
+    <!-- T1 -->
+    <rect x="12" y="12" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.45"/>
+    <rect x="12" y="22" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.35"/>
+    <rect x="12" y="32" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.3"/>
+    <rect x="12" y="42" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.25"/>
+    <rect x="12" y="52" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.35"/>
+    <rect x="12" y="62" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.2"/>
+    <rect x="12" y="72" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.3"/>
+    <rect x="12" y="82" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.25"/>
+    <rect x="12" y="92" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.2"/>
+    <rect x="12" y="102" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.35"/>
+
+    <!-- T2 -->
+    <rect x="32" y="12" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.3"/>
+    <rect x="32" y="22" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.4"/>
+    <rect x="32" y="32" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.25"/>
+    <rect x="32" y="42" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.35"/>
+    <rect x="32" y="52" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.2"/>
+    <rect x="32" y="62" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.3"/>
+    <rect x="32" y="72" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.25"/>
+    <rect x="32" y="82" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.35"/>
+    <rect x="32" y="92" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.3"/>
+    <rect x="32" y="102" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.2"/>
+
+    <!-- T3 -->
+    <rect x="52" y="12" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.25"/>
+    <rect x="52" y="22" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.2"/>
+    <rect x="52" y="32" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.4"/>
+    <rect x="52" y="42" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.3"/>
+    <rect x="52" y="52" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.25"/>
+    <rect x="52" y="62" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.35"/>
+    <rect x="52" y="72" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.2"/>
+    <rect x="52" y="82" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.3"/>
+    <rect x="52" y="92" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.25"/>
+    <rect x="52" y="102" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.35"/>
+
+    <!-- T4 -->
+    <rect x="72" y="12" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.2"/>
+    <rect x="72" y="22" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.3"/>
+    <rect x="72" y="32" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.25"/>
+    <rect x="72" y="42" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.4"/>
+    <rect x="72" y="52" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.3"/>
+    <rect x="72" y="62" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.2"/>
+    <rect x="72" y="72" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.35"/>
+    <rect x="72" y="82" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.25"/>
+    <rect x="72" y="92" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.3"/>
+    <rect x="72" y="102" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.2"/>
+
+    <!-- T5 -->
+    <rect x="92" y="12" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.35"/>
+    <rect x="92" y="22" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.25"/>
+    <rect x="92" y="32" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.2"/>
+    <rect x="92" y="42" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.3"/>
+    <rect x="92" y="52" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.4"/>
+    <rect x="92" y="62" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.25"/>
+    <rect x="92" y="72" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.3"/>
+    <rect x="92" y="82" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.2"/>
+    <rect x="92" y="92" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.35"/>
+    <rect x="92" y="102" width="18" height="9" rx="1" fill="#27ae60" fill-opacity="0.25"/>
+  </g>
+
+  <!-- Caption for right matrix -->
+  <text x="375" y="252" class="caption" fill="#1e8449" font-weight="600">Balanced: semantic understanding, 0 empty cells</text>
+
+  <!-- Legend on right side of right panel -->
+  <g transform="translate(505, 140)">
+    <rect x="0" y="0" width="10" height="8" rx="1" fill="#27ae60" fill-opacity="0.45"/>
+    <text x="14" y="7" class="axis-label" font-size="6">Higher count</text>
+    <rect x="0" y="12" width="10" height="8" rx="1" fill="#27ae60" fill-opacity="0.2"/>
+    <text x="14" y="19" class="axis-label" font-size="6">Lower count</text>
+    <rect x="80" y="0" width="10" height="8" rx="1" fill="#27ae60" fill-opacity="0.35"/>
+    <text x="94" y="7" class="axis-label" font-size="6">All cells filled</text>
+
+    <text x="0" y="50" class="label" font-size="7" fill="#999">Understands the</text>
+    <text x="0" y="60" class="label" font-size="7" fill="#999">primary subject is</text>
+    <text x="0" y="70" class="label" font-size="7" fill="#999">a person, not clothing.</text>
+    <text x="0" y="80" class="label" font-size="7" fill="#1e8449" font-weight="600">Correct: People (S1)</text>
+  </g>
+
+  <!-- Divider line -->
+  <line x1="350" y1="18" x2="350" y2="252" stroke="#ddd" stroke-width="1" stroke-dasharray="4,3"/>
+
+  <!-- Bottom note -->
+  <text x="350" y="278" text-anchor="middle" class="note">Semantic classification via LLM costs more but catches implicit styles and prioritizes the primary subject</text>
+
+  <!-- VS badge -->
+  <circle cx="350" cy="60" r="12" fill="#fff" stroke="#ccc" stroke-width="1"/>
+  <text x="350" y="64" text-anchor="middle" font-size="9" font-weight="700" fill="#888">vs</text>
+</svg>
