@@ -169,7 +169,27 @@ The pipeline is fully configurable:
 | `--subjects` | all | Filter to specific subjects |
 | `--dry-run` | off | Preview without saving |
 
-A local dashboard (`dashboard.html`) provides interactive analytics with subject, style, source, and language distributions, word count histograms for English and Chinese separately, a coverage heatmap, and a filterable prompt browser.
+A local dashboard provides interactive analytics and a filterable prompt browser. Here's what the final dataset looks like:
+
+**KPIs, subject distribution, and source breakdown:**
+
+![Dashboard showing total prompts, language split, subject distribution bar chart with percentages, and source donut chart](/images/ladd-data-pipeline/02_kpi_subject_source.png)
+
+**Style and camera distributions with word count histograms:**
+
+![Style bar chart dominated by Photorealistic, camera distribution, English word count histogram showing bell curve, Chinese character count histogram, and top 30 word frequencies](/images/ladd-data-pipeline/03_style_camera_histograms.png)
+
+**Subject x Style coverage heatmap and average word count by source:**
+
+![Heatmap with blue intensity scaling showing all 98 cells filled, and bar charts of average word count per source and per subject](/images/ladd-data-pipeline/04_heatmap_wordcount.png)
+
+**Browsing English prompts with human-readable category tags:**
+
+![Browse tab showing prompt cards with subject, style, camera, and source tags in full text](/images/ladd-data-pipeline/05_browse_english.png)
+
+**Browsing Chinese prompts:**
+
+![Browse tab filtered to Chinese-language prompts from OneIG-ZH and generated sources](/images/ladd-data-pipeline/06_browse_chinese.png)
 
 ---
 
