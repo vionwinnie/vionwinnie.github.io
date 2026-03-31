@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 320" width="700" height="320" font-family="Helvetica, Arial, sans-serif">
+
+  <!-- Arrow marker definitions -->
+  <defs>
+    <marker id="arrow-blue" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto">
+      <polygon points="0,0 7,2.5 0,5" fill="#3498db"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto">
+      <polygon points="0,0 7,2.5 0,5" fill="#27ae60"/>
+    </marker>
+    <marker id="arrow-orange" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto">
+      <polygon points="0,0 7,2.5 0,5" fill="#e67e22"/>
+    </marker>
+    <marker id="arrow-purple" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto">
+      <polygon points="0,0 7,2.5 0,5" fill="#9b59b6"/>
+    </marker>
+    <marker id="arrow-gray" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto">
+      <polygon points="0,0 7,2.5 0,5" fill="#666"/>
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="350" y="18" text-anchor="middle" font-size="14" font-weight="bold" fill="#333">Z-Image S3-DiT Architecture — Forward Pass</text>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 1: Inputs (left side) -->
+  <!-- ============================================================ -->
+
+  <!-- Text prompt input -->
+  <rect x="8" y="35" width="62" height="24" rx="4" fill="rgba(52,152,219,0.1)" stroke="#3498db" stroke-width="1"/>
+  <text x="39" y="51" text-anchor="middle" font-size="9" fill="#2c3e50">Text Prompt</text>
+
+  <!-- Arrow: Text Prompt -> Qwen3 -->
+  <line x1="70" y1="47" x2="82" y2="47" stroke="#3498db" stroke-width="1" marker-end="url(#arrow-blue)"/>
+
+  <!-- Qwen3 Text Encoder -->
+  <rect x="84" y="33" width="68" height="28" rx="4" fill="rgba(52,152,219,0.12)" stroke="#3498db" stroke-width="1.2"/>
+  <text x="118" y="48" text-anchor="middle" font-size="9" font-weight="bold" fill="#2980b9">Qwen3</text>
+  <text x="118" y="57" text-anchor="middle" font-size="7.5" fill="#2980b9">Text Encoder</text>
+
+  <!-- Arrow: Qwen3 -> Text Embeddings -->
+  <line x1="152" y1="47" x2="164" y2="47" stroke="#3498db" stroke-width="1" marker-end="url(#arrow-blue)"/>
+
+  <!-- Text Embeddings -->
+  <rect x="166" y="35" width="58" height="24" rx="4" fill="rgba(52,152,219,0.1)" stroke="#3498db" stroke-width="1"/>
+  <text x="195" y="47" text-anchor="middle" font-size="8.5" fill="#2c3e50">Text Emb.</text>
+  <text x="195" y="56" text-anchor="middle" font-size="7" fill="#7f8c8d">(2560-dim)</text>
+
+  <!-- Image input -->
+  <rect x="8" y="105" width="62" height="24" rx="4" fill="rgba(39,174,96,0.1)" stroke="#27ae60" stroke-width="1"/>
+  <text x="39" y="121" text-anchor="middle" font-size="9" fill="#2c3e50">Image</text>
+
+  <!-- Arrow: Image -> VAE Encoder -->
+  <line x1="70" y1="117" x2="82" y2="117" stroke="#27ae60" stroke-width="1" marker-end="url(#arrow-green)"/>
+
+  <!-- VAE Encoder -->
+  <rect x="84" y="103" width="52" height="28" rx="4" fill="rgba(39,174,96,0.12)" stroke="#27ae60" stroke-width="1.2"/>
+  <text x="110" y="115" text-anchor="middle" font-size="9" font-weight="bold" fill="#27ae60">VAE</text>
+  <text x="110" y="125" text-anchor="middle" font-size="7.5" fill="#27ae60">Encoder</text>
+
+  <!-- Arrow: VAE -> Latent -->
+  <line x1="136" y1="117" x2="143" y2="117" stroke="#27ae60" stroke-width="1" marker-end="url(#arrow-green)"/>
+
+  <!-- Latent -->
+  <rect x="145" y="107" width="38" height="20" rx="4" fill="rgba(39,174,96,0.08)" stroke="#27ae60" stroke-width="0.8"/>
+  <text x="164" y="119" text-anchor="middle" font-size="7.5" fill="#2c3e50">Latent</text>
+  <text x="164" y="126" text-anchor="middle" font-size="6.5" fill="#7f8c8d">(16-ch)</text>
+
+  <!-- Arrow: Latent -> Patchify -->
+  <line x1="183" y1="117" x2="190" y2="117" stroke="#27ae60" stroke-width="1" marker-end="url(#arrow-green)"/>
+
+  <!-- Patchify -->
+  <rect x="192" y="105" width="52" height="24" rx="4" fill="rgba(39,174,96,0.1)" stroke="#27ae60" stroke-width="1"/>
+  <text x="218" y="117" text-anchor="middle" font-size="8" fill="#2c3e50">Patchify</text>
+  <text x="218" y="126" text-anchor="middle" font-size="7" fill="#7f8c8d">(2x2)</text>
+
+  <!-- Timestep input -->
+  <rect x="8" y="168" width="62" height="24" rx="4" fill="rgba(155,89,182,0.1)" stroke="#9b59b6" stroke-width="1"/>
+  <text x="39" y="184" text-anchor="middle" font-size="9" fill="#2c3e50">Timestep t</text>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 2: Refiners (middle-left) -->
+  <!-- ============================================================ -->
+
+  <!-- Context Refiner -->
+  <rect x="258" y="30" width="86" height="36" rx="4" fill="rgba(52,152,219,0.1)" stroke="#3498db" stroke-width="1.2"/>
+  <text x="301" y="46" text-anchor="middle" font-size="9" font-weight="bold" fill="#2980b9">Context Refiner</text>
+  <text x="301" y="58" text-anchor="middle" font-size="7.5" fill="#7f8c8d">2 layers, self-attn</text>
+
+  <!-- Arrow: Text Embeddings -> Context Refiner -->
+  <line x1="224" y1="47" x2="256" y2="47" stroke="#3498db" stroke-width="1" marker-end="url(#arrow-blue)"/>
+
+  <!-- Noise Refiner -->
+  <rect x="258" y="97" width="86" height="42" rx="4" fill="rgba(39,174,96,0.1)" stroke="#27ae60" stroke-width="1.2"/>
+  <text x="301" y="113" text-anchor="middle" font-size="9" font-weight="bold" fill="#27ae60">Noise Refiner</text>
+  <text x="301" y="124" text-anchor="middle" font-size="7.5" fill="#7f8c8d">2 layers, adaLN</text>
+  <text x="301" y="134" text-anchor="middle" font-size="7.5" fill="#7f8c8d">timestep cond.</text>
+
+  <!-- Arrow: Patchify -> Noise Refiner (Image Tokens) -->
+  <line x1="244" y1="117" x2="256" y2="117" stroke="#27ae60" stroke-width="1" marker-end="url(#arrow-green)"/>
+
+  <!-- Arrow: Timestep -> Noise Refiner -->
+  <path d="M 70 180 L 250 180 L 250 139 L 256 139" stroke="#9b59b6" stroke-width="1" fill="none" stroke-dasharray="3,2" marker-end="url(#arrow-purple)"/>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 3: Concatenation -->
+  <!-- ============================================================ -->
+
+  <!-- Concat box -->
+  <rect x="370" y="60" width="28" height="68" rx="4" fill="rgba(230,126,34,0.08)" stroke="#e67e22" stroke-width="1"/>
+  <text x="384" y="88" text-anchor="middle" font-size="7" fill="#e67e22" transform="rotate(-90, 384, 88)">CONCAT</text>
+
+  <!-- Arrow: Context Refiner -> Concat (text tokens) -->
+  <path d="M 344 48 L 356 48 L 356 80 L 368 80" stroke="#3498db" stroke-width="1" fill="none" marker-end="url(#arrow-blue)"/>
+  <text x="355" y="72" font-size="7" fill="#3498db">text tokens</text>
+
+  <!-- Arrow: Noise Refiner -> Concat (image tokens) -->
+  <path d="M 344 118 L 356 118 L 356 108 L 368 108" stroke="#27ae60" stroke-width="1" fill="none" marker-end="url(#arrow-green)"/>
+  <text x="347" y="130" font-size="7" fill="#27ae60">image tokens</text>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 4: Main Transformer (middle-right) -->
+  <!-- ============================================================ -->
+
+  <!-- Main transformer block -->
+  <rect x="416" y="30" width="150" height="164" rx="4" fill="rgba(230,126,34,0.08)" stroke="#e67e22" stroke-width="1.5"/>
+  <text x="491" y="48" text-anchor="middle" font-size="10" font-weight="bold" fill="#d35400">Main Transformer</text>
+  <text x="491" y="60" text-anchor="middle" font-size="8" fill="#7f8c8d">30 S3-DiT Blocks</text>
+
+  <!-- Arrow: Concat -> Main Transformer -->
+  <line x1="398" y1="94" x2="414" y2="94" stroke="#e67e22" stroke-width="1.2" marker-end="url(#arrow-orange)"/>
+
+  <!-- Sub-blocks inside transformer -->
+  <!-- Self-Attention -->
+  <rect x="426" y="68" width="130" height="24" rx="3" fill="rgba(230,126,34,0.1)" stroke="#e67e22" stroke-width="0.8"/>
+  <text x="491" y="80" text-anchor="middle" font-size="8" font-weight="bold" fill="#d35400">Single-Stream Self-Attn</text>
+  <text x="491" y="89" text-anchor="middle" font-size="7" fill="#7f8c8d">all tokens attend to all</text>
+
+  <!-- adaLN modulation -->
+  <rect x="426" y="98" width="130" height="20" rx="3" fill="rgba(155,89,182,0.1)" stroke="#9b59b6" stroke-width="0.8"/>
+  <text x="491" y="111" text-anchor="middle" font-size="8" fill="#8e44ad">adaLN Modulation (timestep)</text>
+
+  <!-- Timestep arrow to adaLN -->
+  <path d="M 70 180 L 420 180 L 420 118 L 424 118" stroke="#9b59b6" stroke-width="0.8" fill="none" stroke-dasharray="3,2"/>
+  <text x="240" y="190" font-size="7" fill="#9b59b6">timestep conditioning</text>
+
+  <!-- SwiGLU FFN -->
+  <rect x="426" y="124" width="130" height="18" rx="3" fill="rgba(230,126,34,0.1)" stroke="#e67e22" stroke-width="0.8"/>
+  <text x="491" y="136" text-anchor="middle" font-size="8" fill="#d35400">SwiGLU FFN</text>
+
+  <!-- 3D RoPE -->
+  <rect x="426" y="148" width="130" height="18" rx="3" fill="rgba(230,126,34,0.1)" stroke="#e67e22" stroke-width="0.8"/>
+  <text x="491" y="160" text-anchor="middle" font-size="8" fill="#d35400">3D RoPE Pos. Encoding</text>
+
+  <!-- Repeat indicator -->
+  <text x="562" y="130" font-size="18" fill="#e67e22" opacity="0.4">}</text>
+  <text x="567" y="125" font-size="7" fill="#e67e22" transform="rotate(90, 567, 125)">x30</text>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 5: Output (right side) -->
+  <!-- ============================================================ -->
+
+  <!-- Arrow: Main Transformer -> Unpatchify -->
+  <line x1="566" y1="94" x2="582" y2="94" stroke="#e67e22" stroke-width="1" marker-end="url(#arrow-orange)"/>
+
+  <!-- Unpatchify -->
+  <rect x="584" y="68" width="52" height="28" rx="4" fill="rgba(39,174,96,0.1)" stroke="#27ae60" stroke-width="1"/>
+  <text x="610" y="81" text-anchor="middle" font-size="8" fill="#2c3e50">Unpatchify</text>
+  <text x="610" y="91" text-anchor="middle" font-size="7" fill="#7f8c8d">Pred. velocity</text>
+
+  <!-- Arrow: Unpatchify -> VAE Decoder -->
+  <line x1="610" y1="96" x2="610" y2="110" stroke="#27ae60" stroke-width="1" marker-end="url(#arrow-green)"/>
+
+  <!-- VAE Decoder -->
+  <rect x="584" y="112" width="52" height="28" rx="4" fill="rgba(39,174,96,0.12)" stroke="#27ae60" stroke-width="1.2"/>
+  <text x="610" y="125" text-anchor="middle" font-size="9" font-weight="bold" fill="#27ae60">VAE</text>
+  <text x="610" y="135" text-anchor="middle" font-size="7.5" fill="#27ae60">Decoder</text>
+
+  <!-- Arrow: VAE Decoder -> Output Image -->
+  <line x1="610" y1="140" x2="610" y2="155" stroke="#27ae60" stroke-width="1" marker-end="url(#arrow-green)"/>
+
+  <!-- Output Image -->
+  <rect x="584" y="157" width="52" height="24" rx="4" fill="rgba(39,174,96,0.15)" stroke="#27ae60" stroke-width="1.2"/>
+  <text x="610" y="173" text-anchor="middle" font-size="9" font-weight="bold" fill="#27ae60">Output</text>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 6: Legend / color key -->
+  <!-- ============================================================ -->
+
+  <rect x="8" y="210" width="8" height="8" rx="2" fill="rgba(52,152,219,0.15)" stroke="#3498db" stroke-width="0.8"/>
+  <text x="20" y="217" font-size="7" fill="#555">Text / Language</text>
+
+  <rect x="80" y="210" width="8" height="8" rx="2" fill="rgba(39,174,96,0.15)" stroke="#27ae60" stroke-width="0.8"/>
+  <text x="92" y="217" font-size="7" fill="#555">Image / Visual</text>
+
+  <rect x="152" y="210" width="8" height="8" rx="2" fill="rgba(230,126,34,0.15)" stroke="#e67e22" stroke-width="0.8"/>
+  <text x="164" y="217" font-size="7" fill="#555">Transformer</text>
+
+  <rect x="216" y="210" width="8" height="8" rx="2" fill="rgba(155,89,182,0.15)" stroke="#9b59b6" stroke-width="0.8"/>
+  <text x="228" y="217" font-size="7" fill="#555">Timestep Cond.</text>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 7: Bottom note box -->
+  <!-- ============================================================ -->
+
+  <rect x="8" y="232" width="684" height="32" rx="4" fill="rgba(52,73,94,0.06)" stroke="#bdc3c7" stroke-width="0.8"/>
+  <text x="350" y="248" text-anchor="middle" font-size="9" fill="#2c3e50" font-style="italic">
+    Z-Image unifies text and image tokens into a single stream — maximizing parameter efficiency vs. dual-stream designs like Flux
+  </text>
+  <text x="350" y="259" text-anchor="middle" font-size="7.5" fill="#7f8c8d">Single-stream: all tokens share the same transformer weights | adaLN conditions on diffusion timestep | 3D RoPE encodes spatial + temporal position</text>
+
+</svg>

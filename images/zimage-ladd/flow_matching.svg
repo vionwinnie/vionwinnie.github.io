@@ -1,0 +1,137 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="700" height="260" viewBox="0 0 700 260">
+  <style>
+    text { font-family: 'Helvetica Neue', Arial, sans-serif; }
+  </style>
+
+  <!-- Left Panel: DDPM -->
+  <rect x="8" y="8" width="332" height="205" rx="8" ry="8" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="1"/>
+  <text x="174" y="26" text-anchor="middle" font-size="14" font-weight="bold" fill="#2c3e50">DDPM (Curved Trajectories)</text>
+
+  <!-- Left panel axes labels -->
+  <text x="30" y="48" font-size="10" fill="#9b59b6" font-weight="bold">Noise</text>
+  <text x="290" y="198" font-size="10" fill="#27ae60" font-weight="bold">Data</text>
+
+  <!-- Noise scatter points (top-left) - purple -->
+  <circle cx="38" cy="56" r="2.5" fill="#9b59b6" opacity="0.7"/>
+  <circle cx="50" cy="50" r="2.5" fill="#9b59b6" opacity="0.7"/>
+  <circle cx="44" cy="64" r="2.5" fill="#9b59b6" opacity="0.7"/>
+  <circle cx="56" cy="58" r="2.5" fill="#9b59b6" opacity="0.7"/>
+  <circle cx="32" cy="70" r="2.5" fill="#9b59b6" opacity="0.7"/>
+  <circle cx="62" cy="48" r="2.5" fill="#9b59b6" opacity="0.7"/>
+  <circle cx="48" cy="72" r="2.5" fill="#9b59b6" opacity="0.7"/>
+
+  <!-- Data scatter points (bottom-right) - green -->
+  <circle cx="288" cy="180" r="2.5" fill="#27ae60" opacity="0.7"/>
+  <circle cx="300" cy="172" r="2.5" fill="#27ae60" opacity="0.7"/>
+  <circle cx="294" cy="188" r="2.5" fill="#27ae60" opacity="0.7"/>
+  <circle cx="310" cy="176" r="2.5" fill="#27ae60" opacity="0.7"/>
+  <circle cx="280" cy="184" r="2.5" fill="#27ae60" opacity="0.7"/>
+  <circle cx="306" cy="190" r="2.5" fill="#27ae60" opacity="0.7"/>
+  <circle cx="316" cy="184" r="2.5" fill="#27ae60" opacity="0.7"/>
+
+  <!-- Curved DDPM paths -->
+  <!-- Path 1 -->
+  <path d="M 38 56 C 80 40, 120 100, 160 80 S 220 160, 288 180" fill="none" stroke="#e74c3c" stroke-width="1.2" stroke-dasharray="4,2" opacity="0.8"/>
+  <!-- Step markers on path 1 -->
+  <circle cx="55" cy="48" r="2" fill="#e67e22"/><circle cx="75" cy="46" r="2" fill="#e67e22"/>
+  <circle cx="95" cy="58" r="2" fill="#e67e22"/><circle cx="112" cy="74" r="2" fill="#e67e22"/>
+  <circle cx="128" cy="86" r="2" fill="#e67e22"/><circle cx="145" cy="84" r="2" fill="#e67e22"/>
+  <circle cx="160" cy="80" r="2" fill="#e67e22"/><circle cx="178" cy="86" r="2" fill="#e67e22"/>
+  <circle cx="195" cy="100" r="2" fill="#e67e22"/><circle cx="212" cy="118" r="2" fill="#e67e22"/>
+  <circle cx="230" cy="136" r="2" fill="#e67e22"/><circle cx="248" cy="152" r="2" fill="#e67e22"/>
+  <circle cx="268" cy="166" r="2" fill="#e67e22"/>
+
+  <!-- Path 2 -->
+  <path d="M 50 50 C 60 90, 130 50, 170 110 S 250 140, 300 172" fill="none" stroke="#e74c3c" stroke-width="1.2" stroke-dasharray="4,2" opacity="0.6"/>
+  <circle cx="60" cy="65" r="2" fill="#e67e22"/><circle cx="75" cy="72" r="2" fill="#e67e22"/>
+  <circle cx="92" cy="65" r="2" fill="#e67e22"/><circle cx="110" cy="58" r="2" fill="#e67e22"/>
+  <circle cx="130" cy="62" r="2" fill="#e67e22"/><circle cx="148" cy="78" r="2" fill="#e67e22"/>
+  <circle cx="165" cy="100" r="2" fill="#e67e22"/><circle cx="182" cy="112" r="2" fill="#e67e22"/>
+  <circle cx="200" cy="118" r="2" fill="#e67e22"/><circle cx="220" cy="124" r="2" fill="#e67e22"/>
+  <circle cx="240" cy="132" r="2" fill="#e67e22"/><circle cx="260" cy="146" r="2" fill="#e67e22"/>
+  <circle cx="280" cy="160" r="2" fill="#e67e22"/>
+
+  <!-- Path 3 -->
+  <path d="M 44 64 C 100 120, 80 140, 150 130 S 240 200, 294 188" fill="none" stroke="#e74c3c" stroke-width="1.2" stroke-dasharray="4,2" opacity="0.5"/>
+  <circle cx="58" cy="78" r="2" fill="#e67e22"/><circle cx="72" cy="94" r="2" fill="#e67e22"/>
+  <circle cx="86" cy="108" r="2" fill="#e67e22"/><circle cx="100" cy="118" r="2" fill="#e67e22"/>
+  <circle cx="115" cy="126" r="2" fill="#e67e22"/><circle cx="132" cy="130" r="2" fill="#e67e22"/>
+  <circle cx="150" cy="130" r="2" fill="#e67e22"/><circle cx="170" cy="134" r="2" fill="#e67e22"/>
+  <circle cx="190" cy="146" r="2" fill="#e67e22"/><circle cx="210" cy="158" r="2" fill="#e67e22"/>
+  <circle cx="232" cy="170" r="2" fill="#e67e22"/><circle cx="255" cy="178" r="2" fill="#e67e22"/>
+  <circle cx="275" cy="184" r="2" fill="#e67e22"/>
+
+  <!-- Left panel label -->
+  <text x="174" y="208" text-anchor="middle" font-size="10" fill="#e74c3c" font-weight="bold">Many steps needed (20-50)</text>
+
+  <!-- Right Panel: Flow Matching -->
+  <rect x="358" y="8" width="332" height="205" rx="8" ry="8" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="1"/>
+  <text x="524" y="26" text-anchor="middle" font-size="14" font-weight="bold" fill="#2c3e50">Flow Matching (Straight Trajectories)</text>
+
+  <!-- Right panel axes labels -->
+  <text x="380" y="48" font-size="10" fill="#9b59b6" font-weight="bold">Noise</text>
+  <text x="640" y="198" font-size="10" fill="#27ae60" font-weight="bold">Data</text>
+
+  <!-- Noise scatter points (top-left) - purple -->
+  <circle cx="388" cy="56" r="2.5" fill="#9b59b6" opacity="0.7"/>
+  <circle cx="400" cy="50" r="2.5" fill="#9b59b6" opacity="0.7"/>
+  <circle cx="394" cy="64" r="2.5" fill="#9b59b6" opacity="0.7"/>
+  <circle cx="406" cy="58" r="2.5" fill="#9b59b6" opacity="0.7"/>
+  <circle cx="382" cy="70" r="2.5" fill="#9b59b6" opacity="0.7"/>
+  <circle cx="412" cy="48" r="2.5" fill="#9b59b6" opacity="0.7"/>
+  <circle cx="398" cy="72" r="2.5" fill="#9b59b6" opacity="0.7"/>
+
+  <!-- Data scatter points (bottom-right) - green -->
+  <circle cx="638" cy="180" r="2.5" fill="#27ae60" opacity="0.7"/>
+  <circle cx="650" cy="172" r="2.5" fill="#27ae60" opacity="0.7"/>
+  <circle cx="644" cy="188" r="2.5" fill="#27ae60" opacity="0.7"/>
+  <circle cx="660" cy="176" r="2.5" fill="#27ae60" opacity="0.7"/>
+  <circle cx="630" cy="184" r="2.5" fill="#27ae60" opacity="0.7"/>
+  <circle cx="656" cy="190" r="2.5" fill="#27ae60" opacity="0.7"/>
+  <circle cx="666" cy="184" r="2.5" fill="#27ae60" opacity="0.7"/>
+
+  <!-- Straight Flow Matching paths -->
+  <!-- Path 1 -->
+  <line x1="388" y1="56" x2="638" y2="180" stroke="#3498db" stroke-width="1.5" opacity="0.8"/>
+  <circle cx="430" cy="76" r="2.5" fill="#e67e22"/>
+  <circle cx="513" cy="118" r="2.5" fill="#e67e22"/>
+  <circle cx="596" cy="160" r="2.5" fill="#e67e22"/>
+
+  <!-- Path 2 -->
+  <line x1="400" y1="50" x2="650" y2="172" stroke="#3498db" stroke-width="1.5" opacity="0.6"/>
+  <circle cx="442" cy="70" r="2.5" fill="#e67e22"/>
+  <circle cx="525" cy="111" r="2.5" fill="#e67e22"/>
+  <circle cx="608" cy="152" r="2.5" fill="#e67e22"/>
+
+  <!-- Path 3 -->
+  <line x1="394" y1="64" x2="644" y2="188" stroke="#3498db" stroke-width="1.5" opacity="0.5"/>
+  <circle cx="436" cy="85" r="2.5" fill="#e67e22"/>
+  <circle cx="519" cy="126" r="2.5" fill="#e67e22"/>
+  <circle cx="602" cy="167" r="2.5" fill="#e67e22"/>
+
+  <!-- Path 4 -->
+  <line x1="406" y1="58" x2="660" y2="176" stroke="#3498db" stroke-width="1.5" opacity="0.45"/>
+  <circle cx="448" cy="78" r="2.5" fill="#e67e22"/>
+  <circle cx="533" cy="117" r="2.5" fill="#e67e22"/>
+  <circle cx="618" cy="156" r="2.5" fill="#e67e22"/>
+
+  <!-- Right panel labels -->
+  <text x="524" y="208" text-anchor="middle" font-size="10" fill="#3498db" font-weight="bold">Few steps sufficient (1-8)</text>
+
+  <!-- Equation -->
+  <text x="524" y="170" text-anchor="middle" font-size="9" fill="#2c3e50" font-style="italic">x_t = (1-t) . x_0 + t . epsilon</text>
+
+  <!-- Time axis for left panel -->
+  <line x1="30" y1="196" x2="320" y2="196" stroke="#7f8c8d" stroke-width="0.5" opacity="0.5"/>
+  <text x="30" y="204" font-size="8" fill="#7f8c8d">t=0</text>
+  <text x="310" y="204" font-size="8" fill="#7f8c8d" text-anchor="end">t=1</text>
+
+  <!-- Time axis for right panel -->
+  <line x1="380" y1="196" x2="670" y2="196" stroke="#7f8c8d" stroke-width="0.5" opacity="0.5"/>
+  <text x="380" y="204" font-size="8" fill="#7f8c8d">t=0</text>
+  <text x="660" y="204" font-size="8" fill="#7f8c8d" text-anchor="end">t=1</text>
+
+  <!-- Bottom note box -->
+  <rect x="8" y="220" width="684" height="32" rx="6" ry="6" fill="#fef9e7" stroke="#f39c12" stroke-width="1"/>
+  <text x="350" y="240" text-anchor="middle" font-size="9" fill="#2c3e50">Straight trajectories have zero discretization error in one Euler step -- enabling few-step generation even before distillation</text>
+</svg>

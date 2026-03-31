@@ -1,0 +1,129 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="700" height="310" viewBox="0 0 700 310">
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#555"/>
+    </marker>
+    <marker id="arrow-red" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#e74c3c"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#27ae60"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="700" height="310" fill="#fafafa"/>
+
+  <!-- ==================== LEFT PANEL: ADD ==================== -->
+  <rect x="8" y="8" width="336" height="252" rx="6" fill="#fdf2f2" stroke="#e74c3c" stroke-width="1.5" stroke-opacity="0.5"/>
+  <text x="176" y="26" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#c0392b">ADD (Pixel Space)</text>
+
+  <!-- Student Output -->
+  <rect x="20" y="40" width="80" height="28" rx="4" fill="#ebf5fb" stroke="#3498db" stroke-width="1"/>
+  <text x="60" y="58" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#2c3e50">Student (z)</text>
+
+  <!-- Arrow to VAE Decoder -->
+  <line x1="100" y1="54" x2="118" y2="54" stroke="#e74c3c" stroke-width="1.5" marker-end="url(#arrow-red)"/>
+
+  <!-- VAE Decoder (BOTTLENECK) -->
+  <rect x="120" y="38" width="88" height="32" rx="4" fill="#fdecea" stroke="#e74c3c" stroke-width="2"/>
+  <text x="164" y="53" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#c0392b">VAE Decoder</text>
+  <text x="164" y="63" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#e74c3c">BOTTLENECK</text>
+
+  <!-- Arrow to RGB Image -->
+  <line x1="208" y1="54" x2="226" y2="54" stroke="#e74c3c" stroke-width="1.5" marker-end="url(#arrow-red)"/>
+
+  <!-- RGB Image -->
+  <rect x="228" y="40" width="80" height="28" rx="4" fill="#fdecea" stroke="#e74c3c" stroke-width="1"/>
+  <text x="268" y="58" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#c0392b">RGB Image</text>
+
+  <!-- Arrow down from RGB to DINOv2 -->
+  <line x1="268" y1="68" x2="268" y2="86" stroke="#555" stroke-width="1" marker-end="url(#arrow)"/>
+
+  <!-- DINOv2 -->
+  <rect x="218" y="88" width="100" height="28" rx="4" fill="#ebf5fb" stroke="#3498db" stroke-width="1"/>
+  <text x="268" y="101" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#2c3e50">DINOv2 (fixed)</text>
+  <text x="268" y="112" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#7f8c8d">pretrained</text>
+
+  <!-- Arrow down to Features -->
+  <line x1="268" y1="116" x2="268" y2="130" stroke="#555" stroke-width="1" marker-end="url(#arrow)"/>
+
+  <!-- Features -->
+  <rect x="228" y="132" width="80" height="24" rx="4" fill="#ebf5fb" stroke="#3498db" stroke-width="1"/>
+  <text x="268" y="148" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#2c3e50">Features</text>
+
+  <!-- Arrow down to Discriminator -->
+  <line x1="268" y1="156" x2="268" y2="170" stroke="#555" stroke-width="1" marker-end="url(#arrow)"/>
+
+  <!-- Discriminator Heads -->
+  <rect x="210" y="172" width="116" height="28" rx="4" fill="#fef5ec" stroke="#e67e22" stroke-width="1.5"/>
+  <text x="268" y="186" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#d35400">Disc. Heads (1D conv)</text>
+  <text x="268" y="196" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#e67e22">L_distill + L_adv</text>
+
+  <!-- Also: distillation path from Student -->
+  <text x="60" y="84" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#999" font-style="italic">+ distillation loss</text>
+
+  <!-- Resolution label -->
+  <rect x="40" y="210" width="260" height="20" rx="3" fill="none" stroke="#e74c3c" stroke-width="0.8" stroke-dasharray="3,2"/>
+  <text x="170" y="224" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#c0392b">Fixed at 518x518 resolution</text>
+
+  <!-- VRAM label -->
+  <text x="170" y="248" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#e74c3c">High VRAM (pixel decode)</text>
+
+  <!-- ==================== RIGHT PANEL: LADD ==================== -->
+  <rect x="356" y="8" width="336" height="252" rx="6" fill="#f0faf4" stroke="#27ae60" stroke-width="1.5" stroke-opacity="0.5"/>
+  <text x="524" y="26" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#1e8449">LADD (Latent Space)</text>
+
+  <!-- Student Output -->
+  <rect x="368" y="40" width="80" height="28" rx="4" fill="#ebf5fb" stroke="#3498db" stroke-width="1"/>
+  <text x="408" y="58" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#2c3e50">Student (z)</text>
+
+  <!-- Arrow to Re-noise -->
+  <line x1="448" y1="54" x2="466" y2="54" stroke="#27ae60" stroke-width="1.5" marker-end="url(#arrow-green)"/>
+
+  <!-- Re-noise -->
+  <rect x="468" y="40" width="72" height="28" rx="4" fill="#ebf5fb" stroke="#3498db" stroke-width="1"/>
+  <text x="504" y="58" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#2c3e50">Re-noise</text>
+
+  <!-- Arrow to Teacher -->
+  <line x1="540" y1="54" x2="558" y2="54" stroke="#27ae60" stroke-width="1.5" marker-end="url(#arrow-green)"/>
+
+  <!-- Teacher Model -->
+  <rect x="560" y="38" width="88" height="32" rx="4" fill="#ebf5fb" stroke="#3498db" stroke-width="1.5"/>
+  <text x="604" y="53" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#2c3e50">Teacher</text>
+  <text x="604" y="63" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#7f8c8d">denoiser</text>
+
+  <!-- Arrow down from Teacher to Features -->
+  <line x1="604" y1="70" x2="604" y2="96" stroke="#555" stroke-width="1" marker-end="url(#arrow)"/>
+
+  <!-- No VAE box (greyed out, crossed) -->
+  <rect x="374" y="90" width="80" height="24" rx="4" fill="#f5f5f5" stroke="#bbb" stroke-width="1" stroke-dasharray="4,2" opacity="0.5"/>
+  <text x="414" y="106" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#bbb">VAE Decoder</text>
+  <!-- Cross out -->
+  <line x1="376" y1="92" x2="452" y2="112" stroke="#e74c3c" stroke-width="2" opacity="0.7"/>
+  <line x1="452" y1="92" x2="376" y2="112" stroke="#e74c3c" stroke-width="2" opacity="0.7"/>
+  <text x="414" y="126" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#999" font-style="italic">Not needed!</text>
+
+  <!-- Features -->
+  <rect x="564" y="98" width="80" height="24" rx="4" fill="#ebf5fb" stroke="#3498db" stroke-width="1"/>
+  <text x="604" y="114" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#2c3e50">Features</text>
+
+  <!-- Arrow down to Discriminator -->
+  <line x1="604" y1="122" x2="604" y2="140" stroke="#555" stroke-width="1" marker-end="url(#arrow)"/>
+
+  <!-- Discriminator Heads -->
+  <rect x="546" y="142" width="116" height="28" rx="4" fill="#fef5ec" stroke="#e67e22" stroke-width="1.5"/>
+  <text x="604" y="156" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#d35400">Disc. Heads (2D conv)</text>
+  <text x="604" y="166" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#e67e22">L_adv only</text>
+
+  <!-- Resolution label -->
+  <rect x="388" y="210" width="260" height="20" rx="3" fill="none" stroke="#27ae60" stroke-width="0.8" stroke-dasharray="3,2"/>
+  <text x="518" y="224" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#1e8449">Any resolution, multi-aspect ratio</text>
+
+  <!-- VRAM label -->
+  <text x="518" y="248" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#27ae60">Low VRAM (latent only)</text>
+
+  <!-- ==================== BOTTOM NOTE ==================== -->
+  <rect x="20" y="272" width="660" height="30" rx="4" fill="#f7f9fc" stroke="#3498db" stroke-width="1"/>
+  <text x="350" y="291" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#2c3e50">LADD eliminates the pixel-space bottleneck -- enabling distillation of large models at megapixel resolutions</text>
+</svg>

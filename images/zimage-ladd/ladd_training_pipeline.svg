@@ -1,0 +1,173 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="700" height="380" viewBox="0 0 700 380" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#555"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#27ae60"/>
+    </marker>
+    <marker id="arrow-orange" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#e67e22"/>
+    </marker>
+    <marker id="arrow-red" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#e74c3c"/>
+    </marker>
+    <marker id="arrow-dash" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#e74c3c"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="700" height="380" fill="#fafafa"/>
+
+  <!-- Title -->
+  <text x="350" y="20" text-anchor="middle" font-size="14" font-weight="bold" fill="#333">LADD Training Pipeline — Latent Adversarial Diffusion Distillation</text>
+
+  <!-- ==================== SECTION 1: DATA GENERATION (left) ==================== -->
+  <!-- Text prompt -->
+  <rect x="18" y="38" width="80" height="26" rx="4" fill="#f0f0f0" stroke="#999" stroke-width="1"/>
+  <text x="58" y="55" text-anchor="middle" font-size="9" fill="#555">Text Prompt</text>
+
+  <line x1="58" y1="64" x2="58" y2="76" stroke="#555" stroke-width="1" marker-end="url(#arrow)"/>
+
+  <!-- Teacher Model (generator) -->
+  <rect x="10" y="78" width="96" height="34" rx="4" fill="rgba(52,152,219,0.1)" stroke="#3498db" stroke-width="1.5"/>
+  <text x="58" y="93" text-anchor="middle" font-size="10" font-weight="bold" fill="#3498db">Teacher Model</text>
+  <text x="58" y="104" text-anchor="middle" font-size="8" fill="#666">(CFG, multi-step)</text>
+
+  <line x1="58" y1="112" x2="58" y2="126" stroke="#555" stroke-width="1" marker-end="url(#arrow)"/>
+
+  <!-- Synthetic latent x0 -->
+  <rect x="10" y="128" width="96" height="26" rx="4" fill="rgba(39,174,96,0.1)" stroke="#27ae60" stroke-width="1.5"/>
+  <text x="58" y="145" text-anchor="middle" font-size="10" fill="#27ae60">Synthetic x₀</text>
+
+  <!-- Label: Data Generation -->
+  <text x="58" y="170" text-anchor="middle" font-size="9" fill="#888" font-style="italic">Data Generation</text>
+
+  <!-- ==================== SECTION 2: STUDENT PATH (center) ==================== -->
+  <!-- Arrow from synthetic x0 to add noise -->
+  <line x1="106" y1="141" x2="170" y2="141" stroke="#555" stroke-width="1" marker-end="url(#arrow)"/>
+
+  <!-- Add noise -->
+  <rect x="180" y="128" width="90" height="26" rx="4" fill="rgba(155,89,182,0.1)" stroke="#9b59b6" stroke-width="1.5"/>
+  <text x="225" y="140" text-anchor="middle" font-size="9" fill="#9b59b6">Add noise at t</text>
+  <text x="225" y="150" text-anchor="middle" font-size="9" fill="#9b59b6">→ noisy xₜ</text>
+
+  <line x1="225" y1="154" x2="225" y2="172" stroke="#555" stroke-width="1" marker-end="url(#arrow)"/>
+
+  <!-- Student Model -->
+  <rect x="175" y="174" width="100" height="34" rx="4" fill="rgba(230,126,34,0.1)" stroke="#e67e22" stroke-width="1.5"/>
+  <text x="225" y="189" text-anchor="middle" font-size="10" font-weight="bold" fill="#e67e22">Student Model</text>
+  <text x="225" y="200" text-anchor="middle" font-size="8" fill="#666">denoise → x̂₀</text>
+
+  <line x1="225" y1="208" x2="225" y2="224" stroke="#e67e22" stroke-width="1" marker-end="url(#arrow-orange)"/>
+
+  <!-- Re-noise student output -->
+  <rect x="175" y="226" width="100" height="26" rx="4" fill="rgba(155,89,182,0.1)" stroke="#9b59b6" stroke-width="1.5"/>
+  <text x="225" y="238" text-anchor="middle" font-size="9" fill="#9b59b6">Re-noise at t̂</text>
+  <text x="225" y="248" text-anchor="middle" font-size="9" fill="#e67e22">→ x̂_t̂ (fake)</text>
+
+  <!-- Label: Student Path -->
+  <text x="225" y="268" text-anchor="middle" font-size="9" fill="#888" font-style="italic">Student Path</text>
+
+  <!-- ==================== SECTION 3: REAL PATH (green, below data gen) ==================== -->
+  <!-- Arrow from synthetic x0 down to re-noise real -->
+  <path d="M58,154 L58,232 L170,232" stroke="#27ae60" stroke-width="1" fill="none" marker-end="url(#arrow-green)"/>
+  <text x="112" y="227" text-anchor="middle" font-size="8" fill="#27ae60">real data</text>
+
+  <!-- Re-noise real data -->
+  <rect x="95" y="222" width="76" height="22" rx="4" fill="rgba(39,174,96,0.08)" stroke="#27ae60" stroke-width="1" stroke-dasharray="3,2"/>
+  <text x="133" y="236" text-anchor="middle" font-size="8" fill="#27ae60">Re-noise → x_t̂</text>
+
+  <!-- ==================== SECTION 3: DISCRIMINATOR PATH (right) ==================== -->
+  <!-- Fake arrow from re-noise student to Teacher/discriminator -->
+  <line x1="275" y1="239" x2="380" y2="178" stroke="#e67e22" stroke-width="1.2" marker-end="url(#arrow-orange)"/>
+  <text x="340" y="198" text-anchor="middle" font-size="8" fill="#e67e22">fake</text>
+
+  <!-- Real arrow from re-noise real to Teacher/discriminator -->
+  <path d="M133,244 L133,272 L390,272 L390,202" stroke="#27ae60" stroke-width="1.2" fill="none" marker-end="url(#arrow-green)"/>
+  <text x="340" y="266" text-anchor="middle" font-size="8" fill="#27ae60">real</text>
+
+  <!-- Teacher Model (discriminator backbone) -->
+  <rect x="380" y="118" width="130" height="86" rx="4" fill="rgba(52,152,219,0.08)" stroke="#3498db" stroke-width="1.5"/>
+  <text x="445" y="136" text-anchor="middle" font-size="10" font-weight="bold" fill="#3498db">Teacher Model</text>
+  <text x="445" y="148" text-anchor="middle" font-size="8" fill="#666">(feature extractor)</text>
+
+  <!-- Attention blocks inside teacher -->
+  <rect x="392" y="155" width="106" height="16" rx="3" fill="rgba(52,152,219,0.12)" stroke="#3498db" stroke-width="0.8"/>
+  <text x="445" y="166" text-anchor="middle" font-size="8" fill="#3498db">Attention Block Features</text>
+
+  <!-- Conditioning labels -->
+  <rect x="392" y="176" width="106" height="16" rx="3" fill="rgba(155,89,182,0.1)" stroke="#9b59b6" stroke-width="0.8"/>
+  <text x="445" y="187" text-anchor="middle" font-size="8" fill="#9b59b6">Cond: t̂ + CLIP emb</text>
+
+  <!-- Arrow from teacher to disc heads -->
+  <line x1="510" y1="161" x2="538" y2="161" stroke="#e74c3c" stroke-width="1" marker-end="url(#arrow-red)"/>
+
+  <!-- Discriminator heads -->
+  <rect x="540" y="118" width="120" height="86" rx="4" fill="rgba(231,76,60,0.08)" stroke="#e74c3c" stroke-width="1.5"/>
+  <text x="600" y="136" text-anchor="middle" font-size="10" font-weight="bold" fill="#e74c3c">Discriminator</text>
+  <text x="600" y="148" text-anchor="middle" font-size="10" font-weight="bold" fill="#e74c3c">Heads</text>
+
+  <!-- Individual heads -->
+  <rect x="552" y="155" width="46" height="14" rx="3" fill="rgba(231,76,60,0.12)" stroke="#e74c3c" stroke-width="0.7"/>
+  <text x="575" y="165" text-anchor="middle" font-size="7" fill="#e74c3c">2D Conv</text>
+  <rect x="602" y="155" width="46" height="14" rx="3" fill="rgba(231,76,60,0.12)" stroke="#e74c3c" stroke-width="0.7"/>
+  <text x="625" y="165" text-anchor="middle" font-size="7" fill="#e74c3c">2D Conv</text>
+  <rect x="552" y="173" width="46" height="14" rx="3" fill="rgba(231,76,60,0.12)" stroke="#e74c3c" stroke-width="0.7"/>
+  <text x="575" y="183" text-anchor="middle" font-size="7" fill="#e74c3c">2D Conv</text>
+  <rect x="602" y="173" width="46" height="14" rx="3" fill="rgba(231,76,60,0.12)" stroke="#e74c3c" stroke-width="0.7"/>
+  <text x="625" y="183" text-anchor="middle" font-size="7" fill="#e74c3c">2D Conv</text>
+
+  <text x="600" y="198" text-anchor="middle" font-size="8" fill="#888">real vs fake per block</text>
+
+  <!-- Label: Discriminator Path -->
+  <text x="520" y="218" text-anchor="middle" font-size="9" fill="#888" font-style="italic">Discriminator Path</text>
+
+  <!-- ==================== SECTION 4: LOSS (bottom) ==================== -->
+  <!-- Arrow from discriminator heads down to loss -->
+  <line x1="600" y1="204" x2="600" y2="238" stroke="#e74c3c" stroke-width="1" marker-end="url(#arrow-red)"/>
+
+  <!-- Loss box -->
+  <rect x="540" y="240" width="120" height="28" rx="4" fill="rgba(231,76,60,0.1)" stroke="#e74c3c" stroke-width="1.5"/>
+  <text x="600" y="253" text-anchor="middle" font-size="10" font-weight="bold" fill="#e74c3c">L_adv</text>
+  <text x="600" y="263" text-anchor="middle" font-size="8" fill="#666">Adversarial Loss</text>
+
+  <!-- Gradient flow (dashed) back to student -->
+  <path d="M540,254 L310,254 L310,208 L275,208" stroke="#e74c3c" stroke-width="1.2" stroke-dasharray="5,3" fill="none" marker-end="url(#arrow-dash)"/>
+  <text x="400" y="248" text-anchor="middle" font-size="8" fill="#e74c3c">gradient flow</text>
+
+  <!-- Note: no distillation loss -->
+  <text x="600" y="282" text-anchor="middle" font-size="8" fill="#999" font-style="italic">No distillation loss needed</text>
+  <text x="600" y="292" text-anchor="middle" font-size="8" fill="#999" font-style="italic">with synthetic data</text>
+
+  <!-- ==================== LEGEND ==================== -->
+  <rect x="10" y="185" width="80" height="30" rx="4" fill="rgba(0,0,0,0.03)" stroke="#ddd" stroke-width="0.8"/>
+  <text x="50" y="196" text-anchor="middle" font-size="8" fill="#888">Legend</text>
+  <line x1="16" y1="205" x2="36" y2="205" stroke="#e74c3c" stroke-width="1" stroke-dasharray="4,2"/>
+  <text x="42" y="208" font-size="7" fill="#888">Gradient</text>
+
+  <!-- ==================== BOTTOM NOTE ==================== -->
+  <rect x="30" y="310" width="640" height="34" rx="4" fill="rgba(52,152,219,0.06)" stroke="#3498db" stroke-width="1"/>
+  <text x="350" y="326" text-anchor="middle" font-size="9" fill="#3498db">LADD operates entirely in latent space — the teacher model doubles as both data generator and discriminator backbone.</text>
+  <text x="350" y="338" text-anchor="middle" font-size="9" fill="#3498db">The student learns from adversarial feedback only; no pixel-space decoding occurs during training.</text>
+
+  <!-- ==================== ANNOTATIONS: Teacher reuse ==================== -->
+  <path d="M58,78 Q-10,58 58,38" stroke="none" fill="none"/>
+  <!-- Dashed connector showing teacher is same model -->
+  <path d="M106,95 C180,60 320,60 380,130" stroke="#3498db" stroke-width="1" stroke-dasharray="4,3" fill="none"/>
+  <text x="260" y="66" text-anchor="middle" font-size="8" fill="#3498db" font-style="italic">same model (frozen)</text>
+
+  <!-- Section dividers (subtle) -->
+  <line x1="140" y1="32" x2="140" y2="300" stroke="#eee" stroke-width="1" stroke-dasharray="2,4"/>
+  <line x1="370" y1="32" x2="370" y2="300" stroke="#eee" stroke-width="1" stroke-dasharray="2,4"/>
+
+  <!-- Section headers at top -->
+  <text x="70" y="36" text-anchor="middle" font-size="8" fill="#bbb">DATA GENERATION</text>
+  <text x="255" y="36" text-anchor="middle" font-size="8" fill="#bbb">STUDENT PATH</text>
+  <text x="530" y="36" text-anchor="middle" font-size="8" fill="#bbb">DISCRIMINATOR PATH</text>
+
+  <!-- Timestep annotations -->
+  <text x="180" y="120" font-size="8" fill="#9b59b6">t ~ U[0,T]</text>
+  <text x="280" y="236" font-size="8" fill="#9b59b6">t̂ ~ U[0,T]</text>
+</svg>
