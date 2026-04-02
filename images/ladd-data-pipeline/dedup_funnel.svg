@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 520" width="700" height="520" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 6" refX="10" refY="3" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,3 L0,6 Z" fill="#7f8c8d"/>
+    </marker>
+    <marker id="arrowRed" viewBox="0 0 10 6" refX="10" refY="3" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,3 L0,6 Z" fill="#e74c3c"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="700" height="520" fill="#fafafa" rx="4"/>
+
+  <!-- Title -->
+  <text x="350" y="28" text-anchor="middle" font-size="14" fill="#333" font-weight="bold">Two-Stage Deduplication Pipeline</text>
+  <text x="350" y="44" text-anchor="middle" font-size="9" fill="#888">Surface-level and semantic deduplication of text-to-image prompts</text>
+
+  <!-- ===== INPUT BOX ===== -->
+  <rect x="150" y="60" width="400" height="44" rx="4" fill="#3498db" fill-opacity="0.12" stroke="#3498db" stroke-width="1.2"/>
+  <text x="350" y="80" text-anchor="middle" font-size="12" font-weight="bold" fill="#2c3e50">970K Raw Prompts</text>
+  <text x="350" y="94" text-anchor="middle" font-size="9" fill="#666">Aggregated from 8 benchmarks + DiffusionDB + MJHQ + captions</text>
+
+  <!-- Arrow down -->
+  <line x1="350" y1="104" x2="350" y2="130" stroke="#7f8c8d" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+  <!-- ===== STAGE 1 DIVIDER ===== -->
+  <line x1="40" y1="138" x2="660" y2="138" stroke="#ecf0f1" stroke-width="1" stroke-dasharray="6,3"/>
+  <text x="50" y="148" font-size="8" fill="#999" font-weight="bold">STAGE 1</text>
+
+  <!-- Stage 1: MinHash LSH -->
+  <rect x="185" y="155" width="330" height="50" rx="4" fill="#e67e22" fill-opacity="0.10" stroke="#e67e22" stroke-width="1.2"/>
+  <text x="350" y="175" text-anchor="middle" font-size="11" font-weight="bold" fill="#2c3e50">MinHash LSH</text>
+  <text x="350" y="190" text-anchor="middle" font-size="9" fill="#666">128 permutations, 32 bands, Jaccard threshold >= 0.7</text>
+
+  <!-- Removed callout (right side) -->
+  <line x1="515" y1="180" x2="570" y2="180" stroke="#e74c3c" stroke-width="1" marker-end="url(#arrowRed)"/>
+  <rect x="572" y="164" width="108" height="32" rx="4" fill="#e74c3c" fill-opacity="0.10" stroke="#e74c3c" stroke-width="1"/>
+  <text x="626" y="179" text-anchor="middle" font-size="10" font-weight="bold" fill="#e74c3c">-202K</text>
+  <text x="626" y="191" text-anchor="middle" font-size="8" fill="#e74c3c">surface duplicates</text>
+
+  <!-- DiffusionDB annotation (left side) -->
+  <rect x="20" y="158" width="150" height="44" rx="4" fill="#e74c3c" fill-opacity="0.06" stroke="#e74c3c" stroke-width="0.8" stroke-dasharray="4,2"/>
+  <text x="95" y="174" text-anchor="middle" font-size="8.5" fill="#c0392b" font-weight="bold">DiffusionDB: 50% internal dupes</text>
+  <text x="95" y="186" text-anchor="middle" font-size="8" fill="#999">300K raw  ->  151K unique</text>
+  <text x="95" y="196" text-anchor="middle" font-size="7.5" fill="#aaa" font-style="italic">Stable Diffusion user prompts</text>
+  <line x1="170" y1="180" x2="185" y2="180" stroke="#e74c3c" stroke-width="0.8" stroke-dasharray="3,2"/>
+
+  <!-- Arrow down from Stage 1 -->
+  <line x1="350" y1="205" x2="350" y2="240" stroke="#7f8c8d" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+  <!-- Intermediate result -->
+  <rect x="185" y="244" width="330" height="36" rx="4" fill="#3498db" fill-opacity="0.08" stroke="#3498db" stroke-width="1" stroke-dasharray="4,2"/>
+  <text x="350" y="266" text-anchor="middle" font-size="11" font-weight="bold" fill="#2c3e50">768K Prompts</text>
+
+  <!-- Arrow down -->
+  <line x1="350" y1="280" x2="350" y2="310" stroke="#7f8c8d" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+  <!-- ===== STAGE 2 DIVIDER ===== -->
+  <line x1="40" y1="318" x2="660" y2="318" stroke="#ecf0f1" stroke-width="1" stroke-dasharray="6,3"/>
+  <text x="50" y="328" font-size="8" fill="#999" font-weight="bold">STAGE 2</text>
+
+  <!-- Stage 2: FAISS Semantic Clustering -->
+  <rect x="205" y="335" width="290" height="50" rx="4" fill="#e67e22" fill-opacity="0.10" stroke="#e67e22" stroke-width="1.2"/>
+  <text x="350" y="355" text-anchor="middle" font-size="11" font-weight="bold" fill="#2c3e50">FAISS Semantic Clustering</text>
+  <text x="350" y="370" text-anchor="middle" font-size="9" fill="#666">all-MiniLM-L6-v2 embeddings, cosine > 0.90</text>
+
+  <!-- Removed callout (right side) -->
+  <line x1="495" y1="360" x2="550" y2="360" stroke="#e74c3c" stroke-width="1" marker-end="url(#arrowRed)"/>
+  <rect x="552" y="344" width="108" height="32" rx="4" fill="#e74c3c" fill-opacity="0.10" stroke="#e74c3c" stroke-width="1"/>
+  <text x="606" y="359" text-anchor="middle" font-size="10" font-weight="bold" fill="#e74c3c">-138K</text>
+  <text x="606" y="371" text-anchor="middle" font-size="8" fill="#e74c3c">paraphrases</text>
+
+  <!-- Arrow down from Stage 2 -->
+  <line x1="350" y1="385" x2="350" y2="415" stroke="#7f8c8d" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+  <!-- ===== OUTPUT BOX ===== -->
+  <rect x="225" y="420" width="250" height="44" rx="4" fill="#27ae60" fill-opacity="0.15" stroke="#27ae60" stroke-width="1.5"/>
+  <text x="350" y="441" text-anchor="middle" font-size="13" font-weight="bold" fill="#27ae60">630K Unique Prompts</text>
+  <text x="350" y="456" text-anchor="middle" font-size="9" fill="#666">35% total removed (340K duplicates)</text>
+
+  <!-- ===== FUNNEL WIDTH INDICATORS (subtle side lines) ===== -->
+  <!-- Width scale bar: left side -->
+  <line x1="140" y1="68" x2="140" y2="100" stroke="#3498db" stroke-width="0.6" stroke-opacity="0.3"/>
+  <line x1="560" y1="68" x2="560" y2="100" stroke="#3498db" stroke-width="0.6" stroke-opacity="0.3"/>
+
+  <!-- Narrowing trapezoid hints (left) -->
+  <line x1="140" y1="100" x2="180" y2="244" stroke="#bdc3c7" stroke-width="0.6" stroke-dasharray="3,3" stroke-opacity="0.4"/>
+  <line x1="560" y1="100" x2="520" y2="244" stroke="#bdc3c7" stroke-width="0.6" stroke-dasharray="3,3" stroke-opacity="0.4"/>
+  <line x1="180" y1="280" x2="220" y2="420" stroke="#bdc3c7" stroke-width="0.6" stroke-dasharray="3,3" stroke-opacity="0.4"/>
+  <line x1="520" y1="280" x2="480" y2="420" stroke="#bdc3c7" stroke-width="0.6" stroke-dasharray="3,3" stroke-opacity="0.4"/>
+
+  <!-- ===== BOTTOM NOTE ===== -->
+  <rect x="100" y="480" width="500" height="28" rx="4" fill="#ecf0f1" fill-opacity="0.6"/>
+  <text x="350" y="498" text-anchor="middle" font-size="9" fill="#666" font-style="italic">Key insight: DiffusionDB alone accounted for 44% of MinHash removals (149K of 340K total removed).</text>
+</svg>

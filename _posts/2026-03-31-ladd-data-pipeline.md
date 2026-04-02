@@ -14,11 +14,11 @@ math: true
 
 1. [Overview](#overview)
 2. [What LADD Needs from Data](#1-what-ladd-needs-from-data)
-3. [Collecting Prompts from 9 Sources](#2-collecting-prompts-from-9-sources)
-4. [Classification: Why Keywords Fail](#3-classification-why-keywords-fail)
-5. [Filling Coverage Gaps](#4-filling-coverage-gaps)
-6. [Balancing the Length Distribution](#5-balancing-the-length-distribution)
-7. [The Final Pipeline](#6-the-final-pipeline)
+3. [Harvesting Prompts at Scale](#2-harvesting-prompts-at-scale)
+4. [Deduplication: 970K to 630K](#3-deduplication-970k-to-630k)
+5. [Classification: From Keywords to Hybrid](#4-classification-from-keywords-to-hybrid)
+6. [Enforcing Balance](#5-enforcing-balance)
+7. [The Final Dataset](#6-the-final-dataset)
 8. [Lessons Learned](#7-lessons-learned)
 
 ---
@@ -29,9 +29,9 @@ LADD (Latent Adversarial Diffusion Distillation) compresses a 50-step diffusion 
 
 This means the dataset is just a list of prompts. But "just prompts" hides real complexity: the prompts must be diverse enough that the student generalizes across content types, detailed enough to stress prompt adherence, and balanced across a taxonomy of subjects, styles, and cameras.
 
-This post traces the decisions, mistakes, and fixes involved in building a 12K-prompt dataset for LADD distillation of the Z-Image model --- from initial benchmark collection through classification, gap-filling, and length balancing.
+We started with a 12K seed dataset built from T2I evaluation benchmarks --- gap-filled and length-balanced with Claude-generated prompts. That was enough to validate the pipeline, but not enough to train on: at batch size 256, the model exhausts 12K prompts in ~47 iterations and spends the rest of training recycling stale gradients. This post covers how we scaled that to **630K diverse, deduplicated, and classified prompts** by harvesting from 9 large-scale sources, running two-stage deduplication, and building a hybrid classification system that works on verbose VLM captions.
 
-![The full data pipeline from collection through classification, gap filling, balancing, to the final dataset](/images/ladd-data-pipeline/pipeline_workflow.svg)
+![The full data pipeline from harvesting through deduplication, classification, and balance enforcement to the final dataset](/images/ladd-data-pipeline/pipeline_workflow.svg)
 
 ---
 
@@ -45,11 +45,27 @@ Three properties make or break the dataset:
 - **Prompt length and detail.** Distilled models lose prompt adherence first --- they merge objects, drop attributes, ignore spatial relationships. Long, detailed prompts (30-40 words) stress-test this weakness. A dataset of 8-word prompts like "a red car" trains a student that can't handle "a red vintage convertible parked on a cobblestone street at golden hour with dramatic rim lighting."
 - **Language coverage.** Z-Image uses a Qwen3 text encoder that handles both English and Chinese natively. The dataset should include Chinese prompts to preserve this capability.
 
+### How many prompts?
+
+Neither the ADD nor LADD papers disclose exact dataset sizes, but we can back into estimates:
+
+| Paper | Iterations | Batch Size | Total Presentations |
+|-------|----------:|----------:|-----------:|
+| ADD (Sauer et al., 2023) | 4,000 | 128 | 512K |
+| LADD conservative estimate | 10,000 | 256 | 2.5M |
+| LADD likely estimate | 10,000 | 512 | 5M |
+
+LADD samples prompts from SD3's full training set (millions of unique prompts), so repeats are rare. At 12K prompts with 10K iterations and batch size 256, each prompt would be seen ~213 times. At 630K, that drops to ~4 times --- comparable to the original paper's regime.
+
 ---
 
-## 2. Collecting Prompts from 9 Sources
+## 2. Harvesting Prompts at Scale
 
-We aggregated prompts from 8 established text-to-image evaluation benchmarks and one curated external dataset, evaluating each for diversity, quality, and length characteristics.
+The dataset blends small high-quality benchmarks with large-scale caption datasets. The benchmarks (used in the original 12K seed) provide curated evaluation-style prompts. The large-scale sources provide volume, diversity, and the verbose captions that push prompt adherence.
+
+### Seed benchmarks (12K)
+
+We started with 8 T2I evaluation benchmarks plus one curated Midjourney dataset:
 
 | Source | Count | Avg Words | Why it's useful |
 |--------|------:|----------:|-----------------|
@@ -65,142 +81,204 @@ We aggregated prompts from 8 established text-to-image evaluation benchmarks and
 
 We rejected **SDXL-1M** (Falah) --- 1 million template-generated prompts that were people-only, photorealistic-only, and would have drowned out every other source.
 
-### Download quirks
+### Large-scale sources (970K)
 
-Four benchmarks needed custom downloaders:
-- **GenEval** isn't a HuggingFace dataset --- we download the JSONL directly from GitHub
-- **OneIG-ZH** requires the config name `"OneIG-Bench-ZH"`, not `"zh"`
-- **CVTG-2K** is a zip file containing nested JSON with a `data_list` array structure
-- **LongText-Bench** has Chinese prompts but no language field --- we added CJK Unicode detection to auto-tag them
+To reach training scale, we harvested from 8 additional large-scale sources plus the existing seed pool --- a mix of real user prompts, VLM-generated captions, and curated collections:
 
----
+| Source | Prompts | Type | License | Notes |
+|--------|--------:|------|---------|-------|
+| DiffusionDB | 300,000 | Real Stable Diffusion user prompts | CC0 | Massive internal duplication. NSFW filtered. |
+| Recap-DataComp-1B | 250,000 | LLaVA-1.5 recaptions of web images | CC-BY-4.0 | Schema mismatches across parquet shards. |
+| DenseFusion-1M | 200,000 | Multi-VLM fused captions | Apache-2.0 | Very long/detailed (~80-150 words). |
+| ShareGPT4V-PT | 100,000 | GPT-4V synthetic captions | Apache-2.0 | Extracted from multi-turn conversation format. |
+| JourneyDB | 50,000 | Midjourney user prompts | CC-BY-NC-SA | Gated access. Stripped MJ params (`--ar`, `--v`). |
+| SAM-LLaVA-10M | 30,000 | LLaVA captions of SAM images | Research | Field is `txt`, not `caption`. |
+| Wukong | 15,000 | Chinese web captions | Apache-2.0 | Original HF org (noah-wukong) was 404. |
+| DOCCI | 13,936 | Human-written dense captions | CC-BY-4.0 | Highest quality. Dataset script broken; used raw JSONL. |
+| Existing seed pool | 11,158 | Benchmarks + gap-fill | Mixed | Already classified from prior pipeline. |
 
-## 3. Classification: Why Keywords Fail
+**AnyText-3M** was planned but had been removed from HuggingFace.
 
-Every prompt needs to be classified into a **MECE taxonomy** (14 Subjects x 7 Styles x 8 Cameras) so we can measure and enforce coverage. The first attempt used keyword matching. It failed badly.
+### Download reality vs. documentation
 
-![Side-by-side comparison of keyword matching versus Claude-based semantic classification, showing how keyword matching misclassifies a portrait prompt as Fashion](/images/ladd-data-pipeline/classification_comparison.svg)
+Half the datasets required workarounds that weren't in any README:
 
-### The keyword problem
+- **DiffusionDB**: dataset script no longer supported by `datasets` v4.8+; loaded `metadata-large.parquet` directly
+- **Recap-DataComp-1B**: different parquet shards have different column schemas; loading individual shards bypasses the `CastError`
+- **DenseFusion-1M**: the plan had the wrong HuggingFace org (`DenseFusion/` → actually `BAAI/`), and required the config name `"DenseFusion-1M"`
+- **ShareGPT4V-PT**: config `"ShareGPT4V-PT"` doesn't exist; the default loads the 1.2M PT set as multi-turn conversations; prompts are the assistant's first reply
+- **JourneyDB**: gated and can't stream; downloaded `train_anno.jsonl.tgz` via `hf_hub_download` and extracted locally
+- **DOCCI**: `trust_remote_code` rejected by modern `datasets`; downloaded JSONL directly from Google Cloud Storage
+- **Wukong**: `noah-wukong/wukong` returns 404; `wanng/wukong100m` has the captions
 
-Consider: *"A woman wearing a red dress in a garden."*
-
-Keyword matching hits "dress" first and classifies this as **Fashion (S9)**. But the primary subject is a person --- it should be **People (S1)**. This cascaded across the dataset:
-
-- Objects (S10) ballooned to 2,544 prompts because every prompt mentioning any object got caught
-- Chinese Cultural (S13) had only 6 prompts because keyword lists don't cover Chinese concepts well
-- 80% of prompts defaulted to Photorealistic (T1) because implicit styles ("dreamy ethereal quality") don't match keyword lists
-
-### Claude-based reclassification
-
-We split the 7,811 benchmark prompts into 4 chunks and used parallel Claude subagents to reclassify each with semantic understanding. The rules:
-
-- **People take priority** when humans are present, even alongside animals, clothing, or settings
-- **Implicit styles** are detected: "dreamy ethereal quality" maps to Mixed/Experimental (T7)
-- **Chinese cultural content** is identified by subject matter, not just language
-
-The result: a properly balanced taxonomy with Chinese Cultural going from 6 to 112 prompts, and Text/Typography correctly expanding from 370 to 1,649 as CVTG-2K prompts were properly categorized.
+Quality filters applied per-prompt: minimum 8 English words or 15 Chinese characters, maximum 200 words, fewer than 2 URLs, no boilerplate strings ("stock photo", "getty images"), at least 70% alphabetic characters. Cross-source exact dedup removed only 64 prompts --- almost no verbatim overlap between sources. But exact matching only catches identical strings; the real redundancy is semantic.
 
 ---
 
-## 4. Filling Coverage Gaps
+## 3. Deduplication: 970K to 630K
 
-After reclassification, **80 of 98 Subject x Style cells were below 50 prompts**. Seventeen cells had zero --- all concentrated in 3D/CGI (T4), Cinematic/Film (T5), and Mixed/Experimental (T7) styles.
+970K raw prompts contain massive redundancy --- especially DiffusionDB, where users submit the same prompt with different generation parameters. We ran two-stage dedup: surface-level (exact and near-exact matches) followed by semantic (same concept, different wording).
 
-### Generating 3,347 gap-fill prompts
+![Deduplication funnel showing MinHash removing surface duplicates and FAISS semantic clustering removing paraphrases](/images/ladd-data-pipeline/dedup_funnel.svg)
 
-Four parallel Claude subagents generated prompts to fill every cell to a minimum of 50. Each agent handled a group of subjects with exact per-cell quotas, style keyword requirements, and camera angle distributions.
+### Stage 1: MinHash LSH (surface dedup)
 
-### The length problem
+**MinHash with Locality-Sensitive Hashing** catches near-identical text efficiently. Each prompt is **shingled** (split into overlapping character n-grams), hashed into a 128-permutation MinHash signature, and grouped by LSH bands. Pairs with Jaccard similarity above 0.7 are flagged as duplicates; the higher-quality version is kept (scored by word count sweet spot, source quality prior, and visual keyword density).
 
-The generated prompts averaged only 14 words. Without explicit length targets, LLMs default to concise outputs: *"3D render of a crystal goblet on marble"* when we need *"3D render of an ornate crystal goblet with diamond-cut facets sitting on a polished white marble table, warm amber spotlight casting long shadows, dark moody background with subtle fog, octane render, 8K detail."*
+| Input | Output | Removed | Time |
+|------:|-------:|--------:|-----:|
+| 970,030 | 767,995 | 202,035 (20.8%) | ~37 min |
 
-Four more subagents expanded each prompt to 30-40 words by adding concrete visual details --- colors, materials, textures, lighting, atmosphere, composition --- while preserving the original subject and style classification.
+DiffusionDB alone went from 300K to 151K --- half its prompts were near-duplicates.
 
----
+### Stage 2: Semantic dedup (FAISS clustering)
 
-## 5. Balancing the Length Distribution
+MinHash misses paraphrases: *"a cute cat watching a movie in a cinema"* and *"an adorable cat sitting in a movie theater"* have low surface overlap but describe the same scene. Semantic dedup catches these.
 
-With benchmark prompts (many short) and gap-fill prompts (now 30-40 words) combined, the word count distribution was bimodal: a spike at 10-20 words and a long tail past 50.
+We embed all 768K surviving prompts with `all-MiniLM-L6-v2` via raw PyTorch (not `sentence-transformers`, which was 5x slower due to internal preprocessing overhead). Then FAISS k-means clusters the embeddings into 876 groups ($\approx\sqrt{N}$), and within each cluster, pairs with cosine similarity above 0.90 are deduplicated.
 
-![Before and after comparison of word count distribution, showing bimodal distribution becoming bell-shaped after stratified resampling](/images/ladd-data-pipeline/length_balancing.svg)
+| Input | Output | Removed | Time |
+|------:|-------:|--------:|-----:|
+| 767,995 | 630,099 | 137,896 (18.0%) | ~2.8 hours (embedding) + ~3 min (clustering) |
 
-### Why not random rejection?
+The 0.90 cosine threshold was chosen to catch same-scene paraphrases while preserving same-subject-different-scene diversity. At 0.85 it was too aggressive --- *"a cat in a cinema"* and *"a kitten watching TV on a couch"* are different training signals.
 
-The naive approach --- Gaussian acceptance sampling, where each prompt has a probability of being kept based on its word count --- destroys sparse cells. A Subject x Style cell with exactly 50 prompts (all short) loses 40 of them to the length filter, breaking coverage.
-
-### Stratified resampling
-
-The solution preserves coverage while reshaping the distribution:
-
-1. **Hard cutoffs**: drop English prompts with fewer than 10 or more than 80 words. Chinese prompts are unaffected (they use characters, not whitespace-delimited words).
-2. **Per-cell stratified keep**: for each Subject x Style cell, guarantee a minimum of 30 prompts. In cells with surplus, preferentially keep longer prompts by sorting by word count and retaining the top half.
-3. **MJHQ mid-range fill**: add 5,000 MJHQ prompts in the 25-50 word range to build the center of the bell curve.
-
-### Why not keep everything?
-
-With all 30K MJHQ prompts included, the dataset balloons to 40K --- but MJHQ dominates at 73%. The student would effectively train on Midjourney-style prompts with benchmark prompts as noise. Controlled sampling maintains source diversity.
+**Total dedup: 970K → 630K (35% removed)** in about 3.5 hours on CPU. After balance enforcement (Section 5), the final count is 629,443. With duplicates removed, the next challenge is ensuring these 630K prompts are correctly classified across the taxonomy.
 
 ---
 
-## 6. The Final Pipeline
+## 4. Classification: From Keywords to Hybrid
 
-The dataset is built with a single configurable command:
+Every prompt needs classification into a **MECE (Mutually Exclusive, Collectively Exhaustive) taxonomy** (14 Subjects x 7 Styles x 8 Cameras) to measure and enforce coverage. This went through three iterations, each fixing failures revealed by the previous one.
 
-```bash
-python data/build_dataset.py --sample mjhq=15000 --balance-lengths
+![Side-by-side comparison of keyword matching versus semantic classification, showing how keyword matching misclassifies a portrait prompt as Fashion while semantic understanding correctly identifies People as the primary subject](/images/ladd-data-pipeline/classification_comparison.svg)
+
+### Attempt 1: Keyword matching
+
+The first classifier matched keywords against category dictionaries. It failed predictably:
+
+- *"A woman wearing a red dress in a garden"* → hits "dress" → **Fashion (S9)** instead of People (S1)
+- *"The image displays a promotional flyer with a bird logo"* → hits "bird" → **Animals (S2)** instead of Text/Typography (S11)
+- 67% of prompts defaulted to Photorealistic (T1) because implicit styles don't match keyword lists
+- 10% defaulted to Objects (S10) as a catch-all
+
+Keywords are high-precision when they match the right thing, but low-recall --- most prompts don't contain the right keywords, and many contain misleading ones.
+
+### Attempt 2: Zero-shot embedding fallback
+
+The fix: use keywords as a first pass, and fall back to **zero-shot embedding similarity** when keywords return the default label. Each category gets 3-6 natural language descriptions (e.g., S2/Animals: "an animal, dog, cat, bird, wildlife, pet"), embedded with `all-MiniLM-L6-v2` and averaged into label centroids. Unmatched prompts are assigned to the nearest centroid by cosine similarity.
+
+Three problems emerged:
+
+**Close-call reclassification.** Without a confidence threshold, zero-shot reclassifies on differences of 0.01 cosine similarity --- essentially random. Fix: a **margin threshold of 0.05** --- zero-shot must beat the default by at least 0.05 to override.
+
+**Vague categories become dumping grounds.** GraphicDesign (T6) and Mixed/Experimental (T7) have descriptions broad enough to attract any formal-register text. DenseFusion captions like "The image displays a bowl of fruit..." are semantically closer to "graphic design brief" than "casual photo description" in MiniLM's embedding space. T6 ballooned to 18.5%, T7 to 24.6%. Fix: **keyword gating** --- zero-shot can only assign T6 or T7 if the text contains explicit design/experimental keywords ("poster", "infographic", "glitch", "collage").
+
+**Weak keyword triggers.** Words like "minimal", "flat", "logo" appear in scene descriptions ("minimal wear on the surface", "flat terrain", "Volkswagen logo on the jersey") but triggered T6. Fix: treat these as **weak keywords** that only count when combined with other design signals.
+
+After these fixes, T6 dropped from 18.5% to 4.7%, T7 stabilized at 1.5%, and S10 (the default catch-all) dropped from 10.1% to 2.9%.
+
+### Attempt 3: Caption first-sentence stripping
+
+The hybrid approach still had a critical flaw: **keyword classification on full VLM captions is unreliable for ALL categories, not just defaults.** VLM-generated captions are verbose and mention many objects incidentally:
+
+- *"The image displays a green hoodie... worn by a person"* → keyword matches "person" → **S1 (People)**. Wrong --- subject is the hoodie.
+- *"The image displays a slide... about a car recall"* → keyword matches "car" → **S7 (Vehicles)**. Wrong --- subject is the slide.
+
+DenseFusion was classified 60% People by keywords. Manual inspection showed most were objects, graphics, and clothing that happened to mention a person in passing.
+
+The fix: for prompts matching the VLM pattern `"The image displays/shows/features/captures..."`, strip the prefix, extract the **first sentence only**, and classify that. VLM captions follow a consistent structure --- the first sentence names the primary subject, and subsequent sentences describe context, details, and incidental elements.
+
+Validation on 200 DenseFusion samples: People dropped from 58% to 17% (verified genuine), Animals from 26% to 1% (the keyword classifier had been matching "bird", "fish", "cat" in logos, book titles, and metaphors).
+
+Non-VLM prompts (DiffusionDB user prompts, JourneyDB Midjourney prompts) still use the standard hybrid approach since they don't have the descriptive prefix structure.
+
+---
+
+## 5. Enforcing Balance
+
+Classification alone doesn't guarantee a balanced dataset. Two additional enforcement mechanisms:
+
+### Subject percentage cap
+
+Without a cap, People (S1) dominates at 30-50% --- most image datasets are human-centric. A **15% per-subject cap** ensures the student model sees diverse content during training. Subjects exceeding the cap are randomly downsampled; small subjects keep all their prompts.
+
+### Chinese prompt minimum length
+
+Short Chinese captions (product names, single phrases) lack enough context for T2I generation. The minimum was raised from 10 to **20 characters**.
+
+### Length filtering
+
+English prompts outside the 8-200 word range are dropped. The upper bound is higher than the original 12K pipeline (which used 80) because VLM captions from DenseFusion and ShareGPT4V are naturally verbose --- and that verbosity is a feature for training prompt adherence.
+
+---
+
+## 6. The Final Dataset
+
+```
+data/train/metadata.json  — 629,443 prompts (399 MB)
+data/debug/metadata.json  — 98 prompts (1 per Subject×Style cell)
 ```
 
-This produces approximately 12,000 prompts with:
-- Mean ~35 words, median ~32
-- All 98 Subject x Style cells with at least 30 prompts
-- Balanced source representation (no single source exceeds 40%)
-- 85% English, 15% Chinese
+**Validation results:**
 
-The pipeline is fully configurable:
+| Metric | Value |
+|--------|-------|
+| Total prompts | 629,443 |
+| All 98 Subject x Style cells populated | Yes (min cell: 23) |
+| Language split | EN 97.7%, ZH 2.3% |
+| Mean EN word count | 93.0 |
+| Max source share | 31.4% (DenseFusion) |
+| Exact duplicates | 0 |
 
-| Flag | Default | Purpose |
-|------|---------|---------|
-| `--sample SOURCE=N` | all | Limit prompts per source |
-| `--min-words` | 10 | Drop short English prompts |
-| `--max-words` | 80 | Drop long English prompts |
-| `--balance-lengths` | off | Stratified resampling + MJHQ fill |
-| `--min-per-cell` | 30 | Minimum per Subject x Style cell |
-| `--subjects` | all | Filter to specific subjects |
-| `--dry-run` | off | Preview without saving |
+The mean word count (93) is higher than the original 12K dataset (35) because VLM captions from DenseFusion, ShareGPT4V, and Recap-DataComp are naturally verbose. For LADD training, this is beneficial --- long, detailed prompts stress-test the student's prompt adherence more aggressively.
 
-A local dashboard provides interactive analytics and a filterable prompt browser. Here's what the final dataset looks like:
+### Pipeline scripts
 
-**KPIs, subject distribution, and source breakdown:**
+The pipeline is five scripts, each idempotent (skip sources that already have output files):
 
-![Dashboard showing total prompts, language split, subject distribution bar chart with percentages, and source donut chart](/images/ladd-data-pipeline/02_kpi_subject_source.png)
+| Script | Purpose |
+|--------|---------|
+| `harvest.py` | Download, filter, and normalize all sources to `data/raw/*.jsonl` |
+| `dedup_minhash.py` | MinHash LSH surface dedup |
+| `dedup_semantic.py` | Embedding + FAISS clustering + pairwise semantic dedup |
+| `classify_and_sample.py` | Hybrid keyword+zero-shot classification into taxonomy |
+| `build_dataset.py` | Length filter, subject cap, validation checks, debug split |
 
-**Style and camera distributions with word count histograms:**
+### Gap to 1M
 
-![Style bar chart dominated by Photorealistic, camera distribution, English word count histogram showing bell curve, Chinese character count histogram, and top 30 word frequencies](/images/ladd-data-pipeline/03_style_camera_histograms.png)
-
-**Subject x Style coverage heatmap and average word count by source:**
-
-![Heatmap with blue intensity scaling showing all 98 cells filled, and bar charts of average word count per source and per subject](/images/ladd-data-pipeline/04_heatmap_wordcount.png)
-
-**Browsing English prompts with human-readable category tags:**
-
-![Browse tab showing prompt cards with subject, style, camera, and source tags in full text](/images/ladd-data-pipeline/05_browse_english.png)
-
-**Browsing Chinese prompts:**
-
-![Browse tab filtered to Chinese-language prompts from OneIG-ZH and generated sources](/images/ladd-data-pipeline/06_browse_chinese.png)
+We're ~370K prompts short of the original 1M target. Options: LLM generation to fill sparse cells, additional sources (COYO-700M, CC3M/CC12M, TextCaps), or accept 630K --- at batch size 256 and 10K iterations, each prompt is seen ~4 times on average, which is still viable for training.
 
 ---
 
 ## 7. Lessons Learned
 
-**Keyword classification is unreliable.** For ambiguous prompts, keyword matching misidentifies the primary subject 20-30% of the time. Semantic classification via LLM is worth the cost for datasets under 50K --- it takes minutes with parallel agents and produces dramatically better taxonomy coverage.
+### Classification
 
-**Generated prompts need explicit length targets.** When asked to "generate a prompt about X," LLMs default to 10-15 word outputs. Specifying "generate a 30-40 word prompt with specific visual details including lighting, materials, textures, and atmosphere" gets the right result.
+**Keyword classification is unreliable** for ambiguous prompts and verbose captions. Keywords are high-precision when they match correctly, but 67% of prompts fall through to defaults. Semantic classification is worth the cost for smaller datasets; at scale, a hybrid approach combines keyword precision with zero-shot recall.
 
-**Length balancing must be coverage-aware.** Random rejection sampling (Gaussian acceptance, uniform filtering) destroys sparse taxonomy cells. The fix is stratified: guarantee minimums per cell first, then reshape the distribution with the surplus.
+**Zero-shot embedding classification confuses register with content.** MiniLM places formal descriptive captions ("The image displays...") closer to design briefs than to casual photo descriptions. Pure zero-shot precision for GraphicDesign was ~50%. Domain-specific keyword gating brought it above 90%.
 
-**Source diversity matters more than volume.** 10K well-balanced prompts from 9 sources produces better training outcomes than 30K dominated by one source. Each source has different prompt characteristics --- DPG-Bench's dense paragraphs, GenEval's short compositional tests, OneIG-ZH's Chinese cultural references --- and the student needs exposure to all of them.
+**Vague categories become dumping grounds.** Any category with broad descriptions (GraphicDesign, Mixed/Experimental) will attract the long tail of ambiguous prompts. Keyword gating prevents this --- require explicit evidence before assigning to catch-all categories.
 
-**Chinese prompts need separate handling.** Word-count filters using whitespace splitting don't apply to Chinese text. CJK character detection is needed for language tagging, and character-count thresholds replace word-count thresholds for filtering.
+**Classify the primary subject, not the full text.** VLM captions mention many objects incidentally. A caption about a hoodie that mentions "worn by a person" is not a People prompt. Stripping to the first sentence fixes this for VLM-generated captions; user-written prompts don't have the problem.
+
+### Deduplication
+
+**MinHash LSH is the workhorse.** It caught 21% of duplicates in 37 minutes. Semantic dedup adds value (18% more) but takes 10x longer. If time-constrained, MinHash alone gets you 80% of the way.
+
+**`sentence-transformers` adds significant overhead on CPU.** Raw `transformers` + manual mean-pooling was 5x faster for the same model (~73 prompts/sec vs ~12/sec). The library is convenient but not built for batch throughput.
+
+### Data sourcing
+
+**HuggingFace dataset IDs are unstable.** Three of 10 datasets had wrong or outdated org names. The `datasets` library broke backward compatibility in v4.8+ --- dataset scripts with `trust_remote_code` are no longer supported. Always verify IDs and have a fallback to direct parquet or JSONL loading.
+
+**Schema mismatches across parquet shards are real.** Recap-DataComp-1B had different columns in different shards. Loading individual shards instead of the whole dataset was the workaround.
+
+### Balance
+
+**Source diversity matters more than volume.** 10K well-balanced prompts from 9 sources produces better training coverage than 30K dominated by one source.
+
+**Subject balance requires explicit enforcement.** Without a per-subject cap, People dominates at 30-50% because most image datasets are human-centric. A 15% cap ensures the student sees diverse content.
+
+**Chinese prompts need separate handling.** Word-count filters don't apply (Chinese uses characters), and CJK detection is needed for language tagging. The minimum character threshold matters --- short Chinese captions are too vague for T2I generation.
