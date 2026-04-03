@@ -18,7 +18,7 @@ math: true
 4. [Deduplication: 970K to 630K](#3-deduplication-970k-to-630k)
 5. [Classification: From Keywords to Hybrid](#4-classification-from-keywords-to-hybrid)
 6. [Enforcing Balance](#5-enforcing-balance)
-7. [The Final Dataset](#6-the-final-dataset)
+7. [The Final Dataset](#6-the-final-dataset) — Dashboard, t-SNE, Browse
 8. [Lessons Learned](#7-lessons-learned)
 
 ---
@@ -29,7 +29,7 @@ LADD (Latent Adversarial Diffusion Distillation) compresses a 50-step diffusion 
 
 This means the dataset is just a list of prompts. But "just prompts" hides real complexity: the prompts must be diverse enough that the student generalizes across content types, detailed enough to stress prompt adherence, and balanced across a taxonomy of subjects, styles, and cameras.
 
-We started with a 12K seed dataset built from T2I evaluation benchmarks --- gap-filled and length-balanced with Claude-generated prompts. That was enough to validate the pipeline, but not enough to train on: at batch size 256, the model exhausts 12K prompts in ~47 iterations and spends the rest of training recycling stale gradients. This post covers how we scaled that to **630K diverse, deduplicated, and classified prompts** by harvesting from 9 large-scale sources, running two-stage deduplication, and building a hybrid classification system that works on verbose VLM captions.
+We started with a 12K seed dataset built from T2I evaluation benchmarks --- gap-filled and length-balanced with Claude-generated prompts. That was enough to validate the pipeline, but not enough to train on: at batch size 256, the model exhausts 12K prompts in ~47 iterations and spends the rest of training recycling stale gradients. This post covers how we scaled that to **527K diverse, deduplicated, and classified prompts** by harvesting from 9 large-scale sources, running two-stage deduplication, building a hybrid classification system that works on verbose VLM captions, and applying a 15% subject cap to enforce balance.
 
 ![The full data pipeline from harvesting through deduplication, classification, and balance enforcement to the final dataset](/images/ladd-data-pipeline/pipeline_workflow.svg)
 
@@ -55,7 +55,7 @@ Neither the ADD nor LADD papers disclose exact dataset sizes, but we can back in
 | LADD conservative estimate | 10,000 | 256 | 2.5M |
 | LADD likely estimate | 10,000 | 512 | 5M |
 
-LADD samples prompts from SD3's full training set (millions of unique prompts), so repeats are rare. At 12K prompts with 10K iterations and batch size 256, each prompt would be seen ~213 times. At 630K, that drops to ~4 times --- comparable to the original paper's regime.
+LADD samples prompts from SD3's full training set (millions of unique prompts), so repeats are rare. At 12K prompts with 10K iterations and batch size 256, each prompt would be seen ~213 times. At 527K, that drops to ~5 times --- comparable to the original paper's regime.
 
 ---
 
@@ -143,7 +143,7 @@ We embed all 768K surviving prompts with `all-MiniLM-L6-v2` via raw PyTorch (not
 
 The 0.90 cosine threshold was chosen to catch same-scene paraphrases while preserving same-subject-different-scene diversity. At 0.85 it was too aggressive --- *"a cat in a cinema"* and *"a kitten watching TV on a couch"* are different training signals.
 
-**Total dedup: 970K → 630K (35% removed)** in about 3.5 hours on CPU. After balance enforcement (Section 5), the final count is 629,443. With duplicates removed, the next challenge is ensuring these 630K prompts are correctly classified across the taxonomy.
+**Total dedup: 970K → 630K (35% removed)** in about 3.5 hours on CPU. After balance enforcement (Section 5), the final count is 526,915 --- the 15% subject cap accounts for most of the additional reduction. With duplicates removed, the next challenge is ensuring these 630K prompts are correctly classified across the taxonomy.
 
 ---
 
@@ -216,7 +216,7 @@ English prompts outside the 8-200 word range are dropped. The upper bound is hig
 ## 6. The Final Dataset
 
 ```
-data/train/metadata.json  — 629,443 prompts (399 MB)
+data/train/metadata.json  — 526,915 prompts (337 MB)
 data/debug/metadata.json  — 98 prompts (1 per Subject×Style cell)
 ```
 
@@ -224,14 +224,56 @@ data/debug/metadata.json  — 98 prompts (1 per Subject×Style cell)
 
 | Metric | Value |
 |--------|-------|
-| Total prompts | 629,443 |
-| All 98 Subject x Style cells populated | Yes (min cell: 23) |
-| Language split | EN 97.7%, ZH 2.3% |
-| Mean EN word count | 93.0 |
-| Max source share | 31.4% (DenseFusion) |
+| Total prompts | 526,915 |
+| All 98 Subject x Style cells populated | Yes |
+| Language split | EN 97.8% (515,509), ZH 2.2% (11,406) |
+| Mean EN word count | 96.5 |
+| Median EN word count | 88 |
+| Categories | 14 Subjects x 7 Styles |
+| Sources | 9 |
 | Exact duplicates | 0 |
 
-The mean word count (93) is higher than the original 12K dataset (35) because VLM captions from DenseFusion, ShareGPT4V, and Recap-DataComp are naturally verbose. For LADD training, this is beneficial --- long, detailed prompts stress-test the student's prompt adherence more aggressively.
+The mean word count (96.5) is higher than the original 12K dataset (35) because VLM captions from DenseFusion, ShareGPT4V, and Recap-DataComp are naturally verbose. For LADD training, this is beneficial --- long, detailed prompts stress-test the student's prompt adherence more aggressively.
+
+### Dashboard
+
+The interactive HTML dashboard provides a complete profile of the final dataset.
+
+![KPI summary, subject distribution, and source distribution for the 527K prompt dataset](/images/ladd-data-pipeline/02_kpi_subject_source.png)
+
+People/Portraits (17.8%) and Text/Typography (14.0%) are the largest subjects. The 15% subject cap reduced People from its original 30-50% dominance; it slightly exceeds 15% in the final dataset because the cap was applied before downstream filtering (Chinese length filter, etc.) shifted the relative proportions. DenseFusion (25.3%) and recap_datacomp (22.3%) contribute the most prompts.
+
+![Style distribution, camera/angle distribution, word count histograms, and top 30 English words](/images/ladd-data-pipeline/03_style_camera_histograms.png)
+
+Photorealistic dominates style (74.6%) as expected for a general-purpose T2I model. The English word count distribution shows a bimodal pattern --- short user prompts from DiffusionDB/JourneyDB and long VLM captions from DenseFusion/ShareGPT4V.
+
+![Subject x Style heatmap showing prompt counts across all 98 taxonomy cells](/images/ladd-data-pipeline/04_heatmap_wordcount.png)
+
+The heatmap confirms all 98 cells are populated. People x Photorealistic (78,806) is the densest cell; sparse cells like Chinese Cultural x Mixed/Experimental (29) reflect genuinely rare combinations rather than classification failures.
+
+![Average word count by source and by subject](/images/ladd-data-pipeline/05_avg_wordcount.png)
+
+DenseFusion averages ~158 words per prompt --- 7x longer than DiffusionDB (~21 words). This length diversity is intentional: short prompts test basic generation quality while long prompts stress-test prompt adherence.
+
+### t-SNE Embedding Visualization
+
+To verify that the taxonomy reflects genuine semantic structure (not just keyword artifacts), we embedded 50K sampled prompts with `all-MiniLM-L6-v2` and projected them to 2D with t-SNE.
+
+![t-SNE visualization of prompt embeddings colored by subject (left) and style (right)](/images/ladd-data-pipeline/06_tsne_embeddings.png)
+
+The subject view (left) shows clear clustering --- Animals, Vehicles, Text/Typography, and Chinese Cultural form distinct islands, confirming the classifier captures real semantic boundaries. The style view (right) shows more overlap, which is expected: style is orthogonal to content and harder to separate in embedding space.
+
+### Browse & Search
+
+The dashboard includes an interactive browser for inspecting individual prompts with filtering by subject, style, camera, source, language, and word count.
+
+![Browse view: Vehicles category showing long, detailed prompts](/images/ladd-data-pipeline/07_browse_english.png)
+
+![Browse view: Vehicles filtered to very short (1-10 word) prompts](/images/ladd-data-pipeline/08_browse_english_short.png)
+
+![Browse view: Food & Beverage short prompts](/images/ladd-data-pipeline/09_browse_food.png)
+
+![Browse view: Chinese prompts filtered to 41-60 characters](/images/ladd-data-pipeline/10_browse_chinese.png)
 
 ### Pipeline scripts
 
@@ -247,7 +289,7 @@ The pipeline is five scripts, each idempotent (skip sources that already have ou
 
 ### Gap to 1M
 
-We're ~370K prompts short of the original 1M target. Options: LLM generation to fill sparse cells, additional sources (COYO-700M, CC3M/CC12M, TextCaps), or accept 630K --- at batch size 256 and 10K iterations, each prompt is seen ~4 times on average, which is still viable for training.
+We're ~470K prompts short of the original 1M target. Options: LLM generation to fill sparse cells, additional sources (COYO-700M, CC3M/CC12M, TextCaps), or accept 527K --- at batch size 256 and 10K iterations, each prompt is seen ~5 times on average, which is still viable for training.
 
 ---
 
