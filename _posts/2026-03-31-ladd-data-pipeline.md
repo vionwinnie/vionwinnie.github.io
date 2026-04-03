@@ -20,6 +20,7 @@ math: true
 6. [Enforcing Balance](#5-enforcing-balance)
 7. [The Final Dataset](#6-the-final-dataset) — Dashboard, t-SNE, Browse
 8. [Lessons Learned](#7-lessons-learned)
+9. [Appendix: Download Reality vs. Documentation](#appendix-download-reality-vs-documentation)
 
 ---
 
@@ -99,18 +100,6 @@ To reach training scale, we harvested from 8 additional large-scale sources plus
 
 **AnyText-3M** was planned but had been removed from HuggingFace.
 
-### Download reality vs. documentation
-
-Half the datasets required workarounds that weren't in any README:
-
-- **DiffusionDB**: dataset script no longer supported by `datasets` v4.8+; loaded `metadata-large.parquet` directly
-- **Recap-DataComp-1B**: different parquet shards have different column schemas; loading individual shards bypasses the `CastError`
-- **DenseFusion-1M**: the plan had the wrong HuggingFace org (`DenseFusion/` → actually `BAAI/`), and required the config name `"DenseFusion-1M"`
-- **ShareGPT4V-PT**: config `"ShareGPT4V-PT"` doesn't exist; the default loads the 1.2M PT set as multi-turn conversations; prompts are the assistant's first reply
-- **JourneyDB**: gated and can't stream; downloaded `train_anno.jsonl.tgz` via `hf_hub_download` and extracted locally
-- **DOCCI**: `trust_remote_code` rejected by modern `datasets`; downloaded JSONL directly from Google Cloud Storage
-- **Wukong**: `noah-wukong/wukong` returns 404; `wanng/wukong100m` has the captions
-
 Quality filters applied per-prompt: minimum 8 English words or 15 Chinese characters, maximum 200 words, fewer than 2 URLs, no boilerplate strings ("stock photo", "getty images"), at least 70% alphabetic characters. Cross-source exact dedup removed only 64 prompts --- almost no verbatim overlap between sources. But exact matching only catches identical strings; the real redundancy is semantic.
 
 ---
@@ -124,6 +113,31 @@ Quality filters applied per-prompt: minimum 8 English words or 15 Chinese charac
 ### Stage 1: MinHash LSH (surface dedup)
 
 **MinHash with Locality-Sensitive Hashing** catches near-identical text efficiently. Each prompt is **shingled** (split into overlapping character n-grams), hashed into a 128-permutation MinHash signature, and grouped by LSH bands. Pairs with Jaccard similarity above 0.7 are flagged as duplicates; the higher-quality version is kept (scored by word count sweet spot, source quality prior, and visual keyword density).
+
+**Worked example.** Consider two DiffusionDB prompts that differ only in generation parameters:
+
+> **A:** *"a majestic wolf standing on a cliff at sunset, digital art, highly detailed"*
+> **B:** *"a majestic wolf standing on a cliff at sunset, digital art, highly detailed, 4k"*
+
+**Step 1 --- Shingling.** Split each prompt into overlapping 3-character shingles (trigrams):
+
+```
+A shingles: {"a m", " ma", "maj", "aje", "jes", "est", "sti", "tic", ...}
+B shingles: {"a m", " ma", "maj", "aje", "jes", "est", "sti", "tic", ..., " 4k"}
+```
+
+A produces 64 shingles, B produces 68. They share 64 shingles --- B just adds the ones covering `", 4k"`.
+
+**Step 2 --- MinHash signature.** Apply 128 independent hash functions to each shingle set. For each hash function, record the *minimum* hash value across all shingles. This compresses each set into a fixed-length signature of 128 integers. Two sets with high overlap will produce similar signatures, because the minimum hash value is likely to come from a shared shingle.
+
+```
+sig(A) = [14, 83, 7, 241, ...]   (128 values)
+sig(B) = [14, 83, 7, 241, ...]   (mostly identical)
+```
+
+**Step 3 --- LSH banding.** Split each 128-value signature into bands (e.g., 16 bands of 8 values). If *any* band is identical between two prompts, they become **candidates** for comparison. This avoids comparing all $O(N^2)$ pairs --- only prompts that land in the same LSH bucket are checked.
+
+**Step 4 --- Jaccard estimation.** For candidate pairs, estimate Jaccard similarity as the fraction of signature positions that match: $J \approx \frac{\text{matching positions}}{128}$. A and B match on ~120/128 positions → $J \approx 0.94$, well above the 0.7 threshold. They're flagged as duplicates, and the quality scorer picks A (B's extra `", 4k"` adds no semantic value).
 
 | Input | Output | Removed | Time |
 |------:|-------:|--------:|-----:|
@@ -324,3 +338,17 @@ We're ~470K prompts short of the original 1M target. Options: LLM generation to 
 **Subject balance requires explicit enforcement.** Without a per-subject cap, People dominates at 30-50% because most image datasets are human-centric. A 15% cap ensures the student sees diverse content.
 
 **Chinese prompts need separate handling.** Word-count filters don't apply (Chinese uses characters), and CJK detection is needed for language tagging. The minimum character threshold matters --- short Chinese captions are too vague for T2I generation.
+
+---
+
+## Appendix: Download Reality vs. Documentation
+
+Half the datasets required workarounds that weren't in any README:
+
+- **DiffusionDB**: dataset script no longer supported by `datasets` v4.8+; loaded `metadata-large.parquet` directly
+- **Recap-DataComp-1B**: different parquet shards have different column schemas; loading individual shards bypasses the `CastError`
+- **DenseFusion-1M**: the plan had the wrong HuggingFace org (`DenseFusion/` → actually `BAAI/`), and required the config name `"DenseFusion-1M"`
+- **ShareGPT4V-PT**: config `"ShareGPT4V-PT"` doesn't exist; the default loads the 1.2M PT set as multi-turn conversations; prompts are the assistant's first reply
+- **JourneyDB**: gated and can't stream; downloaded `train_anno.jsonl.tgz` via `hf_hub_download` and extracted locally
+- **DOCCI**: `trust_remote_code` rejected by modern `datasets`; downloaded JSONL directly from Google Cloud Storage
+- **Wukong**: `noah-wukong/wukong` returns 404; `wanng/wukong100m` has the captions
