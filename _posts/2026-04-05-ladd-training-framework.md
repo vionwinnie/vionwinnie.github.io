@@ -333,6 +333,24 @@ DISC_LAYER_INDICES = [5, 10, 15, 20, 25, 29]  # 6 of 30 teacher layers
 
 ## 6. Results: 4 Steps vs 50 Steps
 
+### Student vs Teacher: visual comparison
+
+Here's what the student produces at 4 steps compared to the teacher at 50 steps (CFG=5). These images are pulled directly from our W&B eval runs.
+
+**Prompt: "The image captures a dynamic scene at a bullfighting arena..."**
+
+| Teacher (50 steps, CFG=5) | Student (4 steps, 500 train steps) | Student (4 steps, 2000 train steps) |
+|:---:|:---:|:---:|
+| ![Teacher reference — bullfighting arena](/images/ladd-training-framework/teacher_ref_row0.png) | ![Student at 500 training steps — bullfighting arena](/images/ladd-training-framework/student_500steps_row0.png) | ![Student at 2000 training steps — bullfighting arena](/images/ladd-training-framework/student_2000steps_row0.png) |
+
+**Prompt: "cyberpunk birthday party with robots, androids and flamenco guitarist watching mars sunset..."**
+
+| Teacher (50 steps, CFG=5) | Student (4 steps, 500 train steps) | Student (4 steps, 2000 train steps) |
+|:---:|:---:|:---:|
+| ![Teacher reference — cyberpunk party](/images/ladd-training-framework/teacher_ref_row10.png) | ![Student at 500 training steps — cyberpunk party](/images/ladd-training-framework/student_500steps_row10.png) | ![Student at 2000 training steps — cyberpunk party](/images/ladd-training-framework/student_2000steps_row10.png) |
+
+The student outputs are still far from the teacher — blurry with no discernible structure. This is expected: 500-2000 steps with batch_size=1 on 98 prompts is barely scratching the surface. The LADD paper uses 50K-200K steps with large batch sizes. The production 8-GPU run (20K steps, effective batch 64) should close this gap significantly.
+
 ### Training progression
 
 We tracked KID against 416 teacher-generated reference images (CFG=5, corrected scheduler) at different training checkpoints:
@@ -491,6 +509,16 @@ With 50 inference steps, the scheduler's smallest sigma was 0.109 instead of rea
 #### Bug 2: Teacher images generated without CFG
 
 The [`precompute_fid_reference.py`](https://github.com/vionwinnie/Z-Image-LADD-distillation/blob/main/scripts/precompute_fid_reference.py) script generated teacher reference images with `guidance_scale=0`. The Z-Image model requires CFG (~5.0) for sharp, well-composed images. Without it, outputs were unconditional-like and lacked detail. On top of that, TeaCache was enabled (`teacache_thresh=0.5`), skipping 75% of transformer computations for speed at the cost of further quality degradation.
+
+The difference is stark — here's the same prompt rendered with CFG=0 vs CFG=5 (from our W&B [`debug-teacher-cfg-sweep`](https://wandb.ai/yeun-yeungs/ladd/runs/mg6h6a9f) run):
+
+**Prompt: "Two wine bottles with green glass and white labels..."**
+
+| CFG=0 (no guidance) | CFG=3 | CFG=5 (selected) |
+|:---:|:---:|:---:|
+| ![Teacher output with no CFG — washed out, missing detail](/images/ladd-training-framework/teacher_cfg0.0_row5.png) | ![Teacher output with CFG=3 — improved but still soft](/images/ladd-training-framework/teacher_cfg3.0_row5.png) | ![Teacher output with CFG=5 — sharp labels, correct colors](/images/ladd-training-framework/teacher_cfg5.0_row5.png) |
+
+Without CFG, the labels are illegible smudges. With CFG=5, the text is crisp and the bottle shapes are well-defined. We were evaluating our student against the left image — no wonder the KID numbers looked deceptively good.
 
 #### Bug 3: Student input was pure noise regardless of timestep
 
