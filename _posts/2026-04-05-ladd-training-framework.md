@@ -257,7 +257,36 @@ At $t = 1.0$, the student starts from pure noise — this is the hardest case an
 
 ## 5. Hyperparameter Experiments
 
-We ran two rounds of sweeps — one before and one after discovering 5 critical bugs in the training pipeline (more on that in [Section 8](#8-the-hard-lessons-blunders--principles)). All experiments: 500 steps, 512px, debug split (98 prompts), single A100 80GB.
+### The autoresearch setup
+
+For hyperparameter tuning, we took inspiration from Andrej Karpathy's [autoresearch](https://x.com/karpathy/status/1884338155553030590) concept — have an AI agent run experiments autonomously overnight. We built a lightweight framework around this idea:
+
+- [`research/experiment.py`](https://github.com/vionwinnie/Z-Image-LADD-distillation/blob/main/research/experiment.py) — the **only file the agent modifies**. Hyperparameters are constants at the top; the script generates a bash command, trains, evaluates, and logs to W&B.
+- [`research/program.md`](https://github.com/vionwinnie/Z-Image-LADD-distillation/blob/main/research/program.md) — agent instructions: read prior results, propose the next experiment, modify `experiment.py`, run it, record the result, repeat.
+- [`research/results.tsv`](https://github.com/vionwinnie/Z-Image-LADD-distillation/blob/main/research/results.tsv) — experiment log (commit hash, KID, VRAM, status, description).
+
+Each experiment ran 500 steps on a single A100 80GB (the debug split: 98 prompts, 512px). The agent ran autonomously for ~8 hours overnight, completing 21 experiments across two rounds.
+
+### What we tuned (and in what order)
+
+LADD has several hyperparameters that interact in non-obvious ways. Here's what each one controls:
+
+| Hyperparameter | What it controls | Default | Why it matters |
+|---------------|-----------------|:-------:|----------------|
+| `student_lr` | Student optimizer learning rate | 5e-6 | Too high → divergence. Too low → slow learning. |
+| `disc_lr` | Discriminator learning rate | 5e-5 | Must stay ahead of student (typically 10× higher). |
+| `gen_update_interval` (GI) | Discriminator steps per student update | 5 | Controls D/G balance — the most sensitive knob. |
+| `renoise_m` | Logit-normal mean for re-noising $\hat{t}$ | 1.0 | Controls what noise level the discriminator mostly sees. Higher → more noise → harder to distinguish. |
+| `renoise_s` | Logit-normal std for re-noising $\hat{t}$ | 1.0 | Controls spread of noise levels. Wider → more diversity in discriminator feedback. |
+| `disc_layer_indices` | Which teacher layers get discriminator heads | [5,10,15,20,25,29] | Determines which abstraction levels are supervised. |
+| `disc_hidden_dim` | Hidden dimension per discriminator head | 256 | Controls head capacity — too large → overfitting, too small → underfitting. |
+
+We tuned them in this order, each time fixing the best value and moving on:
+
+1. **Learning rates** (student_lr, disc_lr) — establish stable training dynamics first
+2. **Generator update interval** (GI) — the D/G balance knob with the most impact
+3. **Noise schedule** (renoise_m, renoise_s) — controls discriminator's operating point
+4. **Discriminator architecture** (layer_indices, hidden_dim) — structural choices, tuned last
 
 ### Round 1: Pre-fix sweep (broken pipeline)
 
