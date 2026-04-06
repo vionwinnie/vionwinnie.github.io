@@ -542,7 +542,7 @@ At step 0 the student (initialized from teacher weights) produces recognizable i
 |:---:|:---:|:---:|:---:|
 | ![Teacher — psychedelic room](/images/ladd-training-framework/fullrun_teacher_row30.png) | ![Student step 0 — psychedelic room](/images/ladd-training-framework/fullrun_step_0_student_row30.png) | ![Student step 2000 — collapsed to noise](/images/ladd-training-framework/fullrun_step_2000_student_row30.png) | ![Student step 4000 — same noise pattern](/images/ladd-training-framework/fullrun_step_4000_student_row30.png) |
 
-Every prompt produces the same speckled noise. The KID at step 4000: **0.593** — catastrophically high (our single-GPU experiments scored 0.06).
+Every prompt produces the same speckled noise. The KID at step 4000: **0.593** — catastrophically high. For reference, the untrained student (teacher weights, zero LADD training) scores KID = 0.069. Training didn't just fail to improve — it made the model **8.6× worse** than not training at all.
 
 ### Diagnosing from W&B
 
@@ -765,7 +765,9 @@ The code is open source at [github.com/vionwinnie/Z-Image-LADD-distillation](htt
 
 After the first full run collapsed ([Section 8](#8-the-first-full-run-mode-collapse-at-scale)), we ran a second round of experiments specifically targeting discriminator dominance. The goal: find hyperparameters that prevent mode collapse on the full 10K dataset. Reference untrained KID: **0.0689** (anything above means training made things worse).
 
-The Phase 1 sweep results (debug split, 98 prompts) are covered in [Section 5](#5-hyperparameter-experiments). This appendix covers **Phase 2** — the anti-collapse sweep run after the production failure, using a fresh evaluation setup with corrected teacher images (KID ~10× higher than Phase 1, not directly comparable):
+The Phase 1 sweep results (debug split, 98 prompts) are covered in [Section 5](#5-hyperparameter-experiments). For reference, the **untrained student** (teacher weights, no LADD training at all) has **KID = 0.0689 ± 0.0067** at 4 inference steps. Any KID above this means training actively made things worse.
+
+This appendix covers **Phase 2** — the anti-collapse sweep run after the production failure, using a fresh evaluation setup with corrected teacher images:
 
 | Run | Config | KID | Verdict |
 |:----|:-------|:---:|:--------|
