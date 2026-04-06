@@ -722,6 +722,21 @@ Several of our bugs were only caught because we logged the right things to W&B �
 
 > **Principle: Log intermediate representations, not just scalar metrics.** Scalars like KID and d_loss tell you _that_ something is wrong; images and tensors tell you _what_. At minimum, log: teacher outputs at step 0, student predictions every N steps, input $x_t$ at different timesteps, and scheduler sigma schedules. A 5-minute W&B setup saves days of blind debugging.
 
+### Theme 5: Debug slices lie — what works at small scale can break at full scale
+
+All 21 hyperparameter experiments ran on a 98-prompt debug slice with `train_batch_size=1` on a single GPU. The sweep converged, KID improved, the architecture was validated. We were confident.
+
+Then we launched the full 8-GPU run with 10K prompts — and the student collapsed into noise within 2000 steps ([Section 8](#8-the-first-full-run-mode-collapse-at-scale)).
+
+The debug slice succeeded for the wrong reasons:
+- **bs=1 with 98 prompts**: each prompt was seen every ~98 steps. The student effectively memorized the discriminator's feedback on specific prompts. The hinge loss saturated on individual samples, but the rapid prompt cycling created enough gradient diversity to mask the problem.
+- **Scaling to 10K prompts**: each prompt seen every ~10K steps. The student no longer cycles through familiar prompts fast enough to maintain that implicit diversity. The degenerate bs=1 hinge loss becomes the dominant dynamic, and the student drifts.
+- **Config drift**: the production run accidentally used `renoise_m=1.0` and `warmup_schedule_steps=10` instead of the validated `0.5` and `0`. The debug sweep validated one config; the production run launched a different one. No automated check caught the mismatch.
+
+The fix required increasing `train_batch_size` from 1 to 2 (so the hinge loss is non-degenerate per micro-step) and ensuring the production config exactly matched the sweep winners.
+
+> **Principle: Your debug slice is not a miniature version of your full run — it's a different problem.** Validate on the debug slice to confirm the architecture works, but expect hyperparameters to shift at full scale. At minimum: (1) test with a realistic per-GPU batch size before launching, (2) diff your production launch command against your best sweep config, and (3) add validation image logging from step 0 so you catch collapse immediately instead of discovering it hours later.
+
 ---
 
 ## 10. Summary & Next Steps
