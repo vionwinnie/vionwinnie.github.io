@@ -1,18 +1,22 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="700" height="520">
+<svg xmlns="http://www.w3.org/2000/svg" width="700" height="580">
   <defs>
     <marker id="arr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
       <path d="M0,0 L8,3 L0,6" fill="none" stroke="#555" stroke-width="1"/>
     </marker>
+    <marker id="arr-blue" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6" fill="none" stroke="#3498db" stroke-width="1"/>
+    </marker>
+    <marker id="arr-orange" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6" fill="none" stroke="#e67e22" stroke-width="1"/>
+    </marker>
     <marker id="arr-grn" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
       <path d="M0,0 L8,3 L0,6" fill="none" stroke="#27ae60" stroke-width="1"/>
     </marker>
-    <!-- Noise pattern -->
     <pattern id="noise" width="4" height="4" patternUnits="userSpaceOnUse">
       <rect width="4" height="4" fill="#ddd"/>
       <rect x="0" y="0" width="2" height="2" fill="#bbb"/>
       <rect x="2" y="2" width="2" height="2" fill="#bbb"/>
     </pattern>
-    <!-- Faded noise pattern (partially denoised) -->
     <pattern id="noise-light" width="4" height="4" patternUnits="userSpaceOnUse">
       <rect width="4" height="4" fill="#e8e8e8"/>
       <rect x="0" y="0" width="2" height="2" fill="#ddd"/>
@@ -23,211 +27,196 @@
   <!-- Title -->
   <text x="350" y="22" font-size="14" fill="#333" font-weight="bold" text-anchor="middle">LADD Training Pipeline</text>
 
-  <!-- STAGE 1: Offline Synthetic Data Generation with Teacher -->
-  <rect x="8" y="38" width="218" height="172" rx="4" fill="none" stroke="#e67e22" stroke-width="1" stroke-dasharray="5,3" opacity="0.5"/>
-  <text x="117" y="54" font-size="10" fill="#e67e22" font-weight="bold" text-anchor="middle">Stage 1: Offline Precompute</text>
+  <!-- STAGE 1 boundary -->
+  <rect x="10" y="36" width="250" height="130" rx="6" fill="none" stroke="#e67e22" stroke-width="1.2" stroke-dasharray="5,3" opacity="0.5"/>
+  <text x="135" y="50" font-size="10" fill="#e67e22" font-weight="bold" text-anchor="middle">Stage 1: Offline Precompute</text>
 
-  <!-- Noise input -->
-  <rect x="18" y="72" width="48" height="48" rx="2" fill="url(#noise)" stroke="#999" stroke-width="1"/>
-  <text x="42" y="134" font-size="8" fill="#666" text-anchor="middle">noise ε</text>
+  <!-- Noise box -->
+  <rect x="22" y="64" width="40" height="40" rx="2" fill="url(#noise)" stroke="#999" stroke-width="1"/>
+  <text x="42" y="118" font-size="8" fill="#666" text-anchor="middle">noise</text>
 
-  <!-- Arrow noise → Teacher -->
-  <line x1="66" y1="96" x2="80" y2="96" stroke="#555" stroke-width="1" marker-end="url(#arr)"/>
+  <!-- Arrow noise to Teacher -->
+  <line x1="62" y1="84" x2="78" y2="84" stroke="#555" stroke-width="1" marker-end="url(#arr)"/>
 
-  <!-- Teacher (Stage 1) -->
-  <rect x="82" y="72" width="60" height="48" rx="4" fill="rgba(230,126,34,0.12)" stroke="#e67e22" stroke-width="1.5"/>
-  <text x="112" y="92" font-size="9" fill="#333" font-weight="bold" text-anchor="middle">Teacher</text>
-  <text x="112" y="104" font-size="8" fill="#e67e22" text-anchor="middle">50 steps</text>
-  <!-- Frozen badge -->
-  <rect x="126" y="72" width="16" height="12" rx="2" fill="rgba(52,152,219,0.15)" stroke="#3498db" stroke-width="0.8"/>
-  <text x="134" y="81" font-size="7" fill="#3498db" text-anchor="middle" font-weight="bold">F</text>
+  <!-- Teacher box -->
+  <rect x="80" y="64" width="60" height="40" rx="4" fill="rgba(230,126,34,0.12)" stroke="#e67e22" stroke-width="1.5"/>
+  <text x="110" y="80" font-size="9" fill="#333" font-weight="bold" text-anchor="middle">Teacher</text>
+  <text x="110" y="92" font-size="8" fill="#e67e22" text-anchor="middle">50 steps</text>
+  <!-- F badge -->
+  <rect x="128" y="58" width="14" height="12" rx="2" fill="#e8f4fd" stroke="#3498db" stroke-width="0.8"/>
+  <text x="135" y="67" font-size="7" fill="#3498db" text-anchor="middle" font-weight="bold">F</text>
 
-  <!-- Arrow Teacher → clean image -->
-  <line x1="142" y1="96" x2="156" y2="96" stroke="#555" stroke-width="1" marker-end="url(#arr)"/>
+  <!-- Arrow Teacher to x0 -->
+  <line x1="140" y1="84" x2="156" y2="84" stroke="#555" stroke-width="1" marker-end="url(#arr)"/>
 
-  <!-- Clean image x₀ (teacher output) -->
-  <rect x="158" y="72" width="48" height="48" rx="2" fill="rgba(39,174,96,0.15)" stroke="#27ae60" stroke-width="1.5"/>
-  <text x="182" y="92" font-size="9" fill="#333" font-weight="bold" text-anchor="middle">x₀</text>
-  <text x="182" y="104" font-size="8" fill="#27ae60" text-anchor="middle">CFG=5</text>
-  <text x="182" y="134" font-size="8" fill="#666" text-anchor="middle">teacher x₀</text>
+  <!-- Clean x0 box -->
+  <rect x="158" y="64" width="44" height="40" rx="2" fill="rgba(39,174,96,0.15)" stroke="#27ae60" stroke-width="1.5"/>
+  <text x="180" y="82" font-size="10" fill="#333" font-weight="bold" text-anchor="middle">x&#x2080;</text>
+  <text x="180" y="94" font-size="7" fill="#27ae60" text-anchor="middle">CFG=5</text>
+  <text x="180" y="118" font-size="8" fill="#666" text-anchor="middle">teacher latent</text>
 
-  <!-- Text encoder label below stage 1 -->
-  <rect x="18" y="150" width="90" height="28" rx="4" fill="rgba(155,89,182,0.08)" stroke="#9b59b6" stroke-width="1"/>
-  <text x="63" y="163" font-size="8" fill="#333" font-weight="bold" text-anchor="middle">Qwen3 Text Enc.</text>
-  <text x="63" y="173" font-size="7" fill="#666" text-anchor="middle">prompt → embeds</text>
-  <rect x="100" y="154" width="16" height="12" rx="2" fill="rgba(52,152,219,0.15)" stroke="#3498db" stroke-width="0.8"/>
-  <text x="108" y="163" font-size="7" fill="#3498db" text-anchor="middle" font-weight="bold">F</text>
+  <!-- Text encoder below -->
+  <rect x="22" y="132" width="88" height="24" rx="4" fill="rgba(155,89,182,0.08)" stroke="#9b59b6" stroke-width="1"/>
+  <text x="66" y="148" font-size="8" fill="#9b59b6" text-anchor="middle">Qwen3 Text Enc. (F)</text>
 
-  <!-- Arrow text enc → teacher -->
-  <line x1="108" y1="158" x2="112" y2="125" stroke="#555" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arr)"/>
+  <!-- STAGE 2 boundary -->
+  <rect x="270" y="36" width="260" height="130" rx="6" fill="none" stroke="#3498db" stroke-width="1.2" stroke-dasharray="5,3" opacity="0.5"/>
+  <text x="400" y="50" font-size="10" fill="#3498db" font-weight="bold" text-anchor="middle">Stage 2: Student Prediction</text>
 
-  <!-- STAGE 2: Student Prediction -->
-  <rect x="232" y="38" width="218" height="172" rx="4" fill="none" stroke="#3498db" stroke-width="1" stroke-dasharray="5,3" opacity="0.5"/>
-  <text x="341" y="54" font-size="10" fill="#3498db" font-weight="bold" text-anchor="middle">Stage 2: Student Prediction</text>
+  <!-- Arrow x0 to plus -->
+  <line x1="202" y1="84" x2="290" y2="84" stroke="#555" stroke-width="1"/>
 
-  <!-- Noisy input x_t -->
-  <rect x="242" y="72" width="48" height="48" rx="2" fill="url(#noise-light)" stroke="#999" stroke-width="1"/>
-  <text x="266" y="93" font-size="8" fill="#333" font-weight="bold" text-anchor="middle">x_t</text>
-  <text x="266" y="134" font-size="7" fill="#666" text-anchor="middle">(1-t)x₀ + tε</text>
+  <!-- Plus circle -->
+  <circle cx="300" cy="84" r="10" fill="white" stroke="#555" stroke-width="1"/>
+  <text x="300" y="88" font-size="12" fill="#555" text-anchor="middle">+</text>
+  <text x="300" y="70" font-size="7" fill="#666" text-anchor="middle">add noise t</text>
 
-  <!-- Arrow from Stage 1 x₀ to x_t creation -->
-  <line x1="206" y1="96" x2="240" y2="96" stroke="#555" stroke-width="1" marker-end="url(#arr)"/>
+  <!-- Arrow plus to x_t -->
+  <line x1="310" y1="84" x2="326" y2="84" stroke="#555" stroke-width="1" marker-end="url(#arr)"/>
 
-  <!-- ⊕ symbol between stages -->
-  <circle cx="224" cy="96" r="8" fill="white" stroke="#555" stroke-width="1"/>
-  <text x="224" y="100" font-size="10" fill="#555" text-anchor="middle">+</text>
+  <!-- x_t box -->
+  <rect x="328" y="64" width="40" height="40" rx="2" fill="url(#noise-light)" stroke="#999" stroke-width="1"/>
+  <text x="348" y="87" font-size="9" fill="#333" font-weight="bold" text-anchor="middle">x_t</text>
+  <text x="348" y="118" font-size="7" fill="#666" text-anchor="middle">(1-t)x&#x2080;+t&#x3B5;</text>
 
-  <!-- Arrow x_t → Student -->
-  <line x1="290" y1="96" x2="306" y2="96" stroke="#555" stroke-width="1" marker-end="url(#arr)"/>
+  <!-- Arrow x_t to Student -->
+  <line x1="368" y1="84" x2="384" y2="84" stroke="#555" stroke-width="1" marker-end="url(#arr)"/>
 
-  <!-- Student -->
-  <rect x="308" y="68" width="64" height="56" rx="4" fill="rgba(52,152,219,0.12)" stroke="#3498db" stroke-width="2"/>
-  <text x="340" y="88" font-size="9" fill="#333" font-weight="bold" text-anchor="middle">Student</text>
-  <text x="340" y="100" font-size="8" fill="#3498db" text-anchor="middle">6.15B</text>
-  <text x="340" y="112" font-size="8" fill="#666" text-anchor="middle">v_θ → x̂₀</text>
-  <!-- Trainable badge -->
-  <rect x="358" y="70" width="16" height="12" rx="2" fill="rgba(231,76,60,0.15)" stroke="#e74c3c" stroke-width="0.8"/>
-  <text x="366" y="79" font-size="7" fill="#e74c3c" text-anchor="middle" font-weight="bold">T</text>
+  <!-- Student box -->
+  <rect x="386" y="60" width="68" height="48" rx="4" fill="rgba(52,152,219,0.12)" stroke="#3498db" stroke-width="2"/>
+  <text x="420" y="78" font-size="9" fill="#333" font-weight="bold" text-anchor="middle">Student</text>
+  <text x="420" y="90" font-size="8" fill="#3498db" text-anchor="middle">6.15B</text>
+  <text x="420" y="101" font-size="7" fill="#666" text-anchor="middle">velocity v&#x3B8;</text>
+  <!-- T badge -->
+  <rect x="442" y="54" width="14" height="12" rx="2" fill="#fde8e8" stroke="#e74c3c" stroke-width="0.8"/>
+  <text x="449" y="63" font-size="7" fill="#e74c3c" text-anchor="middle" font-weight="bold">T</text>
 
-  <!-- Arrow Student → denoised prediction -->
-  <line x1="372" y1="96" x2="388" y2="96" stroke="#555" stroke-width="1" marker-end="url(#arr)"/>
+  <!-- Arrow Student to x0hat -->
+  <line x1="454" y1="84" x2="470" y2="84" stroke="#555" stroke-width="1" marker-end="url(#arr)"/>
 
-  <!-- Student's denoised prediction x̂₀ -->
-  <rect x="390" y="72" width="48" height="48" rx="2" fill="rgba(52,152,219,0.1)" stroke="#3498db" stroke-width="1.5"/>
-  <text x="414" y="92" font-size="9" fill="#333" font-weight="bold" text-anchor="middle">x̂₀</text>
-  <text x="414" y="104" font-size="8" fill="#3498db" text-anchor="middle">4 steps</text>
-  <text x="414" y="134" font-size="8" fill="#666" text-anchor="middle">student pred</text>
+  <!-- Student prediction x0hat -->
+  <rect x="472" y="64" width="44" height="40" rx="2" fill="rgba(52,152,219,0.1)" stroke="#3498db" stroke-width="1.5"/>
+  <text x="494" y="83" font-size="10" fill="#333" font-weight="bold" text-anchor="middle">x&#x0302;&#x2080;</text>
+  <text x="494" y="95" font-size="7" fill="#3498db" text-anchor="middle">4 steps</text>
+  <text x="494" y="118" font-size="8" fill="#666" text-anchor="middle">student pred</text>
 
-  <!-- Prompt embeds arrow to student -->
-  <line x1="108" y1="164" x2="330" y2="128" stroke="#555" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arr)"/>
+  <!-- Prompt embeds dashed arrow -->
+  <line x1="110" y1="148" x2="410" y2="112" stroke="#9b59b6" stroke-width="0.8" stroke-dasharray="3,2" marker-end="url(#arr)"/>
 
-  <!-- STAGE 3: Projected GAN Loss on Teacher Features -->
-  <rect x="8" y="224" width="684" height="240" rx="4" fill="none" stroke="#e74c3c" stroke-width="1" stroke-dasharray="5,3" opacity="0.5"/>
-  <text x="350" y="242" font-size="10" fill="#e74c3c" font-weight="bold" text-anchor="middle">Stage 3: Projected GAN Loss on Teacher Features</text>
+  <!-- STAGE 3 boundary -->
+  <rect x="10" y="180" width="680" height="340" rx="6" fill="none" stroke="#e74c3c" stroke-width="1.2" stroke-dasharray="5,3" opacity="0.5"/>
+  <text x="350" y="196" font-size="10" fill="#e74c3c" font-weight="bold" text-anchor="middle">Stage 3: Projected GAN Loss on Teacher Features</text>
 
-  <!-- FAKE PATH (left side) -->
-  <text x="155" y="262" font-size="9" fill="#3498db" font-weight="bold" text-anchor="middle">Fake Path</text>
+  <!-- FAKE PATH label -->
+  <text x="130" y="218" font-size="9" fill="#3498db" font-weight="bold" text-anchor="middle">Fake Path</text>
 
-  <!-- Student x̂₀ re-noised -->
-  <rect x="30" y="272" width="48" height="48" rx="2" fill="rgba(52,152,219,0.1)" stroke="#3498db" stroke-width="1"/>
-  <text x="54" y="293" font-size="8" fill="#333" font-weight="bold" text-anchor="middle">x̂₀</text>
-  <text x="54" y="303" font-size="7" fill="#3498db" text-anchor="middle">student</text>
+  <!-- Dashed arrow from student x0hat down to fake x0hat -->
+  <path d="M494,104 L494,140 Q494,150 484,150 L60,150 Q50,150 50,160 L50,230" stroke="#3498db" stroke-width="1" fill="none" stroke-dasharray="4,2" marker-end="url(#arr-blue)"/>
 
-  <!-- ⊕ noise -->
-  <circle cx="96" cy="296" r="8" fill="white" stroke="#555" stroke-width="1"/>
-  <text x="96" y="300" font-size="10" fill="#555" text-anchor="middle">+</text>
-  <text x="96" y="281" font-size="7" fill="#666" text-anchor="middle">t̂ · ε₁</text>
+  <!-- Fake x0hat box -->
+  <rect x="30" y="232" width="40" height="40" rx="2" fill="rgba(52,152,219,0.1)" stroke="#3498db" stroke-width="1"/>
+  <text x="50" y="250" font-size="9" fill="#333" font-weight="bold" text-anchor="middle">x&#x0302;&#x2080;</text>
+  <text x="50" y="262" font-size="7" fill="#3498db" text-anchor="middle">student</text>
 
-  <!-- Arrow to re-noised fake -->
-  <line x1="78" y1="296" x2="86" y2="296" stroke="#555" stroke-width="1"/>
-  <line x1="104" y1="296" x2="118" y2="296" stroke="#555" stroke-width="1" marker-end="url(#arr)"/>
+  <!-- Plus noise circle -->
+  <circle cx="90" cy="252" r="10" fill="white" stroke="#555" stroke-width="1"/>
+  <text x="90" y="256" font-size="12" fill="#555" text-anchor="middle">+</text>
+  <text x="90" y="236" font-size="7" fill="#666" text-anchor="middle">t&#x0302; noise</text>
 
-  <!-- Re-noised fake sample -->
-  <rect x="120" y="272" width="48" height="48" rx="2" fill="url(#noise-light)" stroke="#3498db" stroke-width="1"/>
-  <text x="144" y="293" font-size="7" fill="#333" font-weight="bold" text-anchor="middle">fake</text>
-  <text x="144" y="303" font-size="7" fill="#666" text-anchor="middle">re-noised</text>
+  <line x1="70" y1="252" x2="78" y2="252" stroke="#555" stroke-width="1"/>
+  <line x1="100" y1="252" x2="116" y2="252" stroke="#555" stroke-width="1" marker-end="url(#arr)"/>
 
-  <!-- Arrow re-noised fake → Teacher -->
-  <line x1="168" y1="296" x2="206" y2="296" stroke="#555" stroke-width="1" marker-end="url(#arr)"/>
+  <!-- Fake re-noised -->
+  <rect x="118" y="232" width="44" height="40" rx="2" fill="url(#noise-light)" stroke="#3498db" stroke-width="1"/>
+  <text x="140" y="250" font-size="8" fill="#333" font-weight="bold" text-anchor="middle">fake</text>
+  <text x="140" y="262" font-size="7" fill="#666" text-anchor="middle">re-noised</text>
 
-  <!-- Arrow from stage 2 x̂₀ down to fake path -->
-  <path d="M414,120 L414,185 Q414,195 404,195 L54,195 Q44,195 44,205 L44,270" stroke="#3498db" stroke-width="1" fill="none" stroke-dasharray="4,2" marker-end="url(#arr)"/>
+  <!-- Arrow fake to teacher -->
+  <line x1="162" y1="252" x2="162" y2="310" stroke="#3498db" stroke-width="1.5" marker-end="url(#arr-blue)"/>
 
-  <!-- REAL PATH (right side, parallel) -->
-  <text x="545" y="262" font-size="9" fill="#e67e22" font-weight="bold" text-anchor="middle">Real Path</text>
+  <!-- REAL PATH label -->
+  <text x="560" y="218" font-size="9" fill="#e67e22" font-weight="bold" text-anchor="middle">Real Path</text>
 
-  <!-- Teacher x₀ -->
-  <rect x="476" y="272" width="48" height="48" rx="2" fill="rgba(39,174,96,0.15)" stroke="#27ae60" stroke-width="1"/>
-  <text x="500" y="293" font-size="8" fill="#333" font-weight="bold" text-anchor="middle">x₀</text>
-  <text x="500" y="303" font-size="7" fill="#27ae60" text-anchor="middle">teacher</text>
+  <!-- Dashed arrow from teacher x0 down to real x0 -->
+  <path d="M180,104 L180,150 Q180,160 190,160 L620,160 Q630,160 630,170 L630,230" stroke="#e67e22" stroke-width="1" fill="none" stroke-dasharray="4,2" marker-end="url(#arr-orange)"/>
 
-  <!-- ⊕ noise -->
-  <circle cx="542" cy="296" r="8" fill="white" stroke="#555" stroke-width="1"/>
-  <text x="542" y="300" font-size="10" fill="#555" text-anchor="middle">+</text>
-  <text x="542" y="281" font-size="7" fill="#666" text-anchor="middle">t̂ · ε₂</text>
+  <!-- Real x0 box -->
+  <rect x="610" y="232" width="40" height="40" rx="2" fill="rgba(39,174,96,0.15)" stroke="#27ae60" stroke-width="1"/>
+  <text x="630" y="250" font-size="9" fill="#333" font-weight="bold" text-anchor="middle">x&#x2080;</text>
+  <text x="630" y="262" font-size="7" fill="#27ae60" text-anchor="middle">teacher</text>
 
-  <!-- Arrows -->
-  <line x1="524" y1="296" x2="532" y2="296" stroke="#555" stroke-width="1"/>
-  <line x1="550" y1="296" x2="564" y2="296" stroke="#555" stroke-width="1" marker-end="url(#arr)"/>
+  <!-- Plus noise circle -->
+  <circle cx="580" cy="252" r="10" fill="white" stroke="#555" stroke-width="1"/>
+  <text x="580" y="256" font-size="12" fill="#555" text-anchor="middle">+</text>
+  <text x="580" y="236" font-size="7" fill="#666" text-anchor="middle">t&#x0302; noise</text>
 
-  <!-- Re-noised real sample -->
-  <rect x="566" y="272" width="48" height="48" rx="2" fill="url(#noise-light)" stroke="#e67e22" stroke-width="1"/>
-  <text x="590" y="293" font-size="7" fill="#333" font-weight="bold" text-anchor="middle">real</text>
-  <text x="590" y="303" font-size="7" fill="#666" text-anchor="middle">re-noised</text>
+  <line x1="600" y1="252" x2="568" y2="252" stroke="#555" stroke-width="1"/>
+  <line x1="570" y1="252" x2="554" y2="252" stroke="#555" stroke-width="1" marker-end="url(#arr)"/>
 
-  <!-- Arrow re-noised real → Teacher -->
-  <line x1="614" y1="296" x2="616" y2="296" stroke="#555" stroke-width="1"/>
-  <path d="M614,296 L640,296 Q650,296 650,306 L650,350 Q650,360 640,360 L502,360" stroke="#555" stroke-width="1" fill="none" marker-end="url(#arr)"/>
+  <!-- Real re-noised -->
+  <rect x="510" y="232" width="44" height="40" rx="2" fill="url(#noise-light)" stroke="#e67e22" stroke-width="1"/>
+  <text x="532" y="250" font-size="8" fill="#333" font-weight="bold" text-anchor="middle">real</text>
+  <text x="532" y="262" font-size="7" fill="#666" text-anchor="middle">re-noised</text>
 
-  <!-- Arrow from stage 1 x₀ down to real path -->
-  <path d="M182,120 L182,195 Q182,205 192,205 L490,205 Q500,205 500,215 L500,270" stroke="#e67e22" stroke-width="1" fill="none" stroke-dasharray="4,2" marker-end="url(#arr)"/>
+  <!-- Arrow real to teacher -->
+  <line x1="532" y1="272" x2="532" y2="310" stroke="#e67e22" stroke-width="1.5" marker-end="url(#arr-orange)"/>
+  <text x="570" y="300" font-size="8" fill="#e74c3c" font-weight="bold">no_grad</text>
 
-  <!-- TEACHER (center, receives both paths) -->
-  <rect x="208" y="336" width="292" height="60" rx="4" fill="rgba(230,126,34,0.12)" stroke="#e67e22" stroke-width="2"/>
-  <text x="354" y="356" font-size="10" fill="#333" font-weight="bold" text-anchor="middle">Teacher (frozen)</text>
-  <text x="354" y="370" font-size="9" fill="#e67e22" text-anchor="middle">6.15B params — extract hidden states at layers [5, 10, 15, 20, 25, 29]</text>
-  <text x="354" y="384" font-size="8" fill="#666" text-anchor="middle">frozen weights, but gradient graph kept alive on fake path</text>
+  <!-- TEACHER box (wide, center) -->
+  <rect x="100" y="312" width="490" height="52" rx="4" fill="rgba(230,126,34,0.12)" stroke="#e67e22" stroke-width="2"/>
+  <text x="345" y="332" font-size="10" fill="#333" font-weight="bold" text-anchor="middle">Teacher (frozen)</text>
+  <text x="345" y="346" font-size="8" fill="#e67e22" text-anchor="middle">6.15B params  |  extract hidden states at layers [5, 10, 15, 20, 25, 29]</text>
+  <text x="345" y="358" font-size="7" fill="#666" text-anchor="middle">frozen weights, but gradient graph kept alive on fake path</text>
 
-  <!-- Arrow fake → Teacher -->
-  <path d="M144,320 L144,350 Q144,360 154,360 L206,360" stroke="#3498db" stroke-width="1.5" fill="none" marker-end="url(#arr)"/>
+  <!-- Discriminator Heads label -->
+  <text x="270" y="386" font-size="9" fill="#e74c3c" font-weight="bold" text-anchor="middle">Discriminator Heads (14M, trainable)</text>
 
-  <!-- no_grad label on real path -->
-  <text x="620" y="340" font-size="8" fill="#e74c3c" font-weight="bold">no_grad</text>
+  <!-- 6 head boxes -->
+  <rect x="100" y="394" width="36" height="20" rx="3" fill="rgba(231,76,60,0.1)" stroke="#e74c3c" stroke-width="1"/>
+  <text x="118" y="408" font-size="7" fill="#e74c3c" text-anchor="middle">L5</text>
+  <line x1="118" y1="364" x2="118" y2="394" stroke="#e74c3c" stroke-width="0.8"/>
 
-  <!-- DISCRIMINATOR HEADS (below teacher) -->
-  <!-- 6 small head boxes -->
-  <text x="354" y="418" font-size="9" fill="#e74c3c" font-weight="bold" text-anchor="middle">Discriminator Heads (14M total, trainable)</text>
+  <rect x="150" y="394" width="36" height="20" rx="3" fill="rgba(231,76,60,0.1)" stroke="#e74c3c" stroke-width="1"/>
+  <text x="168" y="408" font-size="7" fill="#e74c3c" text-anchor="middle">L10</text>
+  <line x1="168" y1="364" x2="168" y2="394" stroke="#e74c3c" stroke-width="0.8"/>
 
-  <!-- Head boxes for each layer -->
-  <rect x="128" y="428" width="36" height="22" rx="3" fill="rgba(231,76,60,0.1)" stroke="#e74c3c" stroke-width="1"/>
-  <text x="146" y="443" font-size="7" fill="#e74c3c" text-anchor="middle">L5</text>
+  <rect x="200" y="394" width="36" height="20" rx="3" fill="rgba(231,76,60,0.1)" stroke="#e74c3c" stroke-width="1"/>
+  <text x="218" y="408" font-size="7" fill="#e74c3c" text-anchor="middle">L15</text>
+  <line x1="218" y1="364" x2="218" y2="394" stroke="#e74c3c" stroke-width="0.8"/>
 
-  <rect x="178" y="428" width="36" height="22" rx="3" fill="rgba(231,76,60,0.1)" stroke="#e74c3c" stroke-width="1"/>
-  <text x="196" y="443" font-size="7" fill="#e74c3c" text-anchor="middle">L10</text>
+  <rect x="250" y="394" width="36" height="20" rx="3" fill="rgba(231,76,60,0.1)" stroke="#e74c3c" stroke-width="1"/>
+  <text x="268" y="408" font-size="7" fill="#e74c3c" text-anchor="middle">L20</text>
+  <line x1="268" y1="364" x2="268" y2="394" stroke="#e74c3c" stroke-width="0.8"/>
 
-  <rect x="228" y="428" width="36" height="22" rx="3" fill="rgba(231,76,60,0.1)" stroke="#e74c3c" stroke-width="1"/>
-  <text x="246" y="443" font-size="7" fill="#e74c3c" text-anchor="middle">L15</text>
+  <rect x="300" y="394" width="36" height="20" rx="3" fill="rgba(231,76,60,0.1)" stroke="#e74c3c" stroke-width="1"/>
+  <text x="318" y="408" font-size="7" fill="#e74c3c" text-anchor="middle">L25</text>
+  <line x1="318" y1="364" x2="318" y2="394" stroke="#e74c3c" stroke-width="0.8"/>
 
-  <rect x="278" y="428" width="36" height="22" rx="3" fill="rgba(231,76,60,0.1)" stroke="#e74c3c" stroke-width="1"/>
-  <text x="296" y="443" font-size="7" fill="#e74c3c" text-anchor="middle">L20</text>
+  <rect x="350" y="394" width="36" height="20" rx="3" fill="rgba(231,76,60,0.1)" stroke="#e74c3c" stroke-width="1"/>
+  <text x="368" y="408" font-size="7" fill="#e74c3c" text-anchor="middle">L29</text>
+  <line x1="368" y1="364" x2="368" y2="394" stroke="#e74c3c" stroke-width="0.8"/>
 
-  <rect x="328" y="428" width="36" height="22" rx="3" fill="rgba(231,76,60,0.1)" stroke="#e74c3c" stroke-width="1"/>
-  <text x="346" y="443" font-size="7" fill="#e74c3c" text-anchor="middle">L25</text>
+  <!-- Sum arrow -->
+  <line x1="386" y1="404" x2="416" y2="404" stroke="#555" stroke-width="1" marker-end="url(#arr)"/>
+  <text x="402" y="398" font-size="8" fill="#555" text-anchor="middle">sum</text>
 
-  <rect x="378" y="428" width="36" height="22" rx="3" fill="rgba(231,76,60,0.1)" stroke="#e74c3c" stroke-width="1"/>
-  <text x="396" y="443" font-size="7" fill="#e74c3c" text-anchor="middle">L29</text>
+  <!-- Real/fake label -->
+  <text x="440" y="400" font-size="7" fill="#27ae60">real</text>
+  <text x="440" y="412" font-size="7" fill="#e74c3c">fake</text>
 
-  <!-- Lines from teacher to each head -->
-  <line x1="146" y1="396" x2="146" y2="428" stroke="#e74c3c" stroke-width="0.8"/>
-  <line x1="196" y1="396" x2="196" y2="428" stroke="#e74c3c" stroke-width="0.8"/>
-  <line x1="246" y1="396" x2="246" y2="428" stroke="#e74c3c" stroke-width="0.8"/>
-  <line x1="296" y1="396" x2="296" y2="428" stroke="#e74c3c" stroke-width="0.8"/>
-  <line x1="346" y1="396" x2="346" y2="428" stroke="#e74c3c" stroke-width="0.8"/>
-  <line x1="396" y1="396" x2="396" y2="428" stroke="#e74c3c" stroke-width="0.8"/>
-
-  <!-- Sum → real/fake → Hinge Loss -->
-  <text x="440" y="443" font-size="9" fill="#555">→ Σ →</text>
-
-  <!-- real/fake switch -->
-  <circle cx="490" cy="439" r="4" fill="#555"/>
-  <line x1="490" y1="435" x2="506" y2="428" stroke="#555" stroke-width="1.5"/>
-  <text x="516" y="432" font-size="7" fill="#27ae60">real</text>
-  <text x="516" y="446" font-size="7" fill="#e74c3c">fake</text>
-
-  <!-- Arrow to loss -->
-  <line x1="536" y1="439" x2="560" y2="439" stroke="#555" stroke-width="1.5" marker-end="url(#arr)"/>
+  <!-- Arrow to Hinge Loss -->
+  <line x1="460" y1="404" x2="486" y2="404" stroke="#555" stroke-width="1.5" marker-end="url(#arr)"/>
 
   <!-- Hinge Loss box -->
-  <rect x="562" y="425" width="80" height="28" rx="4" fill="rgba(231,76,60,0.12)" stroke="#e74c3c" stroke-width="1.5"/>
-  <text x="602" y="443" font-size="9" fill="#e74c3c" font-weight="bold" text-anchor="middle">Hinge Loss</text>
+  <rect x="488" y="390" width="80" height="28" rx="4" fill="rgba(231,76,60,0.12)" stroke="#e74c3c" stroke-width="1.5"/>
+  <text x="528" y="408" font-size="9" fill="#e74c3c" font-weight="bold" text-anchor="middle">Hinge Loss</text>
 
-  <!-- GRADIENT FLOW ANNOTATION -->
-  <path d="M602,453 L602,458 Q602,462 592,462 L340,462 Q330,462 330,458 L330,396" stroke="#27ae60" stroke-width="1.5" fill="none" stroke-dasharray="5,3" marker-end="url(#arr-grn)"/>
-  <path d="M280,396 L280,412 Q280,418 270,418 L20,418 Q14,418 14,408 L14,195 Q14,185 24,185 L320,185 Q330,185 330,175 L340,130" stroke="#27ae60" stroke-width="1.5" fill="none" stroke-dasharray="5,3" marker-end="url(#arr-grn)"/>
-  <text x="170" y="412" font-size="8" fill="#27ae60" font-weight="bold">&#x2190; gradient flows back through frozen teacher to student</text>
+  <!-- GRADIENT FLOW -->
+  <text x="350" y="450" font-size="9" fill="#27ae60" font-weight="bold" text-anchor="middle">Gradient Flow (backprop through frozen teacher to student)</text>
+  <path d="M528,418 L528,460 Q528,468 518,468 L50,468 Q40,468 40,458 L40,155 Q40,148 48,148 L395,148 Q405,148 410,138 L415,112" stroke="#27ae60" stroke-width="1.5" fill="none" stroke-dasharray="5,3" marker-end="url(#arr-grn)"/>
 
-  <!-- ============ BOTTOM NOTE ============ -->
-  <rect x="80" y="480" width="540" height="32" rx="6" fill="#f5f5f5" stroke="#333" stroke-width="1"/>
-  <text x="350" y="497" font-size="10" fill="#333" font-weight="bold" text-anchor="middle">LADD operates entirely in latent space — the discriminator sees teacher features, not pixels.</text>
-  <text x="350" y="508" font-size="8" fill="#666" text-anchor="middle">F = frozen weights | T = trainable</text>
+  <!-- Bottom note -->
+  <rect x="80" y="490" width="540" height="32" rx="6" fill="#f5f5f5" stroke="#333" stroke-width="1"/>
+  <text x="350" y="506" font-size="10" fill="#333" font-weight="bold" text-anchor="middle">LADD operates entirely in latent space.</text>
+  <text x="350" y="517" font-size="8" fill="#666" text-anchor="middle">The discriminator sees teacher features, not pixels. F = frozen | T = trainable</text>
 </svg>
