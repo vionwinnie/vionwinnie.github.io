@@ -349,7 +349,13 @@ Here's what the student produces at 4 steps compared to the teacher at 50 steps 
 |:---:|:---:|:---:|
 | ![Teacher reference — cyberpunk party](/images/ladd-training-framework/teacher_ref_row10.png) | ![Student at 500 training steps — cyberpunk party](/images/ladd-training-framework/student_500steps_row10.png) | ![Student at 2000 training steps — cyberpunk party](/images/ladd-training-framework/student_2000steps_row10.png) |
 
-The student outputs are still far from the teacher — blurry with no discernible structure. This is expected: 500-2000 steps with batch_size=1 on 98 prompts is barely scratching the surface. The LADD paper uses 50K-200K steps with large batch sizes. The production 8-GPU run (20K steps, effective batch 64) should close this gap significantly.
+**Prompt: "The image displays a promotional advertisement for a speaker system. At the top of the image, in bold red letters..."**
+
+| Teacher (50 steps, CFG=5) | Student (4 steps, 500 train steps) | Student (4 steps, 2000 train steps) |
+|:---:|:---:|:---:|
+| ![Teacher reference — speaker advertisement](/images/ladd-training-framework/teacher_ref_row9.png) | ![Student at 500 training steps — speaker advertisement](/images/ladd-training-framework/student_500steps_row9.png) | ![Student at 2000 training steps — speaker advertisement](/images/ladd-training-framework/student_2000steps_row9.png) |
+
+This last example is the most encouraging — the student at 2000 steps picks up the layout (bold text, speaker image, URL at bottom) even though the details are still muddy. It shows the student _is_ learning structure, just slowly at this tiny scale. This is expected: 500-2000 steps with batch_size=1 on 98 prompts is barely scratching the surface. The LADD paper uses 50K-200K steps with large batch sizes. The production 8-GPU run (20K steps, effective batch 64) should close this gap significantly.
 
 ### Training progression
 
