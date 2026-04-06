@@ -765,28 +765,7 @@ The code is open source at [github.com/vionwinnie/Z-Image-LADD-distillation](htt
 
 After the first full run collapsed ([Section 8](#8-the-first-full-run-mode-collapse-at-scale)), we ran a second round of experiments specifically targeting discriminator dominance. The goal: find hyperparameters that prevent mode collapse on the full 10K dataset. Reference untrained KID: **0.0689** (anything above means training made things worse).
 
-### Phase 1 — With precomputed teacher latents (KID 0.000–0.012)
-
-These ran on the debug split (98 prompts, single A100) with precomputed teacher latents as "real" samples:
-
-| Experiment | What changed | KID | Verdict |
-|:----------:|:------------|:---:|:--------|
-| Baseline | slr=1e-5, dlr=1e-4, gi=5 | 0.0085 | Baseline |
-| Best 500-step | slr=5e-6, dlr=5e-5, gi=3 | 0.0080 | Improved |
-| Best 2000-step | same, 2000 steps | 0.0072 | Improved further |
-| **exp9: GI=8** | gen_update_interval=8 | **0.000869** | **Best (89% better than baseline)** |
-| exp7: GI=4 | gen_update_interval=4 | 0.0024 | Good |
-| exp8: GI=6 | gen_update_interval=6 | 0.0020 | Better |
-| exp10: GI=10 | gen_update_interval=10 | 0.0129 | Too few gen steps, disc too powerful |
-| exp2: M=0.5 | renoise_m=0.5 | 0.0046 | Moderate help |
-| exp13: dim=128 | smaller disc | 0.0012 | Slight help |
-| exp14: dim=512 | larger disc | 0.0064 | Much worse |
-
-**Key finding:** `GEN_UPDATE_INTERVAL=8` was the single biggest lever — the sweet spot between giving the discriminator enough training and not starving the generator.
-
-### Phase 2 — Fresh evaluation at full scale (KID 0.066–0.099)
-
-These used a different evaluation setup (KID ~10× higher), targeting the mode collapse problem directly. Not directly comparable to Phase 1:
+The Phase 1 sweep results (debug split, 98 prompts) are covered in [Section 5](#5-hyperparameter-experiments). This appendix covers **Phase 2** — the anti-collapse sweep run after the production failure, using a fresh evaluation setup with corrected teacher images (KID ~10× higher than Phase 1, not directly comparable):
 
 | Run | Config | KID | Verdict |
 |:----|:-------|:---:|:--------|
