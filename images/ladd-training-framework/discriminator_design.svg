@@ -1,0 +1,166 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="700" height="580">
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#555"/>
+    </marker>
+    <marker id="arrow-red" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#e74c3c"/>
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="350" y="24" font-size="14" fill="#333" font-weight="bold" text-anchor="middle">Multi-Scale Discriminator — Feature Extraction from Teacher Layers</text>
+
+  <!-- ============ FiLM CONDITIONING (top) ============ -->
+  <text x="450" y="52" font-size="11" fill="#666" font-weight="bold" text-anchor="middle">FiLM Conditioning Inputs</text>
+
+  <rect x="340" y="58" width="90" height="28" rx="4" fill="rgba(155,89,182,0.1)" stroke="#9b59b6" stroke-width="1.5"/>
+  <text x="385" y="76" font-size="9" fill="#333" font-weight="bold" text-anchor="middle">timestep t̂</text>
+
+  <rect x="450" y="58" width="110" height="28" rx="4" fill="rgba(155,89,182,0.1)" stroke="#9b59b6" stroke-width="1.5"/>
+  <text x="505" y="76" font-size="9" fill="#333" font-weight="bold" text-anchor="middle">pooled text embed</text>
+
+  <!-- Arrows down from FiLM inputs -->
+  <line x1="385" y1="86" x2="385" y2="100" stroke="#9b59b6" stroke-width="1" stroke-dasharray="3,2"/>
+  <line x1="505" y1="86" x2="505" y2="100" stroke="#9b59b6" stroke-width="1" stroke-dasharray="3,2"/>
+  <text x="445" y="98" font-size="8" fill="#9b59b6" text-anchor="middle">→ all heads</text>
+
+  <!-- ============ TEACHER TRANSFORMER COLUMN (left) ============ -->
+  <text x="80" y="52" font-size="11" fill="#666" font-weight="bold" text-anchor="middle">Teacher Transformer</text>
+
+  <!-- Background column -->
+  <rect x="30" y="58" width="100" height="420" rx="4" fill="rgba(230,126,34,0.06)" stroke="#e67e22" stroke-width="1"/>
+
+  <!-- 30 blocks - show key ones highlighted, others as thin lines -->
+  <!-- Block indicators (small rects representing layers) -->
+  <!-- Layers 1-4 (unhighlighted) -->
+  <rect x="42" y="66" width="76" height="10" rx="2" fill="rgba(230,126,34,0.08)" stroke="#e67e22" stroke-width="0.5"/>
+  <rect x="42" y="80" width="76" height="10" rx="2" fill="rgba(230,126,34,0.08)" stroke="#e67e22" stroke-width="0.5"/>
+  <rect x="42" y="94" width="76" height="10" rx="2" fill="rgba(230,126,34,0.08)" stroke="#e67e22" stroke-width="0.5"/>
+  <rect x="42" y="108" width="76" height="10" rx="2" fill="rgba(230,126,34,0.08)" stroke="#e67e22" stroke-width="0.5"/>
+
+  <!-- Layer 5 (HIGHLIGHTED - teal) -->
+  <rect x="42" y="122" width="76" height="14" rx="2" fill="rgba(26,188,156,0.2)" stroke="#1abc9c" stroke-width="1.5"/>
+  <text x="80" y="133" font-size="8" fill="#1abc9c" font-weight="bold" text-anchor="middle">Layer 5</text>
+
+  <!-- Layers 6-9 -->
+  <rect x="42" y="140" width="76" height="10" rx="2" fill="rgba(230,126,34,0.08)" stroke="#e67e22" stroke-width="0.5"/>
+  <rect x="42" y="154" width="76" height="10" rx="2" fill="rgba(230,126,34,0.08)" stroke="#e67e22" stroke-width="0.5"/>
+  <rect x="42" y="168" width="76" height="10" rx="2" fill="rgba(230,126,34,0.08)" stroke="#e67e22" stroke-width="0.5"/>
+  <rect x="42" y="182" width="76" height="10" rx="2" fill="rgba(230,126,34,0.08)" stroke="#e67e22" stroke-width="0.5"/>
+
+  <!-- Layer 10 (HIGHLIGHTED - teal) -->
+  <rect x="42" y="196" width="76" height="14" rx="2" fill="rgba(26,188,156,0.2)" stroke="#1abc9c" stroke-width="1.5"/>
+  <text x="80" y="207" font-size="8" fill="#1abc9c" font-weight="bold" text-anchor="middle">Layer 10</text>
+
+  <!-- Layers 11-14 -->
+  <rect x="42" y="214" width="76" height="10" rx="2" fill="rgba(230,126,34,0.08)" stroke="#e67e22" stroke-width="0.5"/>
+  <rect x="42" y="228" width="76" height="10" rx="2" fill="rgba(230,126,34,0.08)" stroke="#e67e22" stroke-width="0.5"/>
+  <rect x="42" y="242" width="76" height="10" rx="2" fill="rgba(230,126,34,0.08)" stroke="#e67e22" stroke-width="0.5"/>
+  <rect x="42" y="256" width="76" height="10" rx="2" fill="rgba(230,126,34,0.08)" stroke="#e67e22" stroke-width="0.5"/>
+
+  <!-- Layer 15 (HIGHLIGHTED - blue) -->
+  <rect x="42" y="270" width="76" height="14" rx="2" fill="rgba(52,152,219,0.2)" stroke="#3498db" stroke-width="1.5"/>
+  <text x="80" y="281" font-size="8" fill="#3498db" font-weight="bold" text-anchor="middle">Layer 15</text>
+
+  <!-- Layers 16-19 -->
+  <rect x="42" y="288" width="76" height="10" rx="2" fill="rgba(230,126,34,0.08)" stroke="#e67e22" stroke-width="0.5"/>
+  <rect x="42" y="302" width="76" height="10" rx="2" fill="rgba(230,126,34,0.08)" stroke="#e67e22" stroke-width="0.5"/>
+  <rect x="42" y="316" width="76" height="10" rx="2" fill="rgba(230,126,34,0.08)" stroke="#e67e22" stroke-width="0.5"/>
+  <rect x="42" y="330" width="76" height="10" rx="2" fill="rgba(230,126,34,0.08)" stroke="#e67e22" stroke-width="0.5"/>
+
+  <!-- Layer 20 (HIGHLIGHTED - blue) -->
+  <rect x="42" y="344" width="76" height="14" rx="2" fill="rgba(52,152,219,0.2)" stroke="#3498db" stroke-width="1.5"/>
+  <text x="80" y="355" font-size="8" fill="#3498db" font-weight="bold" text-anchor="middle">Layer 20</text>
+
+  <!-- Layers 21-24 -->
+  <rect x="42" y="362" width="76" height="10" rx="2" fill="rgba(230,126,34,0.08)" stroke="#e67e22" stroke-width="0.5"/>
+  <rect x="42" y="376" width="76" height="10" rx="2" fill="rgba(230,126,34,0.08)" stroke="#e67e22" stroke-width="0.5"/>
+  <rect x="42" y="390" width="76" height="10" rx="2" fill="rgba(230,126,34,0.08)" stroke="#e67e22" stroke-width="0.5"/>
+  <rect x="42" y="404" width="76" height="10" rx="2" fill="rgba(230,126,34,0.08)" stroke="#e67e22" stroke-width="0.5"/>
+
+  <!-- Layer 25 (HIGHLIGHTED - purple) -->
+  <rect x="42" y="418" width="76" height="14" rx="2" fill="rgba(155,89,182,0.2)" stroke="#9b59b6" stroke-width="1.5"/>
+  <text x="80" y="429" font-size="8" fill="#9b59b6" font-weight="bold" text-anchor="middle">Layer 25</text>
+
+  <!-- Layers 26-28 -->
+  <rect x="42" y="436" width="76" height="10" rx="2" fill="rgba(230,126,34,0.08)" stroke="#e67e22" stroke-width="0.5"/>
+  <rect x="42" y="450" width="76" height="10" rx="2" fill="rgba(230,126,34,0.08)" stroke="#e67e22" stroke-width="0.5"/>
+
+  <!-- Layer 29 (HIGHLIGHTED - purple) -->
+  <rect x="42" y="462" width="76" height="14" rx="2" fill="rgba(155,89,182,0.2)" stroke="#9b59b6" stroke-width="1.5"/>
+  <text x="80" y="473" font-size="8" fill="#9b59b6" font-weight="bold" text-anchor="middle">Layer 29</text>
+
+  <!-- ============ DISCRIMINATOR HEADS (right side) ============ -->
+  <!-- Head for Layer 5 -->
+  <line x1="118" y1="129" x2="200" y2="118" stroke="#1abc9c" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="202" y="106" width="280" height="26" rx="4" fill="rgba(231,76,60,0.08)" stroke="#e74c3c" stroke-width="1"/>
+  <text x="342" y="122" font-size="8" fill="#333" text-anchor="middle">Linear(3840→256) → FiLM → Conv2D → Conv2D → Conv1x1 → pool → logit</text>
+
+  <!-- Head for Layer 10 -->
+  <line x1="118" y1="203" x2="200" y2="172" stroke="#1abc9c" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="202" y="160" width="280" height="26" rx="4" fill="rgba(231,76,60,0.08)" stroke="#e74c3c" stroke-width="1"/>
+  <text x="342" y="176" font-size="8" fill="#333" text-anchor="middle">Linear(3840→256) → FiLM → Conv2D → Conv2D → Conv1x1 → pool → logit</text>
+
+  <!-- Head for Layer 15 -->
+  <line x1="118" y1="277" x2="200" y2="226" stroke="#3498db" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="202" y="214" width="280" height="26" rx="4" fill="rgba(231,76,60,0.08)" stroke="#e74c3c" stroke-width="1"/>
+  <text x="342" y="230" font-size="8" fill="#333" text-anchor="middle">Linear(3840→256) → FiLM → Conv2D → Conv2D → Conv1x1 → pool → logit</text>
+
+  <!-- Head for Layer 20 -->
+  <line x1="118" y1="351" x2="200" y2="280" stroke="#3498db" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="202" y="268" width="280" height="26" rx="4" fill="rgba(231,76,60,0.08)" stroke="#e74c3c" stroke-width="1"/>
+  <text x="342" y="284" font-size="8" fill="#333" text-anchor="middle">Linear(3840→256) → FiLM → Conv2D → Conv2D → Conv1x1 → pool → logit</text>
+
+  <!-- Head for Layer 25 -->
+  <line x1="118" y1="425" x2="200" y2="334" stroke="#9b59b6" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="202" y="322" width="280" height="26" rx="4" fill="rgba(231,76,60,0.08)" stroke="#e74c3c" stroke-width="1"/>
+  <text x="342" y="338" font-size="8" fill="#333" text-anchor="middle">Linear(3840→256) → FiLM → Conv2D → Conv2D → Conv1x1 → pool → logit</text>
+
+  <!-- Head for Layer 29 -->
+  <line x1="118" y1="469" x2="200" y2="388" stroke="#9b59b6" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="202" y="376" width="280" height="26" rx="4" fill="rgba(231,76,60,0.08)" stroke="#e74c3c" stroke-width="1"/>
+  <text x="342" y="392" font-size="8" fill="#333" text-anchor="middle">Linear(3840→256) → FiLM → Conv2D → Conv2D → Conv1x1 → pool → logit</text>
+
+  <!-- ============ SEMANTIC LABELS (far right) ============ -->
+  <!-- Texture layers -->
+  <rect x="500" y="106" width="130" height="80" rx="4" fill="rgba(26,188,156,0.06)" stroke="#1abc9c" stroke-width="1" stroke-dasharray="4,2"/>
+  <text x="565" y="124" font-size="9" fill="#1abc9c" font-weight="bold" text-anchor="middle">Layers 5, 10</text>
+  <text x="565" y="140" font-size="9" fill="#666" text-anchor="middle">Texture &amp;</text>
+  <text x="565" y="152" font-size="9" fill="#666" text-anchor="middle">local patterns</text>
+
+  <!-- Object layers -->
+  <rect x="500" y="214" width="130" height="80" rx="4" fill="rgba(52,152,219,0.06)" stroke="#3498db" stroke-width="1" stroke-dasharray="4,2"/>
+  <text x="565" y="232" font-size="9" fill="#3498db" font-weight="bold" text-anchor="middle">Layers 15, 20</text>
+  <text x="565" y="248" font-size="9" fill="#666" text-anchor="middle">Object</text>
+  <text x="565" y="260" font-size="9" fill="#666" text-anchor="middle">composition</text>
+
+  <!-- Semantics layers -->
+  <rect x="500" y="322" width="130" height="80" rx="4" fill="rgba(155,89,182,0.06)" stroke="#9b59b6" stroke-width="1" stroke-dasharray="4,2"/>
+  <text x="565" y="340" font-size="9" fill="#9b59b6" font-weight="bold" text-anchor="middle">Layers 25, 29</text>
+  <text x="565" y="356" font-size="9" fill="#666" text-anchor="middle">Semantics &amp;</text>
+  <text x="565" y="368" font-size="9" fill="#666" text-anchor="middle">prompt alignment</text>
+
+  <!-- ============ SUM TO TOTAL LOGIT ============ -->
+  <!-- Arrows from each head to sum -->
+  <line x1="482" y1="119" x2="540" y2="440" stroke="#e74c3c" stroke-width="1" stroke-dasharray="3,2"/>
+  <line x1="482" y1="173" x2="540" y2="440" stroke="#e74c3c" stroke-width="1" stroke-dasharray="3,2"/>
+  <line x1="482" y1="227" x2="540" y2="440" stroke="#e74c3c" stroke-width="1" stroke-dasharray="3,2"/>
+  <line x1="482" y1="281" x2="540" y2="440" stroke="#e74c3c" stroke-width="1" stroke-dasharray="3,2"/>
+  <line x1="482" y1="335" x2="540" y2="440" stroke="#e74c3c" stroke-width="1" stroke-dasharray="3,2"/>
+  <line x1="482" y1="389" x2="540" y2="440" stroke="#e74c3c" stroke-width="1" stroke-dasharray="3,2"/>
+
+  <!-- Sum circle -->
+  <circle cx="540" cy="450" r="16" fill="rgba(231,76,60,0.12)" stroke="#e74c3c" stroke-width="1.5"/>
+  <text x="540" y="454" font-size="12" fill="#e74c3c" font-weight="bold" text-anchor="middle">Σ</text>
+
+  <!-- Total logit output -->
+  <line x1="556" y1="450" x2="590" y2="450" stroke="#e74c3c" stroke-width="1.5" marker-end="url(#arrow-red)"/>
+  <rect x="592" y="436" width="80" height="28" rx="4" fill="rgba(231,76,60,0.15)" stroke="#e74c3c" stroke-width="1.5"/>
+  <text x="632" y="454" font-size="9" fill="#e74c3c" font-weight="bold" text-anchor="middle">total_logit</text>
+
+  <!-- ============ BOTTOM NOTE ============ -->
+  <rect x="40" y="492" width="620" height="36" rx="6" fill="#f5f5f5" stroke="#333" stroke-width="1"/>
+  <text x="350" y="510" font-size="10" fill="#333" font-weight="bold" text-anchor="middle">Multi-scale discrimination prevents the student from gaming any single abstraction level.</text>
+  <text x="350" y="522" font-size="9" fill="#666" text-anchor="middle">Each head independently judges quality at its depth — early layers catch artifacts, deep layers check semantics.</text>
+</svg>

@@ -1,0 +1,160 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="700" height="540">
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#555"/>
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="350" y="24" font-size="14" fill="#333" font-weight="bold" text-anchor="middle">FSDP Memory Layout — 8x A100 (80 GB each)</text>
+
+  <!-- ============ GPU COLUMNS (show 4 + ellipsis + last) ============ -->
+  <!-- Section label -->
+  <text x="220" y="50" font-size="11" fill="#666" font-weight="bold" text-anchor="middle">FSDP Sharded (8 GPUs)</text>
+
+  <!-- GPU 0 -->
+  <text x="60" y="70" font-size="9" fill="#333" font-weight="bold" text-anchor="middle">GPU 0</text>
+
+  <!-- Student shard -->
+  <rect x="20" y="78" width="80" height="22" rx="4" fill="rgba(52,152,219,0.15)" stroke="#3498db" stroke-width="1.5"/>
+  <text x="60" y="92" font-size="7" fill="#3498db" font-weight="bold" text-anchor="middle">Student 1/8</text>
+  <text x="60" y="76" font-size="7" fill="#666" text-anchor="middle">~1.5 GB</text>
+
+  <!-- Teacher full replica -->
+  <rect x="20" y="104" width="80" height="60" rx="4" fill="rgba(230,126,34,0.12)" stroke="#e67e22" stroke-width="1.5"/>
+  <text x="60" y="132" font-size="8" fill="#e67e22" font-weight="bold" text-anchor="middle">Teacher</text>
+  <text x="60" y="144" font-size="7" fill="#666" text-anchor="middle">(full replica)</text>
+  <text x="60" y="156" font-size="7" fill="#666" text-anchor="middle">~12 GB</text>
+
+  <!-- Disc -->
+  <rect x="20" y="168" width="80" height="16" rx="4" fill="rgba(231,76,60,0.12)" stroke="#e74c3c" stroke-width="1"/>
+  <text x="60" y="179" font-size="7" fill="#e74c3c" font-weight="bold" text-anchor="middle">Disc ~0.03 GB</text>
+
+  <!-- Optimizer states -->
+  <rect x="20" y="188" width="80" height="36" rx="4" fill="rgba(39,174,96,0.12)" stroke="#27ae60" stroke-width="1.5"/>
+  <text x="60" y="204" font-size="7" fill="#27ae60" font-weight="bold" text-anchor="middle">Optimizer</text>
+  <text x="60" y="214" font-size="7" fill="#666" text-anchor="middle">(sharded) ~6 GB</text>
+
+  <!-- Activations -->
+  <rect x="20" y="228" width="80" height="30" rx="4" fill="rgba(102,102,102,0.1)" stroke="#999" stroke-width="1"/>
+  <text x="60" y="242" font-size="7" fill="#666" font-weight="bold" text-anchor="middle">Activations</text>
+  <text x="60" y="252" font-size="7" fill="#999" text-anchor="middle">~4-6 GB</text>
+
+  <!-- Free headroom -->
+  <rect x="20" y="262" width="80" height="60" rx="4" fill="rgba(236,240,241,0.5)" stroke="#ecf0f1" stroke-width="1" stroke-dasharray="4,2"/>
+  <text x="60" y="288" font-size="8" fill="#27ae60" font-weight="bold" text-anchor="middle">Free</text>
+  <text x="60" y="300" font-size="8" fill="#27ae60" text-anchor="middle">~54 GB</text>
+
+  <!-- Total label -->
+  <text x="60" y="336" font-size="8" fill="#333" font-weight="bold" text-anchor="middle">~26 GB / 80 GB</text>
+
+  <!-- GPU 1 -->
+  <text x="150" y="70" font-size="9" fill="#333" font-weight="bold" text-anchor="middle">GPU 1</text>
+  <rect x="110" y="78" width="80" height="22" rx="4" fill="rgba(52,152,219,0.2)" stroke="#3498db" stroke-width="1.5"/>
+  <text x="150" y="92" font-size="7" fill="#3498db" font-weight="bold" text-anchor="middle">Student 2/8</text>
+  <rect x="110" y="104" width="80" height="60" rx="4" fill="rgba(230,126,34,0.12)" stroke="#e67e22" stroke-width="1.5"/>
+  <text x="150" y="132" font-size="8" fill="#e67e22" font-weight="bold" text-anchor="middle">Teacher</text>
+  <text x="150" y="144" font-size="7" fill="#666" text-anchor="middle">(full replica)</text>
+  <rect x="110" y="168" width="80" height="16" rx="4" fill="rgba(231,76,60,0.12)" stroke="#e74c3c" stroke-width="1"/>
+  <text x="150" y="179" font-size="7" fill="#e74c3c" font-weight="bold" text-anchor="middle">Disc</text>
+  <rect x="110" y="188" width="80" height="36" rx="4" fill="rgba(39,174,96,0.12)" stroke="#27ae60" stroke-width="1.5"/>
+  <text x="150" y="204" font-size="7" fill="#27ae60" font-weight="bold" text-anchor="middle">Optimizer</text>
+  <text x="150" y="214" font-size="7" fill="#666" text-anchor="middle">(sharded)</text>
+  <rect x="110" y="228" width="80" height="30" rx="4" fill="rgba(102,102,102,0.1)" stroke="#999" stroke-width="1"/>
+  <text x="150" y="246" font-size="7" fill="#666" font-weight="bold" text-anchor="middle">Activations</text>
+  <rect x="110" y="262" width="80" height="60" rx="4" fill="rgba(236,240,241,0.5)" stroke="#ecf0f1" stroke-width="1" stroke-dasharray="4,2"/>
+  <text x="150" y="294" font-size="8" fill="#27ae60" font-weight="bold" text-anchor="middle">Free ~54 GB</text>
+
+  <!-- GPU 2 -->
+  <text x="240" y="70" font-size="9" fill="#333" font-weight="bold" text-anchor="middle">GPU 2</text>
+  <rect x="200" y="78" width="80" height="22" rx="4" fill="rgba(52,152,219,0.25)" stroke="#3498db" stroke-width="1.5"/>
+  <text x="240" y="92" font-size="7" fill="#3498db" font-weight="bold" text-anchor="middle">Student 3/8</text>
+  <rect x="200" y="104" width="80" height="60" rx="4" fill="rgba(230,126,34,0.12)" stroke="#e67e22" stroke-width="1.5"/>
+  <text x="240" y="132" font-size="8" fill="#e67e22" font-weight="bold" text-anchor="middle">Teacher</text>
+  <text x="240" y="144" font-size="7" fill="#666" text-anchor="middle">(full replica)</text>
+  <rect x="200" y="168" width="80" height="16" rx="4" fill="rgba(231,76,60,0.12)" stroke="#e74c3c" stroke-width="1"/>
+  <text x="240" y="179" font-size="7" fill="#e74c3c" font-weight="bold" text-anchor="middle">Disc</text>
+  <rect x="200" y="188" width="80" height="36" rx="4" fill="rgba(39,174,96,0.12)" stroke="#27ae60" stroke-width="1.5"/>
+  <text x="240" y="204" font-size="7" fill="#27ae60" font-weight="bold" text-anchor="middle">Optimizer</text>
+  <text x="240" y="214" font-size="7" fill="#666" text-anchor="middle">(sharded)</text>
+  <rect x="200" y="228" width="80" height="30" rx="4" fill="rgba(102,102,102,0.1)" stroke="#999" stroke-width="1"/>
+  <text x="240" y="246" font-size="7" fill="#666" font-weight="bold" text-anchor="middle">Activations</text>
+  <rect x="200" y="262" width="80" height="60" rx="4" fill="rgba(236,240,241,0.5)" stroke="#ecf0f1" stroke-width="1" stroke-dasharray="4,2"/>
+  <text x="240" y="294" font-size="8" fill="#27ae60" font-weight="bold" text-anchor="middle">Free ~54 GB</text>
+
+  <!-- Ellipsis -->
+  <text x="316" y="190" font-size="18" fill="#999" text-anchor="middle">...</text>
+  <text x="316" y="210" font-size="8" fill="#999" text-anchor="middle">GPUs 3-6</text>
+
+  <!-- GPU 7 -->
+  <text x="390" y="70" font-size="9" fill="#333" font-weight="bold" text-anchor="middle">GPU 7</text>
+  <rect x="350" y="78" width="80" height="22" rx="4" fill="rgba(52,152,219,0.35)" stroke="#3498db" stroke-width="1.5"/>
+  <text x="390" y="92" font-size="7" fill="#3498db" font-weight="bold" text-anchor="middle">Student 8/8</text>
+  <rect x="350" y="104" width="80" height="60" rx="4" fill="rgba(230,126,34,0.12)" stroke="#e67e22" stroke-width="1.5"/>
+  <text x="390" y="132" font-size="8" fill="#e67e22" font-weight="bold" text-anchor="middle">Teacher</text>
+  <text x="390" y="144" font-size="7" fill="#666" text-anchor="middle">(full replica)</text>
+  <rect x="350" y="168" width="80" height="16" rx="4" fill="rgba(231,76,60,0.12)" stroke="#e74c3c" stroke-width="1"/>
+  <text x="390" y="179" font-size="7" fill="#e74c3c" font-weight="bold" text-anchor="middle">Disc</text>
+  <rect x="350" y="188" width="80" height="36" rx="4" fill="rgba(39,174,96,0.12)" stroke="#27ae60" stroke-width="1.5"/>
+  <text x="390" y="204" font-size="7" fill="#27ae60" font-weight="bold" text-anchor="middle">Optimizer</text>
+  <text x="390" y="214" font-size="7" fill="#666" text-anchor="middle">(sharded)</text>
+  <rect x="350" y="228" width="80" height="30" rx="4" fill="rgba(102,102,102,0.1)" stroke="#999" stroke-width="1"/>
+  <text x="390" y="246" font-size="7" fill="#666" font-weight="bold" text-anchor="middle">Activations</text>
+  <rect x="350" y="262" width="80" height="60" rx="4" fill="rgba(236,240,241,0.5)" stroke="#ecf0f1" stroke-width="1" stroke-dasharray="4,2"/>
+  <text x="390" y="294" font-size="8" fill="#27ae60" font-weight="bold" text-anchor="middle">Free ~54 GB</text>
+
+  <!-- ============ LEGEND for sharding ============ -->
+  <text x="220" y="360" font-size="9" fill="#666" text-anchor="middle">Student weights sharded 8-way (each GPU holds 1/8)</text>
+  <text x="220" y="374" font-size="9" fill="#666" text-anchor="middle">Teacher replicated on every GPU (forward-only, no optimizer states)</text>
+
+  <!-- ============ SINGLE GPU COMPARISON (right) ============ -->
+  <text x="576" y="50" font-size="11" fill="#666" font-weight="bold" text-anchor="middle">Single GPU (no FSDP)</text>
+
+  <rect x="488" y="58" width="176" height="290" rx="4" fill="rgba(231,76,60,0.04)" stroke="#e74c3c" stroke-width="1" stroke-dasharray="4,2"/>
+
+  <!-- Student full -->
+  <rect x="500" y="68" width="152" height="44" rx="4" fill="rgba(52,152,219,0.15)" stroke="#3498db" stroke-width="1.5"/>
+  <text x="576" y="88" font-size="9" fill="#3498db" font-weight="bold" text-anchor="middle">Student (full)</text>
+  <text x="576" y="102" font-size="8" fill="#666" text-anchor="middle">12 GB</text>
+
+  <!-- Teacher full -->
+  <rect x="500" y="116" width="152" height="44" rx="4" fill="rgba(230,126,34,0.12)" stroke="#e67e22" stroke-width="1.5"/>
+  <text x="576" y="136" font-size="9" fill="#e67e22" font-weight="bold" text-anchor="middle">Teacher (full)</text>
+  <text x="576" y="150" font-size="8" fill="#666" text-anchor="middle">12 GB</text>
+
+  <!-- Optimizer full -->
+  <rect x="500" y="164" width="152" height="64" rx="4" fill="rgba(39,174,96,0.12)" stroke="#27ae60" stroke-width="1.5"/>
+  <text x="576" y="190" font-size="9" fill="#27ae60" font-weight="bold" text-anchor="middle">Optimizer (full)</text>
+  <text x="576" y="206" font-size="8" fill="#666" text-anchor="middle">24 GB</text>
+
+  <!-- Activations -->
+  <rect x="500" y="232" width="152" height="76" rx="4" fill="rgba(102,102,102,0.1)" stroke="#999" stroke-width="1"/>
+  <text x="576" y="266" font-size="9" fill="#666" font-weight="bold" text-anchor="middle">Activations</text>
+  <text x="576" y="282" font-size="8" fill="#666" text-anchor="middle">30 GB</text>
+
+  <!-- Free (tiny or negative) -->
+  <rect x="500" y="312" width="152" height="24" rx="4" fill="rgba(231,76,60,0.15)" stroke="#e74c3c" stroke-width="1.5"/>
+  <text x="576" y="328" font-size="8" fill="#e74c3c" font-weight="bold" text-anchor="middle">FREE: ~2 GB (OOM at 512px)</text>
+
+  <!-- Total -->
+  <text x="576" y="356" font-size="10" fill="#e74c3c" font-weight="bold" text-anchor="middle">~78 GB / 80 GB</text>
+  <text x="576" y="370" font-size="9" fill="#e74c3c" text-anchor="middle">OOM at training resolution</text>
+
+  <!-- ============ VS arrow ============ -->
+  <text x="460" y="200" font-size="14" fill="#999" font-weight="bold" text-anchor="middle">vs</text>
+
+  <!-- ============ COLOR LEGEND ============ -->
+  <rect x="40" y="392" width="12" height="12" rx="2" fill="rgba(52,152,219,0.2)" stroke="#3498db" stroke-width="1"/>
+  <text x="58" y="402" font-size="8" fill="#666">Student (sharded)</text>
+  <rect x="150" y="392" width="12" height="12" rx="2" fill="rgba(230,126,34,0.15)" stroke="#e67e22" stroke-width="1"/>
+  <text x="168" y="402" font-size="8" fill="#666">Teacher (replicated)</text>
+  <rect x="280" y="392" width="12" height="12" rx="2" fill="rgba(39,174,96,0.15)" stroke="#27ae60" stroke-width="1"/>
+  <text x="298" y="402" font-size="8" fill="#666">Optimizer (sharded)</text>
+  <rect x="410" y="392" width="12" height="12" rx="2" fill="rgba(102,102,102,0.12)" stroke="#999" stroke-width="1"/>
+  <text x="428" y="402" font-size="8" fill="#666">Activations + grad ckpt</text>
+
+  <!-- ============ BOTTOM NOTE ============ -->
+  <rect x="40" y="420" width="620" height="44" rx="6" fill="#f5f5f5" stroke="#333" stroke-width="1"/>
+  <text x="350" y="440" font-size="10" fill="#333" font-weight="bold" text-anchor="middle">FSDP shards student weights and optimizer states — teacher stays replicated since it only does forward passes.</text>
+  <text x="350" y="454" font-size="9" fill="#666" text-anchor="middle">8-way sharding reduces per-GPU memory from ~78 GB to ~26 GB, leaving 54 GB headroom for larger batches or resolutions.</text>
+</svg>

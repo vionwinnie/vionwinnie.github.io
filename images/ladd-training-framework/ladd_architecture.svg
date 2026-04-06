@@ -1,0 +1,140 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="700" height="620">
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#555"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#27ae60"/>
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="350" y="24" font-size="14" fill="#333" font-weight="bold" text-anchor="middle">Full LADD Architecture — Three-Model Adversarial Distillation</text>
+
+  <!-- ============ TEXT ENCODER (left) ============ -->
+  <rect x="16" y="48" width="100" height="50" rx="4" fill="rgba(155,89,182,0.12)" stroke="#9b59b6" stroke-width="1.5"/>
+  <text x="66" y="68" font-size="10" fill="#333" font-weight="bold" text-anchor="middle">Qwen3 Text Enc.</text>
+  <text x="66" y="82" font-size="9" fill="#666" text-anchor="middle">prompt_embeds</text>
+  <!-- Frozen badge -->
+  <rect x="38" y="100" width="56" height="14" rx="3" fill="rgba(231,76,60,0.1)" stroke="#e74c3c" stroke-width="1"/>
+  <text x="66" y="110" font-size="8" fill="#e74c3c" font-weight="bold" text-anchor="middle">FROZEN</text>
+
+  <!-- Text Prompt label -->
+  <text x="66" y="44" font-size="9" fill="#666" text-anchor="middle">Text Prompt</text>
+
+  <!-- Arrow from text encoder to student -->
+  <line x1="116" y1="73" x2="148" y2="73" stroke="#555" stroke-width="1" marker-end="url(#arrow)"/>
+  <!-- Arrow from text encoder down to teacher -->
+  <path d="M66,98 L66,130 Q66,140 76,140 L148,200" stroke="#555" stroke-width="1" fill="none" marker-end="url(#arrow)" stroke-dasharray="4,2"/>
+  <text x="78" y="138" font-size="8" fill="#666">prompt_embeds</text>
+
+  <!-- ============ NOISE + TEACHER x₀ → NOISY INPUT ============ -->
+  <text x="200" y="44" font-size="9" fill="#666" text-anchor="middle">Noise (ε) + Teacher x₀</text>
+  <rect x="152" y="48" width="96" height="24" rx="4" fill="rgba(102,102,102,0.08)" stroke="#999" stroke-width="1"/>
+  <text x="200" y="64" font-size="9" fill="#333" text-anchor="middle">x_t = (1-t)x₀ + tε</text>
+
+  <!-- Arrow down to student -->
+  <line x1="200" y1="72" x2="200" y2="88" stroke="#555" stroke-width="1" marker-end="url(#arrow)"/>
+
+  <!-- ============ STUDENT (center-top) ============ -->
+  <rect x="152" y="90" width="96" height="54" rx="4" fill="rgba(52,152,219,0.12)" stroke="#3498db" stroke-width="2"/>
+  <text x="200" y="108" font-size="10" fill="#333" font-weight="bold" text-anchor="middle">Student</text>
+  <text x="200" y="120" font-size="9" fill="#3498db" text-anchor="middle">6.15B params</text>
+  <text x="200" y="132" font-size="9" fill="#666" text-anchor="middle">velocity v</text>
+  <!-- Trainable badge -->
+  <rect x="172" y="146" width="56" height="14" rx="3" fill="rgba(52,152,219,0.1)" stroke="#3498db" stroke-width="1"/>
+  <text x="200" y="156" font-size="8" fill="#3498db" font-weight="bold" text-anchor="middle">TRAINABLE</text>
+
+  <!-- Arrow from student to denoised -->
+  <line x1="248" y1="117" x2="270" y2="117" stroke="#555" stroke-width="1" marker-end="url(#arrow)"/>
+
+  <!-- Denoised prediction box -->
+  <rect x="272" y="100" width="90" height="34" rx="4" fill="rgba(102,102,102,0.08)" stroke="#999" stroke-width="1"/>
+  <text x="317" y="115" font-size="9" fill="#333" text-anchor="middle">x̂₀ = x_t - tv</text>
+  <text x="317" y="126" font-size="8" fill="#666" text-anchor="middle">(denoised prediction)</text>
+
+  <!-- ============ RE-NOISING STEP (center) ============ -->
+  <!-- Section label -->
+  <text x="350" y="168" font-size="11" fill="#666" font-weight="bold" text-anchor="middle">Re-noising Step</text>
+
+  <!-- Fake path: Student x̂₀ re-noised -->
+  <rect x="152" y="180" width="120" height="38" rx="4" fill="rgba(52,152,219,0.08)" stroke="#3498db" stroke-width="1"/>
+  <text x="212" y="196" font-size="9" fill="#333" font-weight="bold" text-anchor="middle">Re-noise with t̂</text>
+  <text x="212" y="208" font-size="8" fill="#3498db" text-anchor="middle">student_renoised (fake)</text>
+
+  <!-- Arrow from denoised to fake re-noise -->
+  <path d="M317,134 L317,155 Q317,165 307,165 L272,175 Q262,180 262,180" stroke="#555" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+
+  <!-- Real path: Teacher x₀ re-noised -->
+  <rect x="320" y="180" width="120" height="38" rx="4" fill="rgba(230,126,34,0.08)" stroke="#e67e22" stroke-width="1"/>
+  <text x="380" y="196" font-size="9" fill="#333" font-weight="bold" text-anchor="middle">Re-noise with t̂</text>
+  <text x="380" y="208" font-size="8" fill="#e67e22" text-anchor="middle">real_noisy (real)</text>
+
+  <!-- Label: Teacher x₀ input to real path -->
+  <text x="380" y="174" font-size="8" fill="#666" text-anchor="middle">Teacher x₀</text>
+
+  <!-- ============ TEACHER (right side) ============ -->
+  <!-- Fake path through teacher -->
+  <line x1="272" y1="199" x2="290" y2="240" stroke="#555" stroke-width="1" marker-end="url(#arrow)"/>
+  <!-- Real path through teacher -->
+  <line x1="380" y1="218" x2="380" y2="240" stroke="#555" stroke-width="1" marker-end="url(#arrow)"/>
+
+  <!-- Teacher box (large, spans both paths) -->
+  <rect x="260" y="242" width="150" height="60" rx="4" fill="rgba(230,126,34,0.12)" stroke="#e67e22" stroke-width="2"/>
+  <text x="335" y="262" font-size="10" fill="#333" font-weight="bold" text-anchor="middle">Teacher</text>
+  <text x="335" y="274" font-size="9" fill="#e67e22" text-anchor="middle">6.15B params</text>
+  <text x="335" y="286" font-size="9" fill="#666" text-anchor="middle">→ hidden states at 6 layers</text>
+  <!-- Frozen badge -->
+  <rect x="307" y="304" width="56" height="14" rx="3" fill="rgba(231,76,60,0.1)" stroke="#e74c3c" stroke-width="1"/>
+  <text x="335" y="314" font-size="8" fill="#e74c3c" font-weight="bold" text-anchor="middle">FROZEN</text>
+
+  <!-- No gradient label on real path -->
+  <text x="440" y="258" font-size="8" fill="#e74c3c" font-weight="bold">no gradient</text>
+  <text x="440" y="268" font-size="8" fill="#e74c3c">(real path)</text>
+
+  <!-- ============ DISCRIMINATOR (right) ============ -->
+  <line x1="410" y1="272" x2="470" y2="350" stroke="#555" stroke-width="1" marker-end="url(#arrow)"/>
+  <line x1="335" y1="302" x2="335" y2="320" stroke="#555" stroke-width="1"/>
+  <path d="M335,320 Q335,340 400,350 L470,350" stroke="#555" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+
+  <rect x="472" y="326" width="130" height="54" rx="4" fill="rgba(231,76,60,0.12)" stroke="#e74c3c" stroke-width="2"/>
+  <text x="537" y="346" font-size="10" fill="#333" font-weight="bold" text-anchor="middle">Discriminator</text>
+  <text x="537" y="358" font-size="9" fill="#e74c3c" text-anchor="middle">14M params</text>
+  <text x="537" y="370" font-size="9" fill="#666" text-anchor="middle">real/fake → Hinge Loss</text>
+  <!-- Trainable badge -->
+  <rect x="509" y="382" width="56" height="14" rx="3" fill="rgba(231,76,60,0.1)" stroke="#e74c3c" stroke-width="1"/>
+  <text x="537" y="392" font-size="8" fill="#e74c3c" font-weight="bold" text-anchor="middle">TRAINABLE</text>
+
+  <!-- ============ LOSS OUTPUT ============ -->
+  <line x1="602" y1="353" x2="640" y2="353" stroke="#555" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="642" y="338" width="50" height="30" rx="4" fill="rgba(231,76,60,0.15)" stroke="#e74c3c" stroke-width="1.5"/>
+  <text x="667" y="357" font-size="10" fill="#e74c3c" font-weight="bold" text-anchor="middle">Loss</text>
+
+  <!-- ============ GRADIENT FLOW (dashed green) ============ -->
+  <text x="350" y="440" font-size="11" fill="#27ae60" font-weight="bold" text-anchor="middle">Gradient Flow</text>
+
+  <path d="M660,368 L660,460 Q660,470 650,470 L540,470" stroke="#27ae60" stroke-width="2" fill="none" stroke-dasharray="6,3" marker-end="url(#arrow-green)"/>
+  <text x="610" y="465" font-size="8" fill="#27ae60">Loss → Disc</text>
+
+  <path d="M472,470 L340,470 Q330,470 330,460 L330,310" stroke="#27ae60" stroke-width="2" fill="none" stroke-dasharray="6,3"/>
+  <text x="400" y="484" font-size="8" fill="#27ae60">Disc → Teacher ops</text>
+
+  <path d="M295,470 Q260,470 260,450 L220,420 Q200,400 200,370 L200,164" stroke="#27ae60" stroke-width="2" fill="none" stroke-dasharray="6,3" marker-end="url(#arrow-green)"/>
+  <text x="218" y="420" font-size="8" fill="#27ae60">→ Student</text>
+
+  <!-- Gradient explanation -->
+  <rect x="80" y="450" width="220" height="24" rx="4" fill="rgba(39,174,96,0.08)" stroke="#27ae60" stroke-width="1"/>
+  <text x="190" y="466" font-size="9" fill="#27ae60" text-anchor="middle">Gradients flow through frozen teacher</text>
+
+  <!-- ============ VAE NOTE (far left) ============ -->
+  <rect x="16" y="180" width="80" height="36" rx="4" fill="rgba(155,89,182,0.08)" stroke="#9b59b6" stroke-width="1"/>
+  <text x="56" y="196" font-size="9" fill="#333" font-weight="bold" text-anchor="middle">VAE</text>
+  <text x="56" y="206" font-size="8" fill="#666" text-anchor="middle">(encode only)</text>
+  <rect x="28" y="218" width="56" height="14" rx="3" fill="rgba(231,76,60,0.1)" stroke="#e74c3c" stroke-width="1"/>
+  <text x="56" y="228" font-size="8" fill="#e74c3c" font-weight="bold" text-anchor="middle">FROZEN</text>
+
+  <!-- ============ BOTTOM NOTE ============ -->
+  <rect x="40" y="510" width="620" height="40" rx="6" fill="#f5f5f5" stroke="#333" stroke-width="1"/>
+  <text x="350" y="530" font-size="10" fill="#333" font-weight="bold" text-anchor="middle">LADD operates entirely in latent space — the discriminator sees teacher features, not pixels.</text>
+  <text x="350" y="542" font-size="9" fill="#666" text-anchor="middle">Student and discriminator are trainable; teacher and text encoder remain frozen throughout.</text>
+</svg>
