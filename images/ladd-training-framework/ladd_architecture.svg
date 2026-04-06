@@ -23,9 +23,7 @@
   <!-- Title -->
   <text x="350" y="22" font-size="14" fill="#333" font-weight="bold" text-anchor="middle">LADD Training Pipeline</text>
 
-  <!-- ============================================================ -->
-  <!-- STAGE 1: Offline — Synthetic Data Generation with Teacher    -->
-  <!-- ============================================================ -->
+  <!-- STAGE 1: Offline Synthetic Data Generation with Teacher -->
   <rect x="8" y="38" width="218" height="172" rx="4" fill="none" stroke="#e67e22" stroke-width="1" stroke-dasharray="5,3" opacity="0.5"/>
   <text x="117" y="54" font-size="10" fill="#e67e22" font-weight="bold" text-anchor="middle">Stage 1: Offline Precompute</text>
 
@@ -40,8 +38,9 @@
   <rect x="82" y="72" width="60" height="48" rx="4" fill="rgba(230,126,34,0.12)" stroke="#e67e22" stroke-width="1.5"/>
   <text x="112" y="92" font-size="9" fill="#333" font-weight="bold" text-anchor="middle">Teacher</text>
   <text x="112" y="104" font-size="8" fill="#e67e22" text-anchor="middle">50 steps</text>
-  <!-- Frozen snowflake -->
-  <text x="137" y="82" font-size="9" fill="#3498db">&#x2744;</text>
+  <!-- Frozen badge -->
+  <rect x="126" y="72" width="16" height="12" rx="2" fill="rgba(52,152,219,0.15)" stroke="#3498db" stroke-width="0.8"/>
+  <text x="134" y="81" font-size="7" fill="#3498db" text-anchor="middle" font-weight="bold">F</text>
 
   <!-- Arrow Teacher → clean image -->
   <line x1="142" y1="96" x2="156" y2="96" stroke="#555" stroke-width="1" marker-end="url(#arr)"/>
@@ -56,14 +55,13 @@
   <rect x="18" y="150" width="90" height="28" rx="4" fill="rgba(155,89,182,0.08)" stroke="#9b59b6" stroke-width="1"/>
   <text x="63" y="163" font-size="8" fill="#333" font-weight="bold" text-anchor="middle">Qwen3 Text Enc.</text>
   <text x="63" y="173" font-size="7" fill="#666" text-anchor="middle">prompt → embeds</text>
-  <text x="107" y="163" font-size="9" fill="#3498db">&#x2744;</text>
+  <rect x="100" y="154" width="16" height="12" rx="2" fill="rgba(52,152,219,0.15)" stroke="#3498db" stroke-width="0.8"/>
+  <text x="108" y="163" font-size="7" fill="#3498db" text-anchor="middle" font-weight="bold">F</text>
 
   <!-- Arrow text enc → teacher -->
   <line x1="108" y1="158" x2="112" y2="125" stroke="#555" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arr)"/>
 
-  <!-- ============================================================ -->
-  <!-- STAGE 2: Student Prediction                                  -->
-  <!-- ============================================================ -->
+  <!-- STAGE 2: Student Prediction -->
   <rect x="232" y="38" width="218" height="172" rx="4" fill="none" stroke="#3498db" stroke-width="1" stroke-dasharray="5,3" opacity="0.5"/>
   <text x="341" y="54" font-size="10" fill="#3498db" font-weight="bold" text-anchor="middle">Stage 2: Student Prediction</text>
 
@@ -87,8 +85,9 @@
   <text x="340" y="88" font-size="9" fill="#333" font-weight="bold" text-anchor="middle">Student</text>
   <text x="340" y="100" font-size="8" fill="#3498db" text-anchor="middle">6.15B</text>
   <text x="340" y="112" font-size="8" fill="#666" text-anchor="middle">v_θ → x̂₀</text>
-  <!-- Fire (trainable) -->
-  <text x="366" y="80" font-size="9" fill="#e74c3c">&#x1F525;</text>
+  <!-- Trainable badge -->
+  <rect x="358" y="70" width="16" height="12" rx="2" fill="rgba(231,76,60,0.15)" stroke="#e74c3c" stroke-width="0.8"/>
+  <text x="366" y="79" font-size="7" fill="#e74c3c" text-anchor="middle" font-weight="bold">T</text>
 
   <!-- Arrow Student → denoised prediction -->
   <line x1="372" y1="96" x2="388" y2="96" stroke="#555" stroke-width="1" marker-end="url(#arr)"/>
@@ -102,13 +101,11 @@
   <!-- Prompt embeds arrow to student -->
   <line x1="108" y1="164" x2="330" y2="128" stroke="#555" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arr)"/>
 
-  <!-- ============================================================ -->
-  <!-- STAGE 3: Projected GAN Loss on Teacher Features              -->
-  <!-- ============================================================ -->
+  <!-- STAGE 3: Projected GAN Loss on Teacher Features -->
   <rect x="8" y="224" width="684" height="240" rx="4" fill="none" stroke="#e74c3c" stroke-width="1" stroke-dasharray="5,3" opacity="0.5"/>
   <text x="350" y="242" font-size="10" fill="#e74c3c" font-weight="bold" text-anchor="middle">Stage 3: Projected GAN Loss on Teacher Features</text>
 
-  <!-- ---- FAKE PATH (left side) ---- -->
+  <!-- FAKE PATH (left side) -->
   <text x="155" y="262" font-size="9" fill="#3498db" font-weight="bold" text-anchor="middle">Fake Path</text>
 
   <!-- Student x̂₀ re-noised -->
@@ -136,7 +133,7 @@
   <!-- Arrow from stage 2 x̂₀ down to fake path -->
   <path d="M414,120 L414,185 Q414,195 404,195 L54,195 Q44,195 44,205 L44,270" stroke="#3498db" stroke-width="1" fill="none" stroke-dasharray="4,2" marker-end="url(#arr)"/>
 
-  <!-- ---- REAL PATH (right side, parallel) ---- -->
+  <!-- REAL PATH (right side, parallel) -->
   <text x="545" y="262" font-size="9" fill="#e67e22" font-weight="bold" text-anchor="middle">Real Path</text>
 
   <!-- Teacher x₀ -->
@@ -165,9 +162,9 @@
   <!-- Arrow from stage 1 x₀ down to real path -->
   <path d="M182,120 L182,195 Q182,205 192,205 L490,205 Q500,205 500,215 L500,270" stroke="#e67e22" stroke-width="1" fill="none" stroke-dasharray="4,2" marker-end="url(#arr)"/>
 
-  <!-- ---- TEACHER (center, receives both paths) ---- -->
+  <!-- TEACHER (center, receives both paths) -->
   <rect x="208" y="336" width="292" height="60" rx="4" fill="rgba(230,126,34,0.12)" stroke="#e67e22" stroke-width="2"/>
-  <text x="354" y="356" font-size="10" fill="#333" font-weight="bold" text-anchor="middle">Teacher  &#x2744;</text>
+  <text x="354" y="356" font-size="10" fill="#333" font-weight="bold" text-anchor="middle">Teacher (frozen)</text>
   <text x="354" y="370" font-size="9" fill="#e67e22" text-anchor="middle">6.15B params — extract hidden states at layers [5, 10, 15, 20, 25, 29]</text>
   <text x="354" y="384" font-size="8" fill="#666" text-anchor="middle">frozen weights, but gradient graph kept alive on fake path</text>
 
@@ -177,9 +174,9 @@
   <!-- no_grad label on real path -->
   <text x="620" y="340" font-size="8" fill="#e74c3c" font-weight="bold">no_grad</text>
 
-  <!-- ---- DISCRIMINATOR HEADS (below teacher) ---- -->
+  <!-- DISCRIMINATOR HEADS (below teacher) -->
   <!-- 6 small head boxes -->
-  <text x="354" y="418" font-size="9" fill="#e74c3c" font-weight="bold" text-anchor="middle">Discriminator Heads (14M total) &#x1F525;</text>
+  <text x="354" y="418" font-size="9" fill="#e74c3c" font-weight="bold" text-anchor="middle">Discriminator Heads (14M total, trainable)</text>
 
   <!-- Head boxes for each layer -->
   <rect x="128" y="428" width="36" height="22" rx="3" fill="rgba(231,76,60,0.1)" stroke="#e74c3c" stroke-width="1"/>
@@ -224,7 +221,7 @@
   <rect x="562" y="425" width="80" height="28" rx="4" fill="rgba(231,76,60,0.12)" stroke="#e74c3c" stroke-width="1.5"/>
   <text x="602" y="443" font-size="9" fill="#e74c3c" font-weight="bold" text-anchor="middle">Hinge Loss</text>
 
-  <!-- ---- GRADIENT FLOW ANNOTATION ---- -->
+  <!-- GRADIENT FLOW ANNOTATION -->
   <path d="M602,453 L602,458 Q602,462 592,462 L340,462 Q330,462 330,458 L330,396" stroke="#27ae60" stroke-width="1.5" fill="none" stroke-dasharray="5,3" marker-end="url(#arr-grn)"/>
   <path d="M280,396 L280,412 Q280,418 270,418 L20,418 Q14,418 14,408 L14,195 Q14,185 24,185 L320,185 Q330,185 330,175 L340,130" stroke="#27ae60" stroke-width="1.5" fill="none" stroke-dasharray="5,3" marker-end="url(#arr-grn)"/>
   <text x="170" y="412" font-size="8" fill="#27ae60" font-weight="bold">&#x2190; gradient flows back through frozen teacher to student</text>
@@ -232,5 +229,5 @@
   <!-- ============ BOTTOM NOTE ============ -->
   <rect x="80" y="480" width="540" height="32" rx="6" fill="#f5f5f5" stroke="#333" stroke-width="1"/>
   <text x="350" y="497" font-size="10" fill="#333" font-weight="bold" text-anchor="middle">LADD operates entirely in latent space — the discriminator sees teacher features, not pixels.</text>
-  <text x="350" y="508" font-size="8" fill="#666" text-anchor="middle">&#x2744; = frozen weights  &#x1F525; = trainable</text>
+  <text x="350" y="508" font-size="8" fill="#666" text-anchor="middle">F = frozen weights | T = trainable</text>
 </svg>
