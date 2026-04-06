@@ -21,9 +21,10 @@ This is **Part 2** of our series on distilling [Z-Image](https://github.com/vion
 5. [Hyperparameter Experiments](#5-hyperparameter-experiments)
 6. [Results: 4 Steps vs 50 Steps](#6-results-4-steps-vs-50-steps)
 7. [Scaling Up: The FSDP Journey](#7-scaling-up-the-fsdp-journey)
-8. [The Hard Lessons: Blunders & Principles](#8-the-hard-lessons-blunders--principles)
-9. [Summary & Next Steps](#9-summary--next-steps)
-10. [Key References](#10-key-references)
+8. [The First Full Run: Mode Collapse at Scale](#8-the-first-full-run-mode-collapse-at-scale)
+9. [The Hard Lessons: Blunders & Principles](#9-the-hard-lessons-blunders--principles)
+10. [Summary & Next Steps](#10-summary--next-steps)
+11. [Key References](#11-key-references)
 
 ---
 
@@ -428,43 +429,6 @@ All experiments are tracked on W&B under project [`yeun-yeungs/ladd`](https://wa
 - [v2 eval at 2000 steps](https://wandb.ai/yeun-yeungs/ladd/runs/2389e6fo)
 - [v2 training at 2000 steps](https://wandb.ai/yeun-yeungs/ladd/runs/j0n7eah3)
 
-### Full run: mode collapse at scale
-
-We launched the first 8-GPU production run ([`yeun-yeungs/ladd/stjmyjsi`](https://wandb.ai/yeun-yeungs/ladd/runs/stjmyjsi)) — 8x A100 80GB, 10K precomputed latents, 20K target steps. The results were devastating.
-
-At step 0 the student (initialized from teacher weights) produces recognizable images. By step 2000, all outputs collapse into the same colorful noise pattern regardless of prompt:
-
-**Prompt: "A row of colorful, stylized, and simplified animal figures..."**
-
-| Teacher (50 steps) | Student step 0 | Student step 2000 | Student step 4000 |
-|:---:|:---:|:---:|:---:|
-| ![Teacher — animal figures](/images/ladd-training-framework/fullrun_teacher_row0.png) | ![Student step 0 — animal figures](/images/ladd-training-framework/fullrun_step_0_student_row0.png) | ![Student step 2000 — collapsed to noise](/images/ladd-training-framework/fullrun_step_2000_student_row0.png) | ![Student step 4000 — same noise pattern](/images/ladd-training-framework/fullrun_step_4000_student_row0.png) |
-
-**Prompt: "videogame screenshot of a very psychedelic dreamy luxury flooded tropical universe..."**
-
-| Teacher (50 steps) | Student step 0 | Student step 2000 | Student step 4000 |
-|:---:|:---:|:---:|:---:|
-| ![Teacher — psychedelic room](/images/ladd-training-framework/fullrun_teacher_row30.png) | ![Student step 0 — psychedelic room](/images/ladd-training-framework/fullrun_step_0_student_row30.png) | ![Student step 2000 — collapsed to noise](/images/ladd-training-framework/fullrun_step_2000_student_row30.png) | ![Student step 4000 — same noise pattern](/images/ladd-training-framework/fullrun_step_4000_student_row30.png) |
-
-Every prompt produces the same speckled noise. The KID at step 4000: **0.593** — catastrophically high (our single-GPU experiments scored 0.06).
-
-**Root cause: two misconfigured hyperparameters.**
-
-The run used `train_batch_size=1` with `gradient_accumulation_steps=8`. While this gives the same effective batch size of 64, each micro-step computes the hinge loss on a **single sample**. The discriminator trivially pushes one sample past the ±1 margin, the hinge loss saturates to 0, and the accumulated gradient is 8 zeros = zero. The student gets no learning signal and its weights drift into noise.
-
-Compounding this, `renoise_m=1.0` (should have been `0.5`) meant the discriminator was mostly comparing heavily noised samples — even when gradients existed, the signal was weak.
-
-| Parameter | Bad run | Corrected |
-|-----------|---------|-----------|
-| `train_batch_size` | 1 | **2** (hinge loss on 2 samples per micro-step) |
-| `gradient_accumulation_steps` | 8 | **4** (same effective BS: 2×4×8=64) |
-| `renoise_m` | 1.0 | **0.5** (43% better KID in sweep) |
-| `warmup_schedule_steps` | 10 | **0** (no benefit in sweep) |
-
-> **Lesson:** The total effective batch size is not the only thing that matters — the **per-micro-step batch size** determines whether the loss function produces meaningful gradients. Hinge loss with bs=1 is degenerate.
-
-Eval images from [`yeun-yeungs/ladd-eval`](https://wandb.ai/yeun-yeungs/ladd-eval?nw=nwuserdcvionwinnie).
-
 ---
 
 ## 7. Scaling Up: The FSDP Journey
@@ -556,7 +520,65 @@ Effective batch size: $4 \times 8 \times 2 = 64$. Target: 20K steps in ~2 hours.
 
 ---
 
-## 8. The Hard Lessons: Blunders & Principles
+## 8. The First Full Run: Mode Collapse at Scale
+
+We launched the first 8-GPU production run ([`yeun-yeungs/ladd/stjmyjsi`](https://wandb.ai/yeun-yeungs/ladd/runs/stjmyjsi)) — 8x A100 80GB, 10K precomputed latents, 20K target steps. After all the single-GPU validation, FSDP debugging, and hyperparameter sweeps, this was supposed to be the payoff run.
+
+The results were devastating.
+
+### What happened
+
+At step 0 the student (initialized from teacher weights) produces recognizable images. By step 2000, all outputs collapse into the same colorful noise pattern regardless of prompt:
+
+**Prompt: "A row of colorful, stylized, and simplified animal figures..."**
+
+| Teacher (50 steps) | Student step 0 | Student step 2000 | Student step 4000 |
+|:---:|:---:|:---:|:---:|
+| ![Teacher — animal figures](/images/ladd-training-framework/fullrun_teacher_row0.png) | ![Student step 0 — animal figures](/images/ladd-training-framework/fullrun_step_0_student_row0.png) | ![Student step 2000 — collapsed to noise](/images/ladd-training-framework/fullrun_step_2000_student_row0.png) | ![Student step 4000 — same noise pattern](/images/ladd-training-framework/fullrun_step_4000_student_row0.png) |
+
+**Prompt: "videogame screenshot of a very psychedelic dreamy luxury flooded tropical universe..."**
+
+| Teacher (50 steps) | Student step 0 | Student step 2000 | Student step 4000 |
+|:---:|:---:|:---:|:---:|
+| ![Teacher — psychedelic room](/images/ladd-training-framework/fullrun_teacher_row30.png) | ![Student step 0 — psychedelic room](/images/ladd-training-framework/fullrun_step_0_student_row30.png) | ![Student step 2000 — collapsed to noise](/images/ladd-training-framework/fullrun_step_2000_student_row30.png) | ![Student step 4000 — same noise pattern](/images/ladd-training-framework/fullrun_step_4000_student_row30.png) |
+
+Every prompt produces the same speckled noise. The KID at step 4000: **0.593** — catastrophically high (our single-GPU experiments scored 0.06).
+
+### Diagnosing from W&B
+
+The discriminator accuracy charts told a misleading story — `disc/accuracy_real` and `disc/accuracy_fake` both pinned at 1.0 throughout training. At first glance, this screamed "discriminator too strong, student getting no gradient."
+
+But `d_loss` and `g_loss` were actually non-zero and oscillating (0-4 range). The losses existed — so why wasn't the student learning?
+
+The answer: the accuracy was computed on a **per-GPU micro-batch of 1 sample**. With batch_size=1, the discriminator trivially classifies one sample. The accuracy metric was degenerate, not the training signal itself. We needed to look at the loss curves, not the accuracy.
+
+### Root cause: two misconfigured hyperparameters
+
+The production run diverged from our validated best config in two critical ways:
+
+| Parameter | Production run | Validated best | Impact |
+|-----------|:--------------:|:--------------:|--------|
+| `train_batch_size` | **1** | 2-4 | Hinge loss on 1 sample saturates to 0 every micro-step. Gradient accumulation sums 8 zeros = zero. |
+| `renoise_m` | **1.0** | 0.5 | Discriminator mostly sees heavily noised samples (sigmoid(1.0)=0.73). Gradient signal is weak even when non-zero. |
+
+The combination was lethal: weak gradients from high-noise re-noising (`m=1.0`), further zeroed out by degenerate hinge loss on single samples. The student drifted from its teacher-initialized weights into noise with no corrective signal.
+
+### The fix
+
+```bash
+--train_batch_size=2              # was 1 — hinge loss needs >1 sample
+--gradient_accumulation_steps=4   # was 8 — keeps effective BS=64 (2×4×8)
+--renoise_m=0.5                   # was 1.0 — 43% better in sweep
+--warmup_schedule_steps=0         # was 10 — no benefit in sweep
+```
+
+> **Lesson:** The total effective batch size is not the only thing that matters — the **per-micro-step batch size** determines whether the loss function produces meaningful gradients. Hinge loss with bs=1 is degenerate. And always double-check that production configs match your validated sweep winners.
+
+Eval images from [`yeun-yeungs/ladd-eval`](https://wandb.ai/yeun-yeungs/ladd-eval?nw=nwuserdcvionwinnie).
+
+---
+
+## 9. The Hard Lessons: Blunders & Principles
 
 This section is the most valuable part of this post. We made mistakes that cost days of debugging and invalidated entire experiment rounds. They cluster into four themes, each with a principle we now follow.
 
@@ -702,7 +724,7 @@ Several of our bugs were only caught because we logged the right things to W&B �
 
 ---
 
-## 9. Summary & Next Steps
+## 10. Summary & Next Steps
 
 We built a LADD training framework that distills a 6.15B image model from 50 steps to 4. The key components:
 
@@ -724,7 +746,7 @@ The code is open source at [github.com/vionwinnie/Z-Image-LADD-distillation](htt
 
 ---
 
-## 10. Key References
+## 11. Key References
 
 | Year | Paper | Contribution |
 |------|-------|-------------|
