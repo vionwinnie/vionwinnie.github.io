@@ -761,6 +761,60 @@ The code is open source at [github.com/vionwinnie/Z-Image-LADD-distillation](htt
 
 ---
 
+## Appendix: Anti-Mode-Collapse Hyperparameter Sweep
+
+After the first full run collapsed ([Section 8](#8-the-first-full-run-mode-collapse-at-scale)), we ran a second round of experiments specifically targeting discriminator dominance. The goal: find hyperparameters that prevent mode collapse on the full 10K dataset. Reference untrained KID: **0.0689** (anything above means training made things worse).
+
+### Phase 1 — With precomputed teacher latents (KID 0.000–0.012)
+
+These ran on the debug split (98 prompts, single A100) with precomputed teacher latents as "real" samples:
+
+| Experiment | What changed | KID | Verdict |
+|:----------:|:------------|:---:|:--------|
+| Baseline | slr=1e-5, dlr=1e-4, gi=5 | 0.0085 | Baseline |
+| Best 500-step | slr=5e-6, dlr=5e-5, gi=3 | 0.0080 | Improved |
+| Best 2000-step | same, 2000 steps | 0.0072 | Improved further |
+| **exp9: GI=8** | gen_update_interval=8 | **0.000869** | **Best (89% better than baseline)** |
+| exp7: GI=4 | gen_update_interval=4 | 0.0024 | Good |
+| exp8: GI=6 | gen_update_interval=6 | 0.0020 | Better |
+| exp10: GI=10 | gen_update_interval=10 | 0.0129 | Too few gen steps, disc too powerful |
+| exp2: M=0.5 | renoise_m=0.5 | 0.0046 | Moderate help |
+| exp13: dim=128 | smaller disc | 0.0012 | Slight help |
+| exp14: dim=512 | larger disc | 0.0064 | Much worse |
+
+**Key finding:** `GEN_UPDATE_INTERVAL=8` was the single biggest lever — the sweet spot between giving the discriminator enough training and not starving the generator.
+
+### Phase 2 — Fresh evaluation at full scale (KID 0.066–0.099)
+
+These used a different evaluation setup (KID ~10× higher), targeting the mode collapse problem directly. Not directly comparable to Phase 1:
+
+| Run | Config | KID | Verdict |
+|:----|:-------|:---:|:--------|
+| GI=2, dlr=1e-5 | weaker disc | 0.0666 | Best in this phase (below untrained baseline) |
+| **GI=2, dlr=1e-5, dim=128** | **even weaker** | **0.0664** | **Best overall in Phase 2** |
+| GI=2, dlr=2e-5 | | 0.0684 | Slightly worse |
+| GI=3, dlr=1e-5 | | 0.0728 | Worse |
+| GI=2, dlr=1e-5, dim=128, layers=[10,20,29] | two changes at once | 0.0791 | Worse |
+| Last run | slr=5e-6, dlr=1e-5, gi=2 | 0.0788 | disc_acc_fake=0%, disc not learning |
+
+### Takeaways from the sweep
+
+1. **GI is the dominant knob.** Phase 1: GI=3→8 gave 89% improvement. Phase 2: GI=2 with low disc LR was the sweet spot. The optimal value depends on the evaluation regime.
+
+2. **Lower disc learning rate helps.** `dlr=1e-5` consistently outperformed `dlr=5e-5` at preventing discriminator dominance.
+
+3. **Smaller disc hidden dim has diminishing returns.** `dim=128` helped marginally; `dim=512` hurt badly. The default 256 is a reasonable middle ground.
+
+4. **Noise schedule (renoise_m) matters less than GI.** `M=0.5` was best, but the effect was modest compared to GI tuning.
+
+5. **Disc layer indices didn't help.** Reducing from 6 to 3 or expanding to 8 layers always made things worse.
+
+6. **disc_accuracy_fake=0% is a warning sign.** Several Phase 2 runs show the discriminator can't classify fakes at all — the disc is too weak to provide useful signal. This is the opposite failure mode from the original collapse (disc too strong). The sweet spot is narrow.
+
+The final run in the log (KID=0.0788) showed a regression with `disc_accuracy_fake=0%` — the discriminator was too weak to guide the student. This highlights the fundamental tension in adversarial distillation: the discriminator must be strong enough to provide signal but not so strong that it overwhelms the student. Finding this balance is the central challenge.
+
+---
+
 ## 11. Key References
 
 | Year | Paper | Contribution |
