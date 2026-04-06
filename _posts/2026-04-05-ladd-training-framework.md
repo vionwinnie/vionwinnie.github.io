@@ -428,6 +428,43 @@ All experiments are tracked on W&B under project [`yeun-yeungs/ladd`](https://wa
 - [v2 eval at 2000 steps](https://wandb.ai/yeun-yeungs/ladd/runs/2389e6fo)
 - [v2 training at 2000 steps](https://wandb.ai/yeun-yeungs/ladd/runs/j0n7eah3)
 
+### Full run: mode collapse at scale
+
+We launched the first 8-GPU production run ([`yeun-yeungs/ladd/stjmyjsi`](https://wandb.ai/yeun-yeungs/ladd/runs/stjmyjsi)) — 8x A100 80GB, 10K precomputed latents, 20K target steps. The results were devastating.
+
+At step 0 the student (initialized from teacher weights) produces recognizable images. By step 2000, all outputs collapse into the same colorful noise pattern regardless of prompt:
+
+**Prompt: "A row of colorful, stylized, and simplified animal figures..."**
+
+| Teacher (50 steps) | Student step 0 | Student step 2000 | Student step 4000 |
+|:---:|:---:|:---:|:---:|
+| ![Teacher — animal figures](/images/ladd-training-framework/fullrun_teacher_row0.png) | ![Student step 0 — animal figures](/images/ladd-training-framework/fullrun_step_0_student_row0.png) | ![Student step 2000 — collapsed to noise](/images/ladd-training-framework/fullrun_step_2000_student_row0.png) | ![Student step 4000 — same noise pattern](/images/ladd-training-framework/fullrun_step_4000_student_row0.png) |
+
+**Prompt: "videogame screenshot of a very psychedelic dreamy luxury flooded tropical universe..."**
+
+| Teacher (50 steps) | Student step 0 | Student step 2000 | Student step 4000 |
+|:---:|:---:|:---:|:---:|
+| ![Teacher — psychedelic room](/images/ladd-training-framework/fullrun_teacher_row30.png) | ![Student step 0 — psychedelic room](/images/ladd-training-framework/fullrun_step_0_student_row30.png) | ![Student step 2000 — collapsed to noise](/images/ladd-training-framework/fullrun_step_2000_student_row30.png) | ![Student step 4000 — same noise pattern](/images/ladd-training-framework/fullrun_step_4000_student_row30.png) |
+
+Every prompt produces the same speckled noise. The KID at step 4000: **0.593** — catastrophically high (our single-GPU experiments scored 0.06).
+
+**Root cause: two misconfigured hyperparameters.**
+
+The run used `train_batch_size=1` with `gradient_accumulation_steps=8`. While this gives the same effective batch size of 64, each micro-step computes the hinge loss on a **single sample**. The discriminator trivially pushes one sample past the ±1 margin, the hinge loss saturates to 0, and the accumulated gradient is 8 zeros = zero. The student gets no learning signal and its weights drift into noise.
+
+Compounding this, `renoise_m=1.0` (should have been `0.5`) meant the discriminator was mostly comparing heavily noised samples — even when gradients existed, the signal was weak.
+
+| Parameter | Bad run | Corrected |
+|-----------|---------|-----------|
+| `train_batch_size` | 1 | **2** (hinge loss on 2 samples per micro-step) |
+| `gradient_accumulation_steps` | 8 | **4** (same effective BS: 2×4×8=64) |
+| `renoise_m` | 1.0 | **0.5** (43% better KID in sweep) |
+| `warmup_schedule_steps` | 10 | **0** (no benefit in sweep) |
+
+> **Lesson:** The total effective batch size is not the only thing that matters — the **per-micro-step batch size** determines whether the loss function produces meaningful gradients. Hinge loss with bs=1 is degenerate.
+
+Eval images from [`yeun-yeungs/ladd-eval`](https://wandb.ai/yeun-yeungs/ladd-eval?nw=nwuserdcvionwinnie).
+
 ---
 
 ## 7. Scaling Up: The FSDP Journey
