@@ -278,6 +278,8 @@ The discriminator loss pushes real logits above +1 and fake logits below -1. Onc
 
 **Danger signs:**
 - **NaN** — training has diverged. Gradients exploded, likely from a broken FSDP config or incompatible optimizer settings. Example: [`eager-smoke-151`](https://wandb.ai/yeun-yeungs/ladd/runs/6nt3oo8k) crashed at step 303 with NaN losses after we experimented with FSDP settings that broke gradient flow. Once NaN appears, the run is unrecoverable — kill it.
+
+![d_loss and g_loss going NaN immediately after step 1 due to broken FSDP gradient flow configuration](/images/ladd-training-framework/chart_nan_crash.png)
 - **d_loss pinned at 0** — discriminator is too confident on every sample. With batch_size=1, this is expected (hinge loss trivially saturates on a single sample). With batch_size≥2, it means the discriminator is dominating.
 - **g_loss flat and high** — student isn't improving despite non-zero d_loss. Check `grad_norm/student` — if it's zero on gen steps, the gradient path is broken.
 
@@ -288,6 +290,8 @@ The per-step loss is computed on the micro-batch (per-GPU batch size), not the e
 - **bs=1** ([`vulcan-tanagra-110`](https://wandb.ai/yeun-yeungs/ladd/runs/8h1tukl6)): Losses are extremely noisy — d_loss spikes between 0 and 4 every step, g_loss swings between -2 and 6. The hinge loss on a single sample is either fully saturated (0) or fully active — there's no middle ground. This makes it very hard to tell from the loss curves alone whether training is progressing.
 
 - **bs=2** ([`q1ft7t1z`](https://wandb.ai/yeun-yeungs/ladd/runs/q1ft7t1z)): Noticeably smoother. With 2 samples, the loss can take intermediate values (e.g. one sample saturated, one not = loss of ~1 instead of 0 or 4). The trends become readable.
+
+![Side-by-side d_loss and g_loss comparison showing bs=1 with sharp binary spikes versus bs=2 with smoother intermediate values](/images/ladd-training-framework/chart_bs1_vs_bs2_loss.png)
 
 ### disc/accuracy_real and disc/accuracy_fake
 
@@ -308,6 +312,8 @@ These use a threshold of 0 (not the hinge margin of ±1). They measure whether t
 - **accuracy_real high but accuracy_fake low** — discriminator learned to say "real" for everything. It correctly identifies real samples but can't catch fakes.
 
 **Important caveat:** These are computed on the per-GPU micro-batch. With bs=1, accuracy can only be 0 or 1 — there are no intermediate values. With bs=2, it can be 0, 0.5, or 1. Don't over-interpret oscillating accuracy at small batch sizes.
+
+![Side-by-side discriminator accuracy comparison showing bs=1 pinned at 0 or 1 versus bs=2 with intermediate 0.5 values possible](/images/ladd-training-framework/chart_bs1_vs_bs2_accuracy.png)
 
 ### disc/logit_gap
 
