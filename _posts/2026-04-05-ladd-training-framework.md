@@ -18,13 +18,14 @@ This is **Part 2** of our series on distilling [Z-Image](https://github.com/vion
 2. [The LADD Architecture](#2-the-ladd-architecture)
 3. [The Discriminator Design](#3-the-discriminator-design)
 4. [Loss Function & Training Loop](#4-loss-function--training-loop)
-5. [Hyperparameter Experiments](#5-hyperparameter-experiments)
-6. [Results: 4 Steps vs 50 Steps](#6-results-4-steps-vs-50-steps)
-7. [Scaling Up: The FSDP Journey](#7-scaling-up-the-fsdp-journey)
-8. [The First Full Run: Mode Collapse at Scale](#8-the-first-full-run-mode-collapse-at-scale)
-9. [The Hard Lessons: Blunders & Principles](#9-the-hard-lessons-blunders--principles)
-10. [Summary & Next Steps](#10-summary--next-steps)
-11. [Key References](#11-key-references)
+5. [Training Metrics: What to Watch and What Breaks](#5-training-metrics-what-to-watch-and-what-breaks)
+6. [Hyperparameter Experiments](#6-hyperparameter-experiments)
+7. [Results: 4 Steps vs 50 Steps](#7-results-4-steps-vs-50-steps)
+8. [Scaling Up: The FSDP Journey](#8-scaling-up-the-fsdp-journey)
+9. [The First Full Run: Mode Collapse at Scale](#9-the-first-full-run-mode-collapse-at-scale)
+10. [The Hard Lessons: Blunders & Principles](#10-the-hard-lessons-blunders--principles)
+11. [Summary & Next Steps](#11-summary--next-steps)
+12. [Key References](#12-key-references)
 
 ---
 
@@ -256,7 +257,84 @@ At $t = 1.0$, the student starts from pure noise — this is the hardest case an
 
 ---
 
-## 5. Hyperparameter Experiments
+## 5. Training Metrics: What to Watch and What Breaks
+
+Adversarial training is fragile. Unlike supervised training where the loss monotonically decreases, GAN losses oscillate by design — the question is whether they oscillate _healthily_. Here are the metrics we logged to W&B every step and how to read them.
+
+### d_loss and g_loss
+
+**How they're computed** (from [`ladd_discriminator.py:202-216`](https://github.com/vionwinnie/Z-Image-LADD-distillation/blob/main/training/ladd_discriminator.py#L202)):
+
+$$d\_loss = \mathbb{E}[\text{ReLU}(1 - \text{real\_logits})] + \mathbb{E}[\text{ReLU}(1 + \text{fake\_logits})]$$
+
+$$g\_loss = -\mathbb{E}[\text{fake\_logits}]$$
+
+The discriminator loss pushes real logits above +1 and fake logits below -1. Once confident, the ReLU clips to zero — the loss saturates. The generator loss simply wants fake logits to be as high as possible (fool the discriminator).
+
+**Healthy signs:**
+- Both oscillate in the 0-4 range without trending to extremes
+- Neither stays pinned at 0 for extended periods
+- g_loss gradually trends downward (student improving)
+
+**Danger signs:**
+- **NaN** — training has diverged. Gradients exploded, likely from a broken FSDP config or incompatible optimizer settings. Example: [`eager-smoke-151`](https://wandb.ai/yeun-yeungs/ladd/runs/6nt3oo8k) crashed at step 303 with NaN losses after we experimented with FSDP settings that broke gradient flow. Once NaN appears, the run is unrecoverable — kill it.
+- **d_loss pinned at 0** — discriminator is too confident on every sample. With batch_size=1, this is expected (hinge loss trivially saturates on a single sample). With batch_size≥2, it means the discriminator is dominating.
+- **g_loss flat and high** — student isn't improving despite non-zero d_loss. Check `grad_norm/student` — if it's zero on gen steps, the gradient path is broken.
+
+**Batch size effect on loss noise:**
+
+The per-step loss is computed on the micro-batch (per-GPU batch size), not the effective batch size. This has a dramatic effect on signal quality:
+
+- **bs=1** ([`vulcan-tanagra-110`](https://wandb.ai/yeun-yeungs/ladd/runs/8h1tukl6)): Losses are extremely noisy — d_loss spikes between 0 and 4 every step, g_loss swings between -2 and 6. The hinge loss on a single sample is either fully saturated (0) or fully active — there's no middle ground. This makes it very hard to tell from the loss curves alone whether training is progressing.
+
+- **bs=2** ([`q1ft7t1z`](https://wandb.ai/yeun-yeungs/ladd/runs/q1ft7t1z)): Noticeably smoother. With 2 samples, the loss can take intermediate values (e.g. one sample saturated, one not = loss of ~1 instead of 0 or 4). The trends become readable.
+
+### disc/accuracy_real and disc/accuracy_fake
+
+**How they're computed** (from [`ladd_eval.py:58-60`](https://github.com/vionwinnie/Z-Image-LADD-distillation/blob/main/training/ladd_eval.py#L58)):
+
+```python
+accuracy_real = (real_logits > 0).float().mean()   # % of real samples classified as real
+accuracy_fake = (fake_logits < 0).float().mean()   # % of fake samples classified as fake
+```
+
+These use a threshold of 0 (not the hinge margin of ±1). They measure whether the discriminator is _directionally_ correct, even if not confident enough to produce non-zero loss.
+
+**Healthy range:** Both between 0.6-0.9. The discriminator is right more often than not, but the student fools it sometimes.
+
+**Danger signs:**
+- **Both pinned at 1.0** — discriminator dominance. Every sample is correctly classified with high confidence. The student gets no signal. This is what we saw in the [collapsed full run](#9-the-first-full-run-mode-collapse-at-scale) with bs=1.
+- **Both below 0.5** — discriminator has collapsed and can't tell real from fake. The student gets random gradient directions. Several Phase 2 sweep runs showed `disc_accuracy_fake=0%` when the disc learning rate was too low.
+- **accuracy_real high but accuracy_fake low** — discriminator learned to say "real" for everything. It correctly identifies real samples but can't catch fakes.
+
+**Important caveat:** These are computed on the per-GPU micro-batch. With bs=1, accuracy can only be 0 or 1 — there are no intermediate values. With bs=2, it can be 0, 0.5, or 1. Don't over-interpret oscillating accuracy at small batch sizes.
+
+### disc/logit_gap
+
+**How it's computed:**
+
+```python
+logit_gap = real_logits.mean() - fake_logits.mean()
+```
+
+The raw difference between the discriminator's average score on real vs fake samples. This is the most direct measure of how well the discriminator separates real from fake.
+
+**Healthy range:** Positive and stable (2-6). The discriminator can tell them apart but isn't overwhelmingly confident.
+
+**Danger signs:**
+- **Logit gap > 15** — discriminator diverging, gradients likely exploding
+- **Logit gap < 0.1** — discriminator provides no learning signal, real and fake look identical to it
+- **Logit gap is NaN** — training has diverged (same as NaN loss)
+
+### Per-layer logits (disc/layer_N_real, disc/layer_N_fake)
+
+Each of the 6 discriminator heads (layers 5, 10, 15, 20, 25, 29) logs its own real/fake logit means. When all layers show nearly identical real and fake logits (as we saw in the collapsed run — `layer_10_fake ≈ layer_10_real`), it confirms the student outputs are indistinguishable from noise at every abstraction level.
+
+Healthy training shows gaps at multiple layers, with late layers (25, 29) typically showing the largest gap (semantic-level discrimination is hardest to fool).
+
+---
+
+## 6. Hyperparameter Experiments
 
 ### The autoresearch setup
 
@@ -361,7 +439,7 @@ DISC_LAYER_INDICES = [5, 10, 15, 20, 25, 29]  # 6 of 30 teacher layers
 
 ---
 
-## 6. Results: 4 Steps vs 50 Steps
+## 7. Results: 4 Steps vs 50 Steps
 
 ### Student vs Teacher: visual comparison
 
@@ -431,7 +509,7 @@ All experiments are tracked on W&B under project [`yeun-yeungs/ladd`](https://wa
 
 ---
 
-## 7. Scaling Up: The FSDP Journey
+## 8. Scaling Up: The FSDP Journey
 
 ![FSDP memory layout comparing 8-GPU sharded deployment at ~26GB per GPU versus single-GPU at ~78GB causing OOM](/images/ladd-training-framework/fsdp_memory.svg)
 
@@ -520,7 +598,7 @@ Effective batch size: $4 \times 8 \times 2 = 64$. Target: 20K steps in ~2 hours.
 
 ---
 
-## 8. The First Full Run: Mode Collapse at Scale
+## 9. The First Full Run: Mode Collapse at Scale
 
 We launched the first 8-GPU production run ([`yeun-yeungs/ladd/stjmyjsi`](https://wandb.ai/yeun-yeungs/ladd/runs/stjmyjsi)) — 8x A100 80GB, 10K precomputed latents, 20K target steps. After all the single-GPU validation, FSDP debugging, and hyperparameter sweeps, this was supposed to be the payoff run.
 
@@ -578,7 +656,7 @@ Eval images from [`yeun-yeungs/ladd-eval`](https://wandb.ai/yeun-yeungs/ladd-eva
 
 ---
 
-## 9. The Hard Lessons: Blunders & Principles
+## 10. The Hard Lessons: Blunders & Principles
 
 This section is the most valuable part of this post. We made mistakes that cost days of debugging and invalidated entire experiment rounds. They cluster into four themes, each with a principle we now follow.
 
@@ -726,7 +804,7 @@ Several of our bugs were only caught because we logged the right things to W&B �
 
 All 21 hyperparameter experiments ran on a 98-prompt debug slice with `train_batch_size=1` on a single GPU. The sweep converged, KID improved, the architecture was validated. We were confident.
 
-Then we launched the full 8-GPU run with 10K prompts — and the student collapsed into noise within 2000 steps ([Section 8](#8-the-first-full-run-mode-collapse-at-scale)).
+Then we launched the full 8-GPU run with 10K prompts — and the student collapsed into noise within 2000 steps ([Section 8](#9-the-first-full-run-mode-collapse-at-scale)).
 
 The debug slice succeeded for the wrong reasons:
 - **bs=1 with 98 prompts**: each prompt was seen every ~98 steps. The student effectively memorized the discriminator's feedback on specific prompts. The hinge loss saturated on individual samples, but the rapid prompt cycling created enough gradient diversity to mask the problem.
@@ -739,7 +817,7 @@ The fix required increasing `train_batch_size` from 1 to 2 (so the hinge loss is
 
 ---
 
-## 10. Summary & Next Steps
+## 11. Summary & Next Steps
 
 We built a LADD training framework that distills a 6.15B image model from 50 steps to 4. The key components:
 
@@ -763,7 +841,7 @@ The code is open source at [github.com/vionwinnie/Z-Image-LADD-distillation](htt
 
 ## Appendix: Anti-Mode-Collapse Hyperparameter Sweep
 
-After the first full run collapsed ([Section 8](#8-the-first-full-run-mode-collapse-at-scale)), we ran a second round of experiments specifically targeting discriminator dominance. The goal: find hyperparameters that prevent mode collapse on the full 10K dataset. Reference untrained KID: **0.0689** (anything above means training made things worse).
+After the first full run collapsed ([Section 8](#9-the-first-full-run-mode-collapse-at-scale)), we ran a second round of experiments specifically targeting discriminator dominance. The goal: find hyperparameters that prevent mode collapse on the full 10K dataset. Reference untrained KID: **0.0689** (anything above means training made things worse).
 
 The Phase 1 sweep results (debug split, 98 prompts) are covered in [Section 5](#5-hyperparameter-experiments). For reference, the **untrained student** (teacher weights, no LADD training at all) has **KID = 0.0689 ± 0.0067** at 4 inference steps. Any KID above this means training actively made things worse.
 
@@ -796,7 +874,7 @@ The final run in the log (KID=0.0788) showed a regression with `disc_accuracy_fa
 
 ---
 
-## 11. Key References
+## 12. Key References
 
 | Year | Paper | Contribution |
 |------|-------|-------------|
