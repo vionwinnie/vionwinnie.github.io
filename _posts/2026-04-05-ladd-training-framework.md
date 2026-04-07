@@ -291,7 +291,9 @@ The per-step loss is computed on the micro-batch (per-GPU batch size), not the e
 
 - **bs=2** ([`q1ft7t1z`](https://wandb.ai/yeun-yeungs/ladd/runs/q1ft7t1z)): Noticeably smoother. With 2 samples, the loss can take intermediate values (e.g. one sample saturated, one not = loss of ~1 instead of 0 or 4). The trends become readable.
 
-![Side-by-side d_loss and g_loss comparison showing bs=1 with sharp binary spikes versus bs=2 with smoother intermediate values](/images/ladd-training-framework/chart_bs1_vs_bs2_loss.png)
+Here's the W&B dashboard with both runs overlaid (blue = bs=2, orange = bs=1). The top row shows g_loss, t_hat_mean, and d_loss. The difference is stark — bs=2 (blue) has smoother loss curves with less oscillation, while bs=1 (orange) spikes violently between 0 and 4:
+
+![W&B dashboard showing bs=1 (orange) vs bs=2 (blue) overlaid — loss curves, t_hat_mean, d_loss, and discriminator accuracy. bs=2 is visibly smoother with more stable gradients.](/images/ladd-training-framework/wandb_bs1_vs_bs2_overview.png)
 
 ### disc/accuracy_real and disc/accuracy_fake
 
@@ -311,9 +313,9 @@ These use a threshold of 0 (not the hinge margin of ±1). They measure whether t
 - **Both below 0.5** — discriminator has collapsed and can't tell real from fake. The student gets random gradient directions. Several Phase 2 sweep runs showed `disc_accuracy_fake=0%` when the disc learning rate was too low.
 - **accuracy_real high but accuracy_fake low** — discriminator learned to say "real" for everything. It correctly identifies real samples but can't catch fakes.
 
-**Important caveat:** These are computed on the per-GPU micro-batch. With bs=1, accuracy can only be 0 or 1 — there are no intermediate values. With bs=2, it can be 0, 0.5, or 1. Don't over-interpret oscillating accuracy at small batch sizes.
+**Important caveat:** These are computed on the per-GPU micro-batch. With bs=1, accuracy can only be 0 or 1 — there are no intermediate values. With bs=2, it can be 0, 0.5, or 1. The zoomed-in accuracy view below makes this clear — bs=1 (orange) is binary, while bs=2 (blue) shows intermediate 0.5 values where the discriminator got one sample right and one wrong:
 
-![Side-by-side discriminator accuracy comparison showing bs=1 pinned at 0 or 1 versus bs=2 with intermediate 0.5 values possible](/images/ladd-training-framework/chart_bs1_vs_bs2_accuracy.png)
+![W&B discriminator accuracy zoomed in — bs=1 (orange) pinned at 0 or 1, bs=2 (blue) oscillating with intermediate 0.5 values](/images/ladd-training-framework/wandb_bs1_vs_bs2_accuracy.png)
 
 ### disc/logit_gap
 
