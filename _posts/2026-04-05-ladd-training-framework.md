@@ -433,16 +433,60 @@ After fixing 5 critical bugs, we re-ran the sweep. The results shifted significa
 
 The optimal GI **flipped from 8 to 3** after fixing the pipeline. Why? In the broken pipeline, "real" samples were just noise-mixed-with-noise — trivially easy for the discriminator. It needed many steps to avoid overwhelming the student. With proper teacher latents as real samples, the discrimination task became genuinely hard, and the student needed more frequent updates to keep up.
 
+### Round 3: v3 architecture with CLIP disc conditioning (branch [`autoresearch/apr7`](https://github.com/vionwinnie/Z-Image-LADD-distillation/tree/autoresearch/apr7))
+
+After the mode collapse on the full run, we identified another architecture issue: the discriminator's text conditioning was too weak. We switched from mean-pooled Qwen embeddings to **precomputed CLIP embeddings** (dim=512) for discriminator FiLM conditioning, giving the discriminator a stronger semantic signal about what the image should contain.
+
+12 experiments on 3K training data, 500 steps each, single A100 80GB. Untrained student KID: **0.0689**.
+
+| Rank | Experiment | Config change | KID | vs untrained |
+|:----:|:----------:|:-------------|:---:|:------------:|
+| 1 | **exp3** | **GI=3, M=1.0** | **0.0582** | **-15.5%** |
+| 2 | exp10 | + LR_WARMUP=50 | 0.0645 | -6.4% |
+| 3 | exp1 | GI=3, M=0.5 | 0.0665 | -3.5% |
+| 4 | exp7 | GI=4, M=1.0 | 0.0679 | -1.5% |
+| 5 | exp2 | GI=5, M=0.5 | 0.0682 | -1.1% |
+| — | untrained | — | 0.0689 | — |
+| 7 | exp5 | dlr=5e-5 | 0.0695 | +0.8% |
+| 8 | exp4 | M=1.5 | 0.0697 | +1.2% |
+| 9 | exp6 | 3 disc layers | 0.0722 | +4.7% |
+| 10 | exp9 | dim=128 | 0.0735 | +6.7% |
+| 11 | baseline | GI=2 | 0.0754 | +9.4% |
+| 12 | exp8 | slr=1e-5 | 0.0950 | +37.8% |
+
+**Surprise: `renoise_m=1.0` is now optimal** — the opposite of Round 2 where `m=0.5` won. With CLIP conditioning, the discriminator has a stronger semantic signal, so it can extract useful gradients even at higher noise levels. `M=0.5` dropped to rank 3. `M=1.5` was still too much (discriminator couldn't distinguish at all).
+
+**GI=3 confirmed** as the optimal update interval across all three rounds. GI=2 is now the worst performer (-9.4%), suggesting the discriminator needs at least 3 steps per generator update with CLIP conditioning.
+
+### Run-to-run variance
+
+A critical finding: repeated runs of the exact same config show **significant variance** at 500 steps with bs=1:
+
+| Run | KID |
+|:---:|:---:|
+| exp3 (original) | 0.0582 |
+| run2 | 0.0692 |
+| run3 | 0.0700 |
+| run4 | 0.0658 |
+| run5 | 0.0675 |
+| **Mean ± Std** | **0.0661 ± 0.0044** |
+
+The best single run (0.0582) was a lucky outlier — the true improvement is ~4% over the untrained baseline (0.0689), not 15.5%. This variance is inherent to bs=1 adversarial training over only 500 steps: each run sees the data in a different random order, and GPU non-determinism compounds.
+
+Additionally, **1000 steps degrades on 3K data**: 5-run mean KID = 0.0913 ± 0.0044 at 1000 steps vs 0.0661 ± 0.0044 at 500 steps. The student overfits — it memorizes the discriminator's feedback on the small dataset rather than learning general features. More training data (10K+) is needed before longer training helps.
+
+> **Lesson: Never trust a single run.** Run at least 3-5 seeds and report the mean. A single lucky result can be 2× better than the true mean, leading to false confidence in a configuration. The variance also means that improvements below ~5% are within noise.
+
 ### Current best configuration
 
 ```python
-STUDENT_LR        = 5e-6    # Conservative — adversarial training is fragile
-DISC_LR           = 5e-5    # 10x student LR (disc needs to lead)
-GEN_UPDATE_INTERVAL = 3     # Update student every 3 disc steps
-RENOISE_M         = 0.5     # LogitNormal mean (moderate noise bias)
-RENOISE_S         = 1.0     # LogitNormal std (wide spread)
-DISC_HIDDEN_DIM   = 256     # Per-head projection dimension
-DISC_LAYER_INDICES = [5, 10, 15, 20, 25, 29]  # 6 of 30 teacher layers
+STUDENT_LR          = 5e-6    # Conservative — adversarial training is fragile
+DISC_LR             = 1e-5    # 2x student LR (lower than before — CLIP disc is stronger)
+GEN_UPDATE_INTERVAL = 3       # Update student every 3 disc steps
+RENOISE_M           = 1.0     # LogitNormal mean (high noise — CLIP disc can handle it)
+RENOISE_S           = 1.0     # LogitNormal std (wide spread)
+DISC_HIDDEN_DIM     = 256     # Per-head projection dimension
+DISC_LAYER_INDICES  = [5, 10, 15, 20, 25, 29]  # 6 of 30 teacher layers
 ```
 
 ---
