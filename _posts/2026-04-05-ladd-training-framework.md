@@ -660,6 +660,14 @@ The combination was lethal: weak gradients from high-noise re-noising (`m=1.0`),
 
 > **Lesson:** The total effective batch size is not the only thing that matters — the **per-micro-step batch size** determines whether the loss function produces meaningful gradients. Hinge loss with bs=1 is degenerate. And always double-check that production configs match your validated sweep winners.
 
+### The full degradation timeline
+
+The gallery below tracks 4 prompts across 12 checkpoints (every 500 steps from step 500 to step 6000). At step 500 there's still recognizable structure from the teacher-initialized weights. By step 1000-1500 the images start losing coherence. From step 2000 onward, every prompt produces the same speckled noise — the student has fully collapsed.
+
+![Gallery showing 4 prompts across 6 training checkpoints (500 to 6000 steps). Images degrade from recognizable at step 500 to identical colorful noise by step 2000, remaining collapsed through step 6000.](/images/ladd-training-framework/gallery_mode_collapse_over_time.png)
+
+The uniformity of the collapsed outputs across completely different prompts (bullfighting arena, wine bottles, cyberpunk party, man with logos) confirms this is mode collapse, not just poor quality — the student is producing a single "average" output regardless of conditioning.
+
 Eval images from [`yeun-yeungs/ladd-eval`](https://wandb.ai/yeun-yeungs/ladd-eval?nw=nwuserdcvionwinnie).
 
 ---
