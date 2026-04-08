@@ -620,7 +620,13 @@ To understand how bad the collapse is, here's what the **untrained student** pro
 |:---:|:---:|:---:|:---:|
 | ![Untrained student — sunset](/images/ladd-training-framework/untrained_student_0.png) | ![Untrained student — cat](/images/ladd-training-framework/untrained_student_1.png) | ![Untrained student — city](/images/ladd-training-framework/untrained_student_2.png) | ![Untrained student — watercolor](/images/ladd-training-framework/untrained_student_3.png) |
 
-These are blurry (4 steps instead of 50) but recognizable — the student starts from a reasonable place. LADD training is supposed to make these *sharper*. Instead, it destroyed them:
+And here's what 1000 steps of **single-GPU training** (bs=1, 98 debug prompts) produces — blurry but with correct structure ([`rqn4r0sg`](https://wandb.ai/yeun-yeungs/ladd/runs/rqn4r0sg), equivalent to ~125 steps on 8 GPUs):
+
+| "Bullfighting arena" | "Wine bottles" | "Cyberpunk party" | "Man with logos" |
+|:---:|:---:|:---:|:---:|
+| ![Single-GPU 1000 steps — bullfight](/images/ladd-training-framework/singlegpu_step1000_row0.png) | ![Single-GPU 1000 steps — wine bottles](/images/ladd-training-framework/singlegpu_step1000_row5.png) | ![Single-GPU 1000 steps — cyberpunk](/images/ladd-training-framework/singlegpu_step1000_row10.png) | ![Single-GPU 1000 steps — man](/images/ladd-training-framework/singlegpu_step1000_row15.png) |
+
+These are blurry but recognizable — the student starts from a reasonable place and single-GPU training does improve structure. LADD training on the full cluster is supposed to make these *sharper*. Instead, it destroyed them:
 
 By step 2000, all outputs collapse into the same colorful noise pattern regardless of prompt:
 
