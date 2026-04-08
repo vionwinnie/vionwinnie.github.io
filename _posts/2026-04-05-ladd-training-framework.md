@@ -510,7 +510,7 @@ These use a threshold of 0 (not the hinge margin of ±1). They measure whether t
 
 **Danger signs:**
 - **Both pinned at 1.0** — discriminator dominance. Every sample is correctly classified with high confidence. The student gets no signal. This is what we saw in the [collapsed full run](#6-what-we-observed) with bs=1.
-- **Both below 0.5** — discriminator has collapsed and can't tell real from fake. The student gets random gradient directions. Several Phase 2 sweep runs showed `disc_accuracy_fake=0%` when the disc learning rate was too low.
+- **Both below 0.5 at bs≥2** — discriminator has collapsed and can't tell real from fake. The student gets random gradient directions. (At bs=1, accuracy of 0% on a single sample is normal — it just means the disc got that one sample wrong.)
 - **accuracy_real high but accuracy_fake low** — discriminator learned to say "real" for everything. It correctly identifies real samples but can't catch fakes.
 
 **Important caveat:** These are computed on the per-GPU micro-batch. With bs=1, accuracy can only be 0 or 1 — there are no intermediate values. With bs=2, it can be 0, 0.5, or 1. The zoomed-in accuracy view below makes this clear — bs=1 (orange) is binary, while bs=2 (blue) shows intermediate 0.5 values where the discriminator got one sample right and one wrong:
@@ -961,7 +961,7 @@ Key findings from three rounds of sweeps (33+ experiments):
 1. **More fine-grained evaluation** — run KID at every 500 steps out to step 4000+ to get more signal on the degradation curve and identify the optimal early-stopping point
 2. **Higher batch size** (bs=4+) for more stable gradient flow — requires memory optimization (activation checkpointing, offloading) to fit on A100 80GB
 3. **Alternative loss functions** — variants of the GAN loss (non-saturating loss, Wasserstein loss, R1 gradient penalty) may provide more stable gradients than hinge loss, especially at small batch sizes
-4. **EMA (Exponential Moving Average) weight updates** — maintain a running average of student weights to prevent quality regressions during training oscillations. The LADD paper uses EMA; we haven't implemented it yet.
+4. **EMA (Exponential Moving Average) weight updates** — maintain a running average of student weights to smooth out oscillations during adversarial training. A common GAN stabilization technique we haven't explored yet.
 5. **Scale up training data** — precompute latents for 50K+ prompts to reduce overfitting and enable longer training runs
 6. **Multi-seed averaging** — run 3-5 seeds per config and report mean KID to avoid false confidence from lucky single runs
 
@@ -984,7 +984,7 @@ This appendix covers **Phase 2** — the anti-collapse sweep run after the produ
 | GI=2, dlr=2e-5 | | 0.0684 | Slightly worse |
 | GI=3, dlr=1e-5 | | 0.0728 | Worse |
 | GI=2, dlr=1e-5, dim=128, layers=[10,20,29] | two changes at once | 0.0791 | Worse |
-| Last run | slr=5e-6, dlr=1e-5, gi=2 | 0.0788 | disc_acc_fake=0%, disc not learning |
+| Last run | slr=5e-6, dlr=1e-5, gi=2 | 0.0788 | Regression (KID above untrained baseline) |
 
 ### Takeaways from the sweep
 
@@ -998,9 +998,7 @@ This appendix covers **Phase 2** — the anti-collapse sweep run after the produ
 
 5. **Disc layer indices didn't help.** Reducing from 6 to 3 or expanding to 8 layers always made things worse.
 
-6. **disc_accuracy_fake=0% is a warning sign.** Several Phase 2 runs show the discriminator can't classify fakes at all — the disc is too weak to provide useful signal. This is the opposite failure mode from the original collapse (disc too strong). The sweet spot is narrow.
-
-The final run in the log (KID=0.0788) showed a regression with `disc_accuracy_fake=0%` — the discriminator was too weak to guide the student. This highlights the fundamental tension in adversarial distillation: the discriminator must be strong enough to provide signal but not so strong that it overwhelms the student. Finding this balance is the central challenge.
+6. **The sweet spot is narrow.** The discriminator must be strong enough to provide signal but not so strong that it overwhelms the student. This fundamental tension in adversarial distillation makes hyperparameter tuning particularly sensitive — small changes in GI or disc LR can flip between the two failure modes.
 
 ---
 
