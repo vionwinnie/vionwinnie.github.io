@@ -674,6 +674,22 @@ The combination was lethal: weak gradients from high-noise re-noising (`m=1.0`),
 
 > **Lesson:** The total effective batch size is not the only thing that matters — the **per-micro-step batch size** determines whether the loss function produces meaningful gradients. Hinge loss with bs=1 is degenerate. And always double-check that production configs match your validated sweep winners.
 
+### Learning curves from W&B
+
+We tracked two production runs on the 8-GPU cluster ([`zzu1qpx4`](https://wandb.ai/yeun-yeungs/ladd/runs/zzu1qpx4) and [`ciiv9vjy`](https://wandb.ai/yeun-yeungs/ladd/runs/ciiv9vjy)), both bs=2 with `renoise_m=1.0`. The KID curve tells the full story — training consistently makes the model worse:
+
+![KID over training checkpoints for two production runs. Both start at KID~0.19 (already above the untrained baseline of 0.069) and climb to 0.4-0.5. The green dashed line shows the untrained baseline.](/images/ladd-training-framework/chart_kid_over_time.png)
+
+The untrained student (green dashed line, KID=0.069) is better than every single training checkpoint. KID climbs from 0.19 at the first eval to 0.45-0.50 by the end — the student is actively un-learning.
+
+The loss curves show the adversarial dynamics aren't converging:
+
+![d_loss and g_loss for both production runs. Both oscillate without trending — d_loss drifts upward, g_loss stays volatile.](/images/ladd-training-framework/chart_production_losses.png)
+
+The discriminator health metrics reveal the underlying problem — the logit gap collapses toward zero over time, meaning the discriminator gradually loses its ability to distinguish real from fake:
+
+![Discriminator accuracy and logit gap for both runs. Accuracy oscillates (healthy at bs=2), but logit gap trends toward zero — discriminator signal fading.](/images/ladd-training-framework/chart_production_disc_health.png)
+
 ### The full degradation timeline
 
 The gallery below tracks 4 prompts across 12 checkpoints (every 500 steps from step 500 to step 6000). At step 500 there's still recognizable structure from the teacher-initialized weights. By step 1000-1500 the images start losing coherence. From step 2000 onward, every prompt produces the same speckled noise — the student has fully collapsed.
