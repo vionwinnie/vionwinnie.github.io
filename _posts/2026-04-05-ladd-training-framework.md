@@ -15,17 +15,16 @@ This is **Part 2** of our series on distilling [Z-Image](https://github.com/vion
 ## Table of Contents
 
 1. [Overview](#1-overview)
-2. [The LADD Architecture](#2-the-ladd-architecture)
-3. [The Discriminator Design](#3-the-discriminator-design)
-4. [Loss Function & Training Loop](#4-loss-function--training-loop)
+2. [Architecture & Code](#2-architecture--code)
+3. [Experimental Setup](#3-experimental-setup)
+4. [Hyperparameter Search Results](#4-hyperparameter-search-results)
 5. [Training Metrics: What to Watch and What Breaks](#5-training-metrics-what-to-watch-and-what-breaks)
-6. [Hyperparameter Experiments](#6-hyperparameter-experiments)
-7. [Results: 4 Steps vs 50 Steps](#7-results-4-steps-vs-50-steps)
-8. [Scaling Up: The FSDP Journey](#8-scaling-up-the-fsdp-journey)
-9. [The First Full Run: Mode Collapse at Scale](#9-the-first-full-run-mode-collapse-at-scale)
-10. [The Hard Lessons: Blunders & Principles](#10-the-hard-lessons-blunders--principles)
-11. [Summary & Next Steps](#11-summary--next-steps)
-12. [Key References](#12-key-references)
+6. [What We Observed](#6-what-we-observed)
+7. [Technical Difficulties](#7-technical-difficulties)
+8. [Lessons Learned](#8-lessons-learned)
+9. [Summary & Next Steps](#9-summary--next-steps)
+10. [Appendix: Anti-Mode-Collapse Sweep](#10-appendix-anti-mode-collapse-sweep)
+11. [Key References](#11-key-references)
 
 ---
 
@@ -49,13 +48,17 @@ The student is initialized as an exact copy of the teacher. Training teaches it 
 
 ---
 
-## 2. The LADD Architecture
+## 2. Architecture & Code
+
+This section covers the three core components — the LADD architecture, the discriminator design, and the loss function that ties them together.
+
+### 2.1 The LADD Architecture
 
 ![Full LADD architecture showing the student, teacher, and discriminator models with data flow paths and gradient flow through the frozen teacher](/images/ladd-training-framework/ladd_architecture.svg)
 
 The architecture has three key ideas that separate it from simpler distillation approaches.
 
-### Idea 1: The student predicts velocity, not noise
+#### Idea 1: The student predicts velocity, not noise
 
 Z-Image uses **flow matching** (Lipman et al., 2023) — a framework where, unlike noise-prediction diffusion (DDPM), the forward process interpolates _linearly_ between data and noise, and the model predicts the velocity of that interpolation:
 
@@ -79,7 +82,7 @@ This is implemented in [`train_ladd.py:824`](https://github.com/vionwinnie/Z-Ima
 student_pred = x_t - t_bc * student_velocity
 ```
 
-### Idea 2: Re-noising creates a shared comparison space
+#### Idea 2: Re-noising creates a shared comparison space
 
 The student's denoised prediction $\hat{x}_0$ and the teacher's clean latent $x_0$ can't be compared directly by the discriminator — they might be at different quality levels for trivial reasons (the student just started training). Instead, both are **re-noised** to a shared noise level $\hat{t}$, sampled from a **logit-normal distribution** — a distribution that applies a sigmoid to a Gaussian sample, concentrating values in $(0, 1)$ away from the extremes:
 
@@ -100,7 +103,7 @@ def logit_normal_sample(batch_size, m=1.0, s=1.0, device="cpu", generator=None):
     return t
 ```
 
-### Idea 3: Gradients flow through the frozen teacher
+#### Idea 3: Gradients flow through the frozen teacher
 
 This is the subtlest part. The teacher's weights are frozen (`requires_grad_(False)`), but on the **fake path**, the computation graph is kept alive — no `torch.no_grad()`. This means gradients flow backward through the teacher's operations to reach the student:
 
@@ -123,15 +126,13 @@ _, fake_extras_grad = teacher(
 )
 ```
 
----
-
-## 3. The Discriminator Design
+### 2.2 The Discriminator Design
 
 ![Multi-scale discriminator with 6 heads tapping teacher transformer layers at different depths, showing FiLM conditioning and logit summation](/images/ladd-training-framework/discriminator_design.svg)
 
 The discriminator is not a full model — it's **6 independent lightweight heads**, each attached to a different layer of the teacher transformer. This multi-scale design is what makes LADD work with only 14M parameters (0.2% of the student).
 
-### Why multiple layers?
+#### Why multiple layers?
 
 Each teacher transformer block captures different abstractions:
 
@@ -143,7 +144,7 @@ Each teacher transformer block captures different abstractions:
 
 If the discriminator only watched one layer, the student could learn to fool that specific abstraction level while degrading at others. Six layers make gaming the system much harder.
 
-### Head architecture
+#### Head architecture
 
 Each head is a small convolutional network with **FiLM conditioning** (Feature-wise Linear Modulation) from the timestep and text embedding. FiLM works by learning a per-channel **scale** and **shift** from the conditioning signal, so the discriminator can adjust which features matter depending on the noise level and prompt:
 
@@ -190,13 +191,11 @@ for layer_idx in self.layer_indices:
     total_logit = total_logit + head_logits
 ```
 
----
-
-## 4. Loss Function & Training Loop
+### 2.3 Loss Function & Training Loop
 
 ![Single training step pipeline showing timestep sampling, student forward, re-noising, teacher feature extraction, and discriminator classification with asymmetric update schedule](/images/ladd-training-framework/training_step.svg)
 
-### The hinge loss
+#### The hinge loss
 
 LADD uses the **hinge loss** variant of adversarial training — the same loss used in spectral normalization GANs. It has a nice property: the discriminator loss saturates once it's confident, preventing it from becoming arbitrarily strong.
 
@@ -215,7 +214,7 @@ def compute_loss(real_logits, fake_logits):
 
 **Generator (student) loss** is simply $-\mathbb{E}[\text{fake logits}]$ — maximize the discriminator's score on student outputs.
 
-### The asymmetric update schedule
+#### The asymmetric update schedule
 
 The discriminator and student don't update at the same frequency. The discriminator updates **every step**, while the student updates only every $N$ steps (`gen_update_interval`):
 
@@ -236,7 +235,7 @@ if is_gen_step:
 
 Why? The discriminator needs to stay ahead of the student to provide useful gradient signal. If both update every step, they oscillate. The discriminator uses a 10× higher learning rate (5e-5 vs 5e-6) for the same reason.
 
-### Timestep curriculum
+#### Timestep curriculum
 
 The student sees a mix of denoising difficulties, with a curriculum that shifts from easy to hard:
 
@@ -257,94 +256,29 @@ At $t = 1.0$, the student starts from pure noise — this is the hardest case an
 
 ---
 
-## 5. Training Metrics: What to Watch and What Breaks
+## 3. Experimental Setup
 
-Adversarial training is fragile. Unlike supervised training where the loss monotonically decreases, GAN losses oscillate by design — the question is whether they oscillate _healthily_. Here are the metrics we logged to W&B every step and how to read them.
+Our experimental pipeline had four stages: precompute, small-run sweeps, KID evaluation, and cluster launch.
 
-### d_loss and g_loss
+### 3.1 Precomputing latents and embeddings
 
-**How they're computed** (from [`ladd_discriminator.py:202-216`](https://github.com/vionwinnie/Z-Image-LADD-distillation/blob/main/training/ladd_discriminator.py#L202)):
+Training LADD requires teacher-generated latents (50-step generation with CFG=5) for every training prompt. We precomputed these offline along with Qwen text embeddings and CLIP embeddings for discriminator conditioning. This avoids the cost of running the teacher during training and allows the frozen teacher to focus solely on feature extraction.
 
-$$d\_loss = \mathbb{E}[\text{ReLU}(1 - \text{real\_logits})] + \mathbb{E}[\text{ReLU}(1 + \text{fake\_logits})]$$
+We benchmarked precomputation throughput:
 
-$$g\_loss = -\mathbb{E}[\text{fake\_logits}]$$
+| Batch size | Time per image | Peak VRAM |
+|:----------:|:--------------:|:---------:|
+| 1 | 8.9s | 21.9 GB |
+| 4 | 7.5s | 25.2 GB |
+| 8 | 7.3s | 29.5 GB |
 
-The discriminator loss pushes real logits above +1 and fake logits below -1. Once confident, the ReLU clips to zero — the loss saturates. The generator loss simply wants fake logits to be as high as possible (fool the discriminator).
+At 7.3s/image with embarrassingly parallel sharding (each GPU processes an independent subset of prompts, no communication needed), precomputing all 500K latents across 8 A100s would take:
 
-**Healthy signs:**
-- Both oscillate in the 0-4 range without trending to extremes
-- Neither stays pinned at 0 for extended periods
-- g_loss gradually trends downward (student improving)
+$$\frac{500{,}000 \times 7.3}{8} = 456{,}250 \text{ seconds} \approx 127 \text{ hours}$$
 
-**Danger signs:**
-- **NaN** — training has diverged. Gradients exploded, likely from a broken FSDP config or incompatible optimizer settings. Example: [`eager-smoke-151`](https://wandb.ai/yeun-yeungs/ladd/runs/6nt3oo8k) crashed at step 303 with NaN losses after we experimented with FSDP settings that broke gradient flow. Once NaN appears, the run is unrecoverable — kill it.
+We had 6 hours of compute. The math was brutal: we could precompute roughly **10K latents in 4 hours** — 2% of our dataset. Training would repeat each latent ~128 times over 20K steps. This was a hard trade-off we should have modeled _before_ curating 500K prompts (more on this in [Section 7](#7-technical-difficulties)).
 
-![d_loss and g_loss going NaN immediately after step 1 due to broken FSDP gradient flow configuration](/images/ladd-training-framework/chart_nan_crash.png)
-- **d_loss pinned at 0** — discriminator is too confident on every sample. With batch_size=1, this is expected (hinge loss trivially saturates on a single sample). With batch_size≥2, it means the discriminator is dominating.
-- **g_loss flat and high** — student isn't improving despite non-zero d_loss. Check `grad_norm/student` — if it's zero on gen steps, the gradient path is broken.
-
-**Batch size effect on loss noise:**
-
-The per-step loss is computed on the micro-batch (per-GPU batch size), not the effective batch size. This has a dramatic effect on signal quality:
-
-- **bs=1** ([`vulcan-tanagra-110`](https://wandb.ai/yeun-yeungs/ladd/runs/8h1tukl6)): Losses are extremely noisy — d_loss spikes between 0 and 4 every step, g_loss swings between -2 and 6. The hinge loss on a single sample is either fully saturated (0) or fully active — there's no middle ground. This makes it very hard to tell from the loss curves alone whether training is progressing.
-
-- **bs=2** ([`q1ft7t1z`](https://wandb.ai/yeun-yeungs/ladd/runs/q1ft7t1z)): Noticeably smoother. With 2 samples, the loss can take intermediate values (e.g. one sample saturated, one not = loss of ~1 instead of 0 or 4). The trends become readable.
-
-Here's the W&B dashboard with both runs overlaid (blue = bs=2, orange = bs=1). The top row shows g_loss, t_hat_mean, and d_loss. The difference is stark — bs=2 (blue) has smoother loss curves with less oscillation, while bs=1 (orange) spikes violently between 0 and 4:
-
-![W&B dashboard showing bs=1 (orange) vs bs=2 (blue) overlaid — loss curves, t_hat_mean, d_loss, and discriminator accuracy. bs=2 is visibly smoother with more stable gradients.](/images/ladd-training-framework/wandb_bs1_vs_bs2_overview.png)
-
-### disc/accuracy_real and disc/accuracy_fake
-
-**How they're computed** (from [`ladd_eval.py:58-60`](https://github.com/vionwinnie/Z-Image-LADD-distillation/blob/main/training/ladd_eval.py#L58)):
-
-```python
-accuracy_real = (real_logits > 0).float().mean()   # % of real samples classified as real
-accuracy_fake = (fake_logits < 0).float().mean()   # % of fake samples classified as fake
-```
-
-These use a threshold of 0 (not the hinge margin of ±1). They measure whether the discriminator is _directionally_ correct, even if not confident enough to produce non-zero loss.
-
-**Healthy range:** Both between 0.6-0.9. The discriminator is right more often than not, but the student fools it sometimes.
-
-**Danger signs:**
-- **Both pinned at 1.0** — discriminator dominance. Every sample is correctly classified with high confidence. The student gets no signal. This is what we saw in the [collapsed full run](#9-the-first-full-run-mode-collapse-at-scale) with bs=1.
-- **Both below 0.5** — discriminator has collapsed and can't tell real from fake. The student gets random gradient directions. Several Phase 2 sweep runs showed `disc_accuracy_fake=0%` when the disc learning rate was too low.
-- **accuracy_real high but accuracy_fake low** — discriminator learned to say "real" for everything. It correctly identifies real samples but can't catch fakes.
-
-**Important caveat:** These are computed on the per-GPU micro-batch. With bs=1, accuracy can only be 0 or 1 — there are no intermediate values. With bs=2, it can be 0, 0.5, or 1. The zoomed-in accuracy view below makes this clear — bs=1 (orange) is binary, while bs=2 (blue) shows intermediate 0.5 values where the discriminator got one sample right and one wrong:
-
-![W&B discriminator accuracy zoomed in — bs=1 (orange) pinned at 0 or 1, bs=2 (blue) oscillating with intermediate 0.5 values](/images/ladd-training-framework/wandb_bs1_vs_bs2_accuracy.png)
-
-### disc/logit_gap
-
-**How it's computed:**
-
-```python
-logit_gap = real_logits.mean() - fake_logits.mean()
-```
-
-The raw difference between the discriminator's average score on real vs fake samples. This is the most direct measure of how well the discriminator separates real from fake.
-
-**Healthy range:** Positive and stable (2-6). The discriminator can tell them apart but isn't overwhelmingly confident.
-
-**Danger signs:**
-- **Logit gap > 15** — discriminator diverging, gradients likely exploding
-- **Logit gap < 0.1** — discriminator provides no learning signal, real and fake look identical to it
-- **Logit gap is NaN** — training has diverged (same as NaN loss)
-
-### Per-layer logits (disc/layer_N_real, disc/layer_N_fake)
-
-Each of the 6 discriminator heads (layers 5, 10, 15, 20, 25, 29) logs its own real/fake logit means. When all layers show nearly identical real and fake logits (as we saw in the collapsed run — `layer_10_fake ≈ layer_10_real`), it confirms the student outputs are indistinguishable from noise at every abstraction level.
-
-Healthy training shows gaps at multiple layers, with late layers (25, 29) typically showing the largest gap (semantic-level discrimination is hardest to fool).
-
----
-
-## 6. Hyperparameter Experiments
-
-### The autoresearch setup
+### 3.2 Small runs on 3K subsets
 
 For hyperparameter tuning, we took inspiration from Andrej Karpathy's [autoresearch](https://x.com/karpathy/status/1884338155553030590) concept — have an AI agent run experiments autonomously overnight. We built a lightweight framework around this idea:
 
@@ -352,9 +286,54 @@ For hyperparameter tuning, we took inspiration from Andrej Karpathy's [autoresea
 - [`research/program.md`](https://github.com/vionwinnie/Z-Image-LADD-distillation/blob/main/research/program.md) — agent instructions: read prior results, propose the next experiment, modify `experiment.py`, run it, record the result, repeat.
 - [`research/results.tsv`](https://github.com/vionwinnie/Z-Image-LADD-distillation/blob/main/research/results.tsv) — experiment log (commit hash, KID, VRAM, status, description).
 
-Each experiment ran 500 steps on a single A100 80GB (the debug split: 98 prompts, 512px). The agent ran autonomously for ~8 hours overnight, completing 21 experiments across two rounds.
+Each experiment ran 500 steps on a single A100 80GB (the debug split: 98 prompts or 3K subset, 512px). The agent ran autonomously for ~8 hours overnight, completing 21 experiments across two rounds.
 
-### What we tuned (and in what order)
+### 3.3 KID evaluation and config selection
+
+We used KID (Kernel Inception Distance) — an unbiased metric preferred over FID for small sample sizes — to evaluate each run. Lower is better. The untrained student (teacher weights, zero LADD training) scores **KID = 0.0689**. We kept only configs that beat this baseline.
+
+A critical finding: repeated runs of the exact same config show **significant variance** at 500 steps with bs=1:
+
+| Run | KID |
+|:---:|:---:|
+| exp3 (original) | 0.0582 |
+| run2 | 0.0692 |
+| run3 | 0.0700 |
+| run4 | 0.0658 |
+| run5 | 0.0675 |
+| **Mean ± Std** | **0.0661 ± 0.0044** |
+
+The best single run (0.0582) was a lucky outlier — the true improvement is ~4% over the untrained baseline (0.0689), not 15.5%. This variance is inherent to bs=1 adversarial training over only 500 steps: each run sees the data in a different random order, and GPU non-determinism compounds.
+
+Additionally, **1000 steps degrades on 3K data**: 5-run mean KID = 0.0913 ± 0.0044 at 1000 steps vs 0.0661 ± 0.0044 at 500 steps. The student overfits — it memorizes the discriminator's feedback on the small dataset rather than learning general features. More training data (10K+) is needed before longer training helps.
+
+> **Lesson: Never trust a single run.** Run at least 3-5 seeds and report the mean. A single lucky result can be 2× better than the true mean, leading to false confidence in a configuration. The variance also means that improvements below ~5% are within noise.
+
+### 3.4 Cluster launch
+
+Once we identified the best config from the small-run sweeps, we launched on the full 8-GPU cluster with 10K precomputed latents.
+
+From [`training/train_ladd.sh`](https://github.com/vionwinnie/Z-Image-LADD-distillation/blob/main/training/train_ladd.sh):
+
+```bash
+accelerate launch \
+    --config_file training/fsdp_config.yaml \
+    training/train_ladd.py \
+    --train_batch_size=4 \
+    --gradient_accumulation_steps=2 \
+    --max_train_steps=20000 \
+    --learning_rate=5e-6 \
+    --learning_rate_disc=5e-5 \
+    --gen_update_interval=3 \
+    --mixed_precision=bf16 \
+    --gradient_checkpointing \
+    --checkpointing_steps=2000 \
+    --validation_steps=2000
+```
+
+Effective batch size: $4 \times 8 \times 2 = 64$. Target: 20K steps in ~2 hours.
+
+### 3.5 What we tuned (and in what order)
 
 LADD has several hyperparameters that interact in non-obvious ways. Here's what each one controls:
 
@@ -375,9 +354,15 @@ We tuned them in this order, each time fixing the best value and moving on:
 3. **Noise schedule** (renoise_m, renoise_s) — controls discriminator's operating point
 4. **Discriminator architecture** (layer_indices, hidden_dim) — structural choices, tuned last
 
+---
+
+## 4. Hyperparameter Search Results
+
+We ran three rounds of sweeps (33+ experiments total), each building on lessons from the previous round.
+
 ### Round 1: Pre-fix sweep (broken pipeline)
 
-These results used KID (Kernel Inception Distance) — an unbiased metric preferred over FID for small sample sizes. Lower is better.
+These results used KID (Kernel Inception Distance). Lower is better.
 
 **Noise schedule exploration** — tuning the logit-normal distribution parameters for re-noising:
 
@@ -458,25 +443,6 @@ After the mode collapse on the full run, we identified another architecture issu
 
 **GI=3 confirmed** as the optimal update interval across all three rounds. GI=2 is now the worst performer (-9.4%), suggesting the discriminator needs at least 3 steps per generator update with CLIP conditioning.
 
-### Run-to-run variance
-
-A critical finding: repeated runs of the exact same config show **significant variance** at 500 steps with bs=1:
-
-| Run | KID |
-|:---:|:---:|
-| exp3 (original) | 0.0582 |
-| run2 | 0.0692 |
-| run3 | 0.0700 |
-| run4 | 0.0658 |
-| run5 | 0.0675 |
-| **Mean ± Std** | **0.0661 ± 0.0044** |
-
-The best single run (0.0582) was a lucky outlier — the true improvement is ~4% over the untrained baseline (0.0689), not 15.5%. This variance is inherent to bs=1 adversarial training over only 500 steps: each run sees the data in a different random order, and GPU non-determinism compounds.
-
-Additionally, **1000 steps degrades on 3K data**: 5-run mean KID = 0.0913 ± 0.0044 at 1000 steps vs 0.0661 ± 0.0044 at 500 steps. The student overfits — it memorizes the discriminator's feedback on the small dataset rather than learning general features. More training data (10K+) is needed before longer training helps.
-
-> **Lesson: Never trust a single run.** Run at least 3-5 seeds and report the mean. A single lucky result can be 2× better than the true mean, leading to false confidence in a configuration. The variance also means that improvements below ~5% are within noise.
-
 ### Current best configuration
 
 ```python
@@ -491,9 +457,106 @@ DISC_LAYER_INDICES  = [5, 10, 15, 20, 25, 29]  # 6 of 30 teacher layers
 
 ---
 
-## 7. Results: 4 Steps vs 50 Steps
+## 5. Training Metrics: What to Watch and What Breaks
 
-### Student vs Teacher: visual comparison
+Adversarial training is fragile. Unlike supervised training where the loss monotonically decreases, GAN losses oscillate by design — the question is whether they oscillate _healthily_. Here are the metrics we logged to W&B every step and how to read them.
+
+### d_loss and g_loss
+
+**How they're computed** (from [`ladd_discriminator.py:202-216`](https://github.com/vionwinnie/Z-Image-LADD-distillation/blob/main/training/ladd_discriminator.py#L202)):
+
+$$d\_loss = \mathbb{E}[\text{ReLU}(1 - \text{real\_logits})] + \mathbb{E}[\text{ReLU}(1 + \text{fake\_logits})]$$
+
+$$g\_loss = -\mathbb{E}[\text{fake\_logits}]$$
+
+The discriminator loss pushes real logits above +1 and fake logits below -1. Once confident, the ReLU clips to zero — the loss saturates. The generator loss simply wants fake logits to be as high as possible (fool the discriminator).
+
+**Healthy signs:**
+- Both oscillate in the 0-4 range without trending to extremes
+- Neither stays pinned at 0 for extended periods
+- g_loss gradually trends downward (student improving)
+
+**Danger signs:**
+- **NaN** — training has diverged. Gradients exploded, likely from a broken FSDP config or incompatible optimizer settings. Example: [`eager-smoke-151`](https://wandb.ai/yeun-yeungs/ladd/runs/6nt3oo8k) crashed at step 303 with NaN losses after we experimented with FSDP settings that broke gradient flow. Once NaN appears, the run is unrecoverable — kill it.
+
+![d_loss and g_loss going NaN immediately after step 1 due to broken FSDP gradient flow configuration](/images/ladd-training-framework/chart_nan_crash.png)
+- **d_loss pinned at 0** — discriminator is too confident on every sample. With batch_size=1, this is expected (hinge loss trivially saturates on a single sample). With batch_size≥2, it means the discriminator is dominating.
+- **g_loss flat and high** — student isn't improving despite non-zero d_loss. Check `grad_norm/student` — if it's zero on gen steps, the gradient path is broken.
+
+**Batch size effect on loss noise:**
+
+The per-step loss is computed on the micro-batch (per-GPU batch size), not the effective batch size. This has a dramatic effect on signal quality:
+
+- **bs=1** ([`vulcan-tanagra-110`](https://wandb.ai/yeun-yeungs/ladd/runs/8h1tukl6)): Losses are extremely noisy — d_loss spikes between 0 and 4 every step, g_loss swings between -2 and 6. The hinge loss on a single sample is either fully saturated (0) or fully active — there's no middle ground. This makes it very hard to tell from the loss curves alone whether training is progressing.
+
+- **bs=2** ([`q1ft7t1z`](https://wandb.ai/yeun-yeungs/ladd/runs/q1ft7t1z)): Noticeably smoother. With 2 samples, the loss can take intermediate values (e.g. one sample saturated, one not = loss of ~1 instead of 0 or 4). The trends become readable.
+
+Here's the W&B dashboard with both runs overlaid (blue = bs=2, orange = bs=1). The top row shows g_loss, t_hat_mean, and d_loss. The difference is stark — bs=2 (blue) has smoother loss curves with less oscillation, while bs=1 (orange) spikes violently between 0 and 4:
+
+![W&B dashboard showing bs=1 (orange) vs bs=2 (blue) overlaid — loss curves, t_hat_mean, d_loss, and discriminator accuracy. bs=2 is visibly smoother with more stable gradients.](/images/ladd-training-framework/wandb_bs1_vs_bs2_overview.png)
+
+### disc/accuracy_real and disc/accuracy_fake
+
+**How they're computed** (from [`ladd_eval.py:58-60`](https://github.com/vionwinnie/Z-Image-LADD-distillation/blob/main/training/ladd_eval.py#L58)):
+
+```python
+accuracy_real = (real_logits > 0).float().mean()   # % of real samples classified as real
+accuracy_fake = (fake_logits < 0).float().mean()   # % of fake samples classified as fake
+```
+
+These use a threshold of 0 (not the hinge margin of ±1). They measure whether the discriminator is _directionally_ correct, even if not confident enough to produce non-zero loss.
+
+**Healthy range:** Both between 0.6-0.9. The discriminator is right more often than not, but the student fools it sometimes.
+
+**Danger signs:**
+- **Both pinned at 1.0** — discriminator dominance. Every sample is correctly classified with high confidence. The student gets no signal. This is what we saw in the [collapsed full run](#6-what-we-observed) with bs=1.
+- **Both below 0.5** — discriminator has collapsed and can't tell real from fake. The student gets random gradient directions. Several Phase 2 sweep runs showed `disc_accuracy_fake=0%` when the disc learning rate was too low.
+- **accuracy_real high but accuracy_fake low** — discriminator learned to say "real" for everything. It correctly identifies real samples but can't catch fakes.
+
+**Important caveat:** These are computed on the per-GPU micro-batch. With bs=1, accuracy can only be 0 or 1 — there are no intermediate values. With bs=2, it can be 0, 0.5, or 1. The zoomed-in accuracy view below makes this clear — bs=1 (orange) is binary, while bs=2 (blue) shows intermediate 0.5 values where the discriminator got one sample right and one wrong:
+
+![W&B discriminator accuracy zoomed in — bs=1 (orange) pinned at 0 or 1, bs=2 (blue) oscillating with intermediate 0.5 values](/images/ladd-training-framework/wandb_bs1_vs_bs2_accuracy.png)
+
+### disc/logit_gap
+
+**How it's computed:**
+
+```python
+logit_gap = real_logits.mean() - fake_logits.mean()
+```
+
+The raw difference between the discriminator's average score on real vs fake samples. This is the most direct measure of how well the discriminator separates real from fake.
+
+**Healthy range:** Positive and stable (2-6). The discriminator can tell them apart but isn't overwhelmingly confident.
+
+**Danger signs:**
+- **Logit gap > 15** — discriminator diverging, gradients likely exploding
+- **Logit gap < 0.1** — discriminator provides no learning signal, real and fake look identical to it
+- **Logit gap is NaN** — training has diverged (same as NaN loss)
+
+### Per-layer logits (disc/layer_N_real, disc/layer_N_fake)
+
+Each of the 6 discriminator heads (layers 5, 10, 15, 20, 25, 29) logs its own real/fake logit means. When all layers show nearly identical real and fake logits (as we saw in the collapsed run — `layer_10_fake ≈ layer_10_real`), it confirms the student outputs are indistinguishable from noise at every abstraction level.
+
+Healthy training shows gaps at multiple layers, with late layers (25, 29) typically showing the largest gap (semantic-level discrimination is hardest to fool).
+
+---
+
+## 6. What We Observed
+
+This section traces the full arc: from the untrained student baseline, through single-GPU validation, to the full cluster run — and the mode collapse that followed.
+
+### Untrained student baseline
+
+To understand how bad collapse can get, it helps to first see what the **untrained student** produces — teacher weights, 4 inference steps, zero LADD training ([`cerulean-cosmos-147`](https://wandb.ai/yeun-yeungs/ladd/runs/2n21vass)):
+
+| "Sunset over the ocean" | "Cat on a windowsill" | "Futuristic city skyline" | "Watercolor mountain landscape" |
+|:---:|:---:|:---:|:---:|
+| ![Untrained student — sunset](/images/ladd-training-framework/untrained_student_0.png) | ![Untrained student — cat](/images/ladd-training-framework/untrained_student_1.png) | ![Untrained student — city](/images/ladd-training-framework/untrained_student_2.png) | ![Untrained student — watercolor](/images/ladd-training-framework/untrained_student_3.png) |
+
+This is the floor — the student with teacher weights, no distillation training, producing images with just 4 steps. Anything LADD training does should improve upon this. The untrained baseline KID is **0.0689**.
+
+### Single-GPU results
 
 Here's what the student produces at 4 steps compared to the teacher at 50 steps (CFG=5). These images are pulled directly from our W&B eval runs.
 
@@ -517,7 +580,7 @@ Here's what the student produces at 4 steps compared to the teacher at 50 steps 
 
 This last example is the most encouraging — the student at 2000 steps picks up the layout (bold text, speaker image, URL at bottom) even though the details are still muddy. It shows the student _is_ learning structure, just slowly at this tiny scale. This is expected: 500-2000 steps with batch_size=1 on 98 prompts is barely scratching the surface. The LADD paper uses 50K-200K steps with large batch sizes. The production 8-GPU run (20K steps, effective batch 64) should close this gap significantly.
 
-### Training progression
+#### Training progression
 
 We tracked KID against 416 teacher-generated reference images (CFG=5, corrected scheduler) at different training checkpoints:
 
@@ -530,7 +593,7 @@ The KID **worsening** from 500 to 2000 steps was our first signal that something
 
 This is expected at bs=1 and not a sign of discriminator dominance — the hinge margin of ±1 is trivially achieved with a single sample. At the production batch size of 64 (8 GPUs × 4 per-GPU × 2 grad accum), this saturation should resolve.
 
-### Overfit experiments
+#### Overfit experiments
 
 To verify the architecture itself works, we ran two overfit tests on just 10 prompts:
 
@@ -550,7 +613,7 @@ The winning-LR overfit produced recognizable images matching prompts — proof t
 
 The bottleneck is compute and data scale, not architecture.
 
-### W&B run links
+#### W&B run links
 
 All experiments are tracked on W&B under project [`yeun-yeungs/ladd`](https://wandb.ai/yeun-yeungs/ladd):
 
@@ -559,112 +622,13 @@ All experiments are tracked on W&B under project [`yeun-yeungs/ladd`](https://wa
 - [v2 eval at 2000 steps](https://wandb.ai/yeun-yeungs/ladd/runs/2389e6fo)
 - [v2 training at 2000 steps](https://wandb.ai/yeun-yeungs/ladd/runs/j0n7eah3)
 
----
-
-## 8. Scaling Up: The FSDP Journey
-
-![FSDP memory layout comparing 8-GPU sharded deployment at ~26GB per GPU versus single-GPU at ~78GB causing OOM](/images/ladd-training-framework/fsdp_memory.svg)
-
-### Why FSDP?
-
-On a single A100 80GB, the memory budget is brutal:
-
-| Component | Size |
-|-----------|------|
-| Student (bf16) | 12 GB |
-| Teacher (bf16) | 12 GB |
-| Student optimizer (fp32 Adam) | 24 GB |
-| Activations (512px, grad ckpt) | ~30 GB |
-| **Total** | **~78 GB** → OOM |
-
-We first tried **8-bit Adam** (bitsandbytes) to cut optimizer states from 24 GB to 6 GB. This worked at 256px but still OOM'd at 512px due to activation memory. The real solution was multi-GPU.
-
-### DeepSpeed: 9 ways to fail
-
-Before FSDP, we tried DeepSpeed ZeRO-2 with CPU optimizer offload. It failed in 9 distinct ways — each one a lesson in why DeepSpeed assumes single-model training:
-
-1. **Dual engine crash** — wrapping both student and discriminator caused `IndexError` in gradient reduction
-2. **Two-Accelerator pattern** — failed with `mpi4py` errors on second `deepspeed.initialize()`
-3. **Student LR stuck at 0** — DeepSpeed's internal WarmupLR didn't configure correctly through Accelerate's "auto" values
-4. **Frozen disc broke gradient flow** — `discriminator.requires_grad_(False)` during gen step severed the computation graph, student grad norms were zero
-5. **Double gradient reduction** — both `d_loss.backward()` and `g_loss.backward()` triggered ZeRO-2's reduction hooks on student params
-6. **Grad norms always zero** — captured after `zero_grad()`; ZeRO-2 manages gradients in internal buffers
-7. **Checkpoint write failure** — `PytorchStreamWriter failed` on the ~24GB optimizer state file
-8. **`os.execv` + `tee` incompatibility** — experiment runner output not captured
-9. **GPU memory leak via `fork()`** — parent process held GPU memory, child OOM'd
-
-**Conclusion:** DeepSpeed ZeRO is designed for single-model training. The GAN setup with alternating D/G updates, cross-model gradient flow, and two optimizers is fundamentally incompatible.
-
-### FSDP configuration
-
-FSDP (Fully Sharded Data Parallel) worked cleanly because it operates at the module level rather than the optimizer level. Our config wraps each of the 30 transformer blocks as separate FSDP units:
-
-From [`training/fsdp_config.yaml`](https://github.com/vionwinnie/Z-Image-LADD-distillation/blob/main/training/fsdp_config.yaml):
-
-```yaml
-fsdp_config:
-  fsdp_auto_wrap_policy: TRANSFORMER_BASED_WRAP
-  fsdp_transformer_layer_cls_to_wrap: ZImageTransformerBlock
-  fsdp_sharding_strategy: FULL_SHARD
-  fsdp_backward_prefetch: BACKWARD_PRE
-  fsdp_use_orig_params: true      # Required for per-param optimizer groups
-  fsdp_state_dict_type: FULL_STATE_DICT
-```
-
-Key design choice: the **teacher is NOT wrapped in FSDP** — it's replicated on every GPU. At 12 GB in bf16, it fits easily on 80GB A100s, and it only does forward passes (no optimizer states to shard). Wrapping it would add FSDP all-gather overhead for no memory benefit.
-
-### Memory per GPU with FSDP
-
-| Component | Per-GPU Size |
-|-----------|:------------:|
-| Student (sharded 1/8) | ~1.5 GB |
-| Student optimizer (sharded 1/8) | ~6 GB |
-| Teacher (full replica) | ~12 GB |
-| Discriminator | ~0.03 GB |
-| Activations + grad checkpointing | ~4-6 GB |
-| **Total** | **~26 GB / 80 GB** |
-
-Comfortable margin. No need for 8-bit Adam, CPU offloading, or precomputed text embeddings on the cluster.
-
-### Production launch
-
-From [`training/train_ladd.sh`](https://github.com/vionwinnie/Z-Image-LADD-distillation/blob/main/training/train_ladd.sh):
-
-```bash
-accelerate launch \
-    --config_file training/fsdp_config.yaml \
-    training/train_ladd.py \
-    --train_batch_size=4 \
-    --gradient_accumulation_steps=2 \
-    --max_train_steps=20000 \
-    --learning_rate=5e-6 \
-    --learning_rate_disc=5e-5 \
-    --gen_update_interval=3 \
-    --mixed_precision=bf16 \
-    --gradient_checkpointing \
-    --checkpointing_steps=2000 \
-    --validation_steps=2000
-```
-
-Effective batch size: $4 \times 8 \times 2 = 64$. Target: 20K steps in ~2 hours.
-
----
-
-## 9. The First Full Run: Mode Collapse at Scale
+### Full cluster run: mode collapse at scale
 
 We launched the first 8-GPU production run ([`yeun-yeungs/ladd/stjmyjsi`](https://wandb.ai/yeun-yeungs/ladd/runs/stjmyjsi)) — 8x A100 80GB, 10K precomputed latents, 20K target steps. After all the single-GPU validation, FSDP debugging, and hyperparameter sweeps, this was supposed to be the payoff run.
 
 The results were devastating.
 
-### What happened
-
-To understand how bad the collapse is, here's what the **untrained student** produces — teacher weights, 4 inference steps, zero LADD training ([`cerulean-cosmos-147`](https://wandb.ai/yeun-yeungs/ladd/runs/2n21vass)):
-
-| "Sunset over the ocean" | "Cat on a windowsill" | "Futuristic city skyline" | "Watercolor mountain landscape" |
-|:---:|:---:|:---:|:---:|
-| ![Untrained student — sunset](/images/ladd-training-framework/untrained_student_0.png) | ![Untrained student — cat](/images/ladd-training-framework/untrained_student_1.png) | ![Untrained student — city](/images/ladd-training-framework/untrained_student_2.png) | ![Untrained student — watercolor](/images/ladd-training-framework/untrained_student_3.png) |
-
-And here's what 1000 steps of **single-GPU training** (bs=1, 98 debug prompts) produces — blurry but with correct structure ([`rqn4r0sg`](https://wandb.ai/yeun-yeungs/ladd/runs/rqn4r0sg), equivalent to ~125 steps on 8 GPUs):
+Here's what 1000 steps of **single-GPU training** (bs=1, 98 debug prompts) produces — blurry but with correct structure ([`rqn4r0sg`](https://wandb.ai/yeun-yeungs/ladd/runs/rqn4r0sg), equivalent to ~125 steps on 8 GPUs):
 
 | "Bullfighting arena" | "Wine bottles" | "Cyberpunk party" | "Man with logos" |
 |:---:|:---:|:---:|:---:|
@@ -688,15 +652,39 @@ By step 2000, all outputs collapse into the same colorful noise pattern regardle
 
 Every prompt produces the same speckled noise. The KID at step 4000: **0.593** — catastrophically high. For reference, the untrained student (teacher weights, zero LADD training) scores KID = 0.069. Training didn't just fail to improve — it made the model **8.6× worse** than not training at all.
 
-### Diagnosing from W&B
+### The full degradation timeline
+
+The gallery below tracks 4 prompts across 12 checkpoints (every 500 steps from step 500 to step 6000). At step 500 there's still recognizable structure from the teacher-initialized weights. By step 1000-1500 the images start losing coherence. From step 2000 onward, every prompt produces the same speckled noise — the student has fully collapsed.
+
+![Gallery showing 4 prompts across 6 training checkpoints (500 to 6000 steps). Images degrade from recognizable at step 500 to identical colorful noise by step 2000, remaining collapsed through step 6000.](/images/ladd-training-framework/gallery_mode_collapse_over_time.png)
+
+The uniformity of the collapsed outputs across completely different prompts (bullfighting arena, wine bottles, cyberpunk party, man with logos) confirms this is mode collapse, not just poor quality — the student is producing a single "average" output regardless of conditioning.
+
+Eval images from [`yeun-yeungs/ladd-eval`](https://wandb.ai/yeun-yeungs/ladd-eval?nw=nwuserdcvionwinnie).
+
+### Learning curves from W&B
+
+We tracked two production runs on the 8-GPU cluster ([`zzu1qpx4`](https://wandb.ai/yeun-yeungs/ladd/runs/zzu1qpx4) and [`ciiv9vjy`](https://wandb.ai/yeun-yeungs/ladd/runs/ciiv9vjy)), both bs=2 with `renoise_m=1.0`. The KID curve tells the full story — training consistently makes the model worse:
+
+![KID over training checkpoints for two production runs. Both start at KID~0.19 (already above the untrained baseline of 0.069) and climb to 0.4-0.5. The green dashed line shows the untrained baseline.](/images/ladd-training-framework/chart_kid_over_time.png)
+
+The untrained student (green dashed line, KID=0.069) is better than every single training checkpoint. KID climbs from 0.19 at the first eval to 0.45-0.50 by the end — the student is actively un-learning.
+
+The loss curves show the adversarial dynamics aren't converging:
+
+![d_loss and g_loss for both production runs. Both oscillate without trending — d_loss drifts upward, g_loss stays volatile.](/images/ladd-training-framework/chart_production_losses.png)
+
+The discriminator health metrics reveal the underlying problem — the logit gap collapses toward zero over time, meaning the discriminator gradually loses its ability to distinguish real from fake:
+
+![Discriminator accuracy and logit gap for both runs. Accuracy oscillates (healthy at bs=2), but logit gap trends toward zero — discriminator signal fading.](/images/ladd-training-framework/chart_production_disc_health.png)
+
+### Root cause analysis
 
 The discriminator accuracy charts told a misleading story — `disc/accuracy_real` and `disc/accuracy_fake` both pinned at 1.0 throughout training. At first glance, this screamed "discriminator too strong, student getting no gradient."
 
 But `d_loss` and `g_loss` were actually non-zero and oscillating (0-4 range). The losses existed — so why wasn't the student learning?
 
 The answer: the accuracy was computed on a **per-GPU micro-batch of 1 sample**. With batch_size=1, the discriminator trivially classifies one sample. The accuracy metric was degenerate, not the training signal itself. We needed to look at the loss curves, not the accuracy.
-
-### Root cause: two misconfigured hyperparameters
 
 The production run diverged from our validated best config in two critical ways:
 
@@ -718,39 +706,127 @@ The combination was lethal: weak gradients from high-noise re-noising (`m=1.0`),
 
 > **Lesson:** The total effective batch size is not the only thing that matters — the **per-micro-step batch size** determines whether the loss function produces meaningful gradients. Hinge loss with bs=1 is degenerate. And always double-check that production configs match your validated sweep winners.
 
-### Learning curves from W&B
+### Qwen vs CLIP embeddings for discriminator conditioning
 
-We tracked two production runs on the 8-GPU cluster ([`zzu1qpx4`](https://wandb.ai/yeun-yeungs/ladd/runs/zzu1qpx4) and [`ciiv9vjy`](https://wandb.ai/yeun-yeungs/ladd/runs/ciiv9vjy)), both bs=2 with `renoise_m=1.0`. The KID curve tells the full story — training consistently makes the model worse:
-
-![KID over training checkpoints for two production runs. Both start at KID~0.19 (already above the untrained baseline of 0.069) and climb to 0.4-0.5. The green dashed line shows the untrained baseline.](/images/ladd-training-framework/chart_kid_over_time.png)
-
-The untrained student (green dashed line, KID=0.069) is better than every single training checkpoint. KID climbs from 0.19 at the first eval to 0.45-0.50 by the end — the student is actively un-learning.
-
-The loss curves show the adversarial dynamics aren't converging:
-
-![d_loss and g_loss for both production runs. Both oscillate without trending — d_loss drifts upward, g_loss stays volatile.](/images/ladd-training-framework/chart_production_losses.png)
-
-The discriminator health metrics reveal the underlying problem — the logit gap collapses toward zero over time, meaning the discriminator gradually loses its ability to distinguish real from fake:
-
-![Discriminator accuracy and logit gap for both runs. Accuracy oscillates (healthy at bs=2), but logit gap trends toward zero — discriminator signal fading.](/images/ladd-training-framework/chart_production_disc_health.png)
-
-### The full degradation timeline
-
-The gallery below tracks 4 prompts across 12 checkpoints (every 500 steps from step 500 to step 6000). At step 500 there's still recognizable structure from the teacher-initialized weights. By step 1000-1500 the images start losing coherence. From step 2000 onward, every prompt produces the same speckled noise — the student has fully collapsed.
-
-![Gallery showing 4 prompts across 6 training checkpoints (500 to 6000 steps). Images degrade from recognizable at step 500 to identical colorful noise by step 2000, remaining collapsed through step 6000.](/images/ladd-training-framework/gallery_mode_collapse_over_time.png)
-
-The uniformity of the collapsed outputs across completely different prompts (bullfighting arena, wine bottles, cyberpunk party, man with logos) confirms this is mode collapse, not just poor quality — the student is producing a single "average" output regardless of conditioning.
-
-Eval images from [`yeun-yeungs/ladd-eval`](https://wandb.ai/yeun-yeungs/ladd-eval?nw=nwuserdcvionwinnie).
+We initially used mean-pooled Qwen self-attention features for the discriminator's FiLM conditioning. Switching to CLIP embeddings gave the discriminator a stronger semantic signal. Interestingly, KID results were similar between the two — the CLIP version's main benefit was that `renoise_m=1.0` became optimal (the discriminator could discriminate even at higher noise levels), simplifying the hyperparameter search.
 
 ---
 
-## 10. The Hard Lessons: Blunders & Principles
+## 7. Technical Difficulties
 
-This section is the most valuable part of this post. We made mistakes that cost days of debugging and invalidated entire experiment rounds. They cluster into four themes, each with a principle we now follow.
+Two major bottlenecks consumed the most debugging time: data preprocessing constraints and distributed training issues.
 
-### Theme 1: Validate your baseline before tuning anything
+### Data preprocessing bottleneck
+
+We had 500K curated prompts but needed teacher latents (50-step generation with CFG=5) for every one. With 6 hours of compute, we could precompute roughly **10K latents in 4 hours** — 2% of our dataset. Training would repeat each latent ~128 times over 20K steps.
+
+This was a hard trade-off we should have modeled _before_ curating 500K prompts. The curation pipeline (Part 1) was optimized for diversity and prompt quality, which is still valuable for future runs. But for the first training run, 10K stratified-sampled prompts with heavy repetition was the reality.
+
+The 10K subset overfits quickly — KID degrades after 500 steps on 3K data, and the full 10K was not large enough for the 20K-step production run either.
+
+### Scaling up: the FSDP journey
+
+![FSDP memory layout comparing 8-GPU sharded deployment at ~26GB per GPU versus single-GPU at ~78GB causing OOM](/images/ladd-training-framework/fsdp_memory.svg)
+
+#### Why FSDP?
+
+On a single A100 80GB, the memory budget is brutal:
+
+| Component | Size |
+|-----------|------|
+| Student (bf16) | 12 GB |
+| Teacher (bf16) | 12 GB |
+| Student optimizer (fp32 Adam) | 24 GB |
+| Activations (512px, grad ckpt) | ~30 GB |
+| **Total** | **~78 GB** → OOM |
+
+We first tried **8-bit Adam** (bitsandbytes) to cut optimizer states from 24 GB to 6 GB. This worked at 256px but still OOM'd at 512px due to activation memory. The real solution was multi-GPU.
+
+#### DeepSpeed: 9 ways to fail
+
+Before FSDP, we tried DeepSpeed ZeRO-2 with CPU optimizer offload. It failed in 9 distinct ways — each one a lesson in why DeepSpeed assumes single-model training:
+
+1. **Dual engine crash** — wrapping both student and discriminator caused `IndexError` in gradient reduction
+2. **Two-Accelerator pattern** — failed with `mpi4py` errors on second `deepspeed.initialize()`
+3. **Student LR stuck at 0** — DeepSpeed's internal WarmupLR didn't configure correctly through Accelerate's "auto" values
+4. **Frozen disc broke gradient flow** — `discriminator.requires_grad_(False)` during gen step severed the computation graph, student grad norms were zero
+5. **Double gradient reduction** — both `d_loss.backward()` and `g_loss.backward()` triggered ZeRO-2's reduction hooks on student params
+6. **Grad norms always zero** — captured after `zero_grad()`; ZeRO-2 manages gradients in internal buffers
+7. **Checkpoint write failure** — `PytorchStreamWriter failed` on the ~24GB optimizer state file
+8. **`os.execv` + `tee` incompatibility** — experiment runner output not captured
+9. **GPU memory leak via `fork()`** — parent process held GPU memory, child OOM'd
+
+**Conclusion:** DeepSpeed ZeRO is designed for single-model training. The GAN setup with alternating D/G updates, cross-model gradient flow, and two optimizers is fundamentally incompatible.
+
+#### FSDP configuration
+
+FSDP (Fully Sharded Data Parallel) worked cleanly because it operates at the module level rather than the optimizer level. Our config wraps each of the 30 transformer blocks as separate FSDP units:
+
+From [`training/fsdp_config.yaml`](https://github.com/vionwinnie/Z-Image-LADD-distillation/blob/main/training/fsdp_config.yaml):
+
+```yaml
+fsdp_config:
+  fsdp_auto_wrap_policy: TRANSFORMER_BASED_WRAP
+  fsdp_transformer_layer_cls_to_wrap: ZImageTransformerBlock
+  fsdp_sharding_strategy: FULL_SHARD
+  fsdp_backward_prefetch: BACKWARD_PRE
+  fsdp_use_orig_params: true      # Required for per-param optimizer groups
+  fsdp_state_dict_type: FULL_STATE_DICT
+```
+
+Key design choice: the **teacher is NOT wrapped in FSDP** — it's replicated on every GPU. At 12 GB in bf16, it fits easily on 80GB A100s, and it only does forward passes (no optimizer states to shard). Wrapping it would add FSDP all-gather overhead for no memory benefit.
+
+#### Memory per GPU with FSDP
+
+| Component | Per-GPU Size |
+|-----------|:------------:|
+| Student (sharded 1/8) | ~1.5 GB |
+| Student optimizer (sharded 1/8) | ~6 GB |
+| Teacher (full replica) | ~12 GB |
+| Discriminator | ~0.03 GB |
+| Activations + grad checkpointing | ~4-6 GB |
+| **Total** | **~26 GB / 80 GB** |
+
+Comfortable margin. No need for 8-bit Adam, CPU offloading, or precomputed text embeddings on the cluster.
+
+#### FSDP debugging issues
+
+**The `get_state_dict` hang:** FSDP's `accelerator.get_state_dict()` is a **collective operation** — all ranks must call it, not just rank 0. Our validation code called it inside an `if accelerator.is_main_process:` guard. Rank 0 entered the gather; ranks 1-7 skipped it. Deadlock.
+
+From the fix in [`train_ladd.py:263`](https://github.com/vionwinnie/Z-Image-LADD-distillation/blob/main/training/train_ladd.py#L263):
+
+```python
+# get_state_dict is a collective op under FSDP — ALL ranks must call it.
+state_dict = accelerator.get_state_dict(student_model)
+
+# Only rank 0 does file I/O
+if not accelerator.is_main_process:
+    return
+```
+
+**Checkpoint format issues:** `accelerator.save_state()` is incompatible with 8-bit Adam under FSDP. PyTorch's `.pt` format had temp file issues with large state dicts. The fix: save student weights as safetensors, gate `save_state` behind `if not is_fsdp`.
+
+**Validation subprocess can't log to parent's W&B:** Our async validation spawns a subprocess on a separate GPU. The child process can't resume the parent's W&B run context. Fix: the parent process logs the eval table after the subprocess completes.
+
+**The costly `get_state_dict` double-call:** `get_state_dict()` takes ~10 minutes for FSDP gather on a 6B model. We were calling it separately for checkpointing and validation — 20 minutes wasted when they coincide at the same step. Fix: one call, shared between both.
+
+```python
+if need_checkpoint or need_validation:
+    state_dict = accelerator.get_state_dict(student)  # Single gather
+    if need_checkpoint:
+        save_checkpoint(state_dict)
+    if need_validation:
+        launch_validation(state_dict)
+```
+
+---
+
+## 8. Lessons Learned
+
+We made mistakes that cost days of debugging and invalidated entire experiment rounds. These are the principled takeaways.
+
+### Validate your baseline before tuning anything
+{: #theme-1-validate-your-baseline-before-tuning-anything}
 
 We ran 21 hyperparameter experiments and found a configuration that scored KID = 0.000869 — an 89% improvement over baseline. Then we discovered **five critical bugs** in the training pipeline, and every single KID number became meaningless.
 
@@ -812,69 +888,7 @@ ONLINE per step:
 
 > **Principle: Never tune hyperparameters on an unvalidated baseline.** Before any sweep, verify: (1) the teacher produces sharp images independently, (2) the training loop's math matches the paper step-by-step, (3) a single training step produces finite, non-trivial gradients. Log teacher outputs to W&B as a sanity check _before_ starting experiments.
 
-### Theme 2: Budget compute realistically — and plan for sacrifices
-
-We had 500K curated prompts but needed teacher latents (50-step generation with CFG=5) for every one. We benchmarked:
-
-| Batch size | Time per image | Peak VRAM |
-|:----------:|:--------------:|:---------:|
-| 1 | 8.9s | 21.9 GB |
-| 4 | 7.5s | 25.2 GB |
-| 8 | 7.3s | 29.5 GB |
-
-At 7.3s/image with embarrassingly parallel sharding (each GPU processes an independent subset of prompts, no communication needed), precomputing all 500K latents across 8 A100s would take:
-
-$$\frac{500{,}000 \times 7.3}{8} = 456{,}250 \text{ seconds} \approx 127 \text{ hours}$$
-
-We had 6 hours of compute. The math was brutal: we could precompute roughly **10K latents in 4 hours** — 2% of our dataset. Training would repeat each latent ~128 times over 20K steps.
-
-This was a hard trade-off we should have modeled _before_ curating 500K prompts. The curation pipeline (Part 1) was optimized for diversity and prompt quality, which is still valuable for future runs. But for the first training run, 10K stratified-sampled prompts with heavy repetition was the reality.
-
-> **Principle: Model the full compute pipeline end-to-end before committing.** Teacher latent precomputation is not a minor preprocessing step — for a 6B model at 50 steps with CFG, it dominates the compute budget. Calculate wall-clock time for every stage, including precomputation, and work backward from your time budget to determine feasible dataset size.
-
-### Theme 3: Distributed training requires whole-system thinking
-
-FSDP debugging consumed significant time because distributed primitives interact in non-obvious ways with GAN training patterns.
-
-#### The `get_state_dict` hang
-
-FSDP's `accelerator.get_state_dict()` is a **collective operation** — all ranks must call it, not just rank 0. Our validation code called it inside an `if accelerator.is_main_process:` guard. Rank 0 entered the gather; ranks 1-7 skipped it. Deadlock.
-
-From the fix in [`train_ladd.py:263`](https://github.com/vionwinnie/Z-Image-LADD-distillation/blob/main/training/train_ladd.py#L263):
-
-```python
-# get_state_dict is a collective op under FSDP — ALL ranks must call it.
-state_dict = accelerator.get_state_dict(student_model)
-
-# Only rank 0 does file I/O
-if not accelerator.is_main_process:
-    return
-```
-
-#### Checkpoint format issues
-
-`accelerator.save_state()` is incompatible with 8-bit Adam under FSDP. PyTorch's `.pt` format had temp file issues with large state dicts. The fix: save student weights as safetensors, gate `save_state` behind `if not is_fsdp`.
-
-#### Validation subprocess can't log to parent's W&B
-
-Our async validation spawns a subprocess on a separate GPU. The child process can't resume the parent's W&B run context. Fix: the parent process logs the eval table after the subprocess completes.
-
-#### The costly `get_state_dict` double-call
-
-`get_state_dict()` takes ~10 minutes for FSDP gather on a 6B model. We were calling it separately for checkpointing and validation — 20 minutes wasted when they coincide at the same step. Fix: one call, shared between both.
-
-```python
-if need_checkpoint or need_validation:
-    state_dict = accelerator.get_state_dict(student)  # Single gather
-    if need_checkpoint:
-        save_checkpoint(state_dict)
-    if need_validation:
-        launch_validation(state_dict)
-```
-
-> **Principle: Distributed ops are collective — think in terms of what _all_ ranks do, not just rank 0.** Before adding any distributed code: (1) identify which operations are collective (all-gather, all-reduce, broadcast), (2) ensure every rank hits every collective in the same order, (3) run a 2-GPU smoke test before scaling to 8. We built [`scripts/smoke_test_fsdp.sh`](https://github.com/vionwinnie/Z-Image-LADD-distillation/blob/main/scripts/smoke_test_fsdp.sh) to catch these issues early.
-
-### Theme 4: Instrument first, debug later
+### Instrument first, debug later
 
 Several of our bugs were only caught because we logged the right things to W&B — and several persisted because we _didn't_ log the right things early enough.
 
@@ -890,11 +904,11 @@ Several of our bugs were only caught because we logged the right things to W&B �
 
 > **Principle: Log intermediate representations, not just scalar metrics.** Scalars like KID and d_loss tell you _that_ something is wrong; images and tensors tell you _what_. At minimum, log: teacher outputs at step 0, student predictions every N steps, input $x_t$ at different timesteps, and scheduler sigma schedules. A 5-minute W&B setup saves days of blind debugging.
 
-### Theme 5: Debug slices lie — what works at small scale can break at full scale
+### Debug slices lie
 
 All 21 hyperparameter experiments ran on a 98-prompt debug slice with `train_batch_size=1` on a single GPU. The sweep converged, KID improved, the architecture was validated. We were confident.
 
-Then we launched the full 8-GPU run with 10K prompts — and the student collapsed into noise within 2000 steps ([Section 8](#9-the-first-full-run-mode-collapse-at-scale)).
+Then we launched the full 8-GPU run with 10K prompts — and the student collapsed into noise within 2000 steps ([Section 6](#full-cluster-run-mode-collapse-at-scale)).
 
 The debug slice succeeded for the wrong reasons:
 - **bs=1 with 98 prompts**: each prompt was seen every ~98 steps. The student effectively memorized the discriminator's feedback on specific prompts. The hinge loss saturated on individual samples, but the rapid prompt cycling created enough gradient diversity to mask the problem.
@@ -907,7 +921,7 @@ The fix required increasing `train_batch_size` from 1 to 2 (so the hinge loss is
 
 ---
 
-## 11. Summary & Next Steps
+## 9. Summary & Next Steps
 
 ### What we built
 
@@ -933,7 +947,7 @@ Key findings from three rounds of sweeps (33+ experiments):
 - **bs=2 vs bs=1** dramatically stabilizes training — smoother loss curves, non-trivial accuracy, less oscillation
 - **Run-to-run variance** is high at 500 steps / bs=1: a single "best" run can be 2× better than the true mean. Always run 3-5 seeds.
 - **1000 steps overfits on 3K data** — more data (10K+) is needed before longer training helps
-- **Qwen vs CLIP embeddings for disc conditioning**: we initially used mean-pooled Qwen self-attention features for the discriminator's FiLM conditioning. Switching to CLIP embeddings gave the discriminator a stronger semantic signal. Interestingly, KID results were similar between the two — the CLIP version's main benefit was that `renoise_m=1.0` became optimal (the discriminator could discriminate even at higher noise levels), simplifying the hyperparameter search.
+- **Qwen vs CLIP embeddings for disc conditioning**: switching to CLIP embeddings gave the discriminator a stronger semantic signal. KID results were similar, but the CLIP version simplified the hyperparameter search by making `renoise_m=1.0` optimal.
 
 ### What went wrong
 
@@ -944,10 +958,10 @@ Key findings from three rounds of sweeps (33+ experiments):
 
 ### What to try next
 
-1. **Higher batch size** (bs=4+) for more stable gradient flow — requires memory optimization (activation checkpointing, offloading) to fit on A100 80GB
-2. **EMA (Exponential Moving Average) weight updates** — maintain a running average of student weights to prevent quality regressions during training oscillations. The LADD paper uses EMA; we haven't implemented it yet.
+1. **More fine-grained evaluation** — run KID at every 500 steps out to step 4000+ to get more signal on the degradation curve and identify the optimal early-stopping point
+2. **Higher batch size** (bs=4+) for more stable gradient flow — requires memory optimization (activation checkpointing, offloading) to fit on A100 80GB
 3. **Alternative loss functions** — variants of the GAN loss (non-saturating loss, Wasserstein loss, R1 gradient penalty) may provide more stable gradients than hinge loss, especially at small batch sizes
-4. **More fine-grained evaluation** — run KID at every 500 steps out to step 4000+ to understand the degradation curve better and identify the optimal early-stopping point
+4. **EMA (Exponential Moving Average) weight updates** — maintain a running average of student weights to prevent quality regressions during training oscillations. The LADD paper uses EMA; we haven't implemented it yet.
 5. **Scale up training data** — precompute latents for 50K+ prompts to reduce overfitting and enable longer training runs
 6. **Multi-seed averaging** — run 3-5 seeds per config and report mean KID to avoid false confidence from lucky single runs
 
@@ -955,11 +969,11 @@ The code is open source at [github.com/vionwinnie/Z-Image-LADD-distillation](htt
 
 ---
 
-## Appendix: Anti-Mode-Collapse Hyperparameter Sweep
+## 10. Appendix: Anti-Mode-Collapse Sweep
 
-After the first full run collapsed ([Section 8](#9-the-first-full-run-mode-collapse-at-scale)), we ran a second round of experiments specifically targeting discriminator dominance. The goal: find hyperparameters that prevent mode collapse on the full 10K dataset. Reference untrained KID: **0.0689** (anything above means training made things worse).
+After the first full run collapsed ([Section 6](#full-cluster-run-mode-collapse-at-scale)), we ran a second round of experiments specifically targeting discriminator dominance. The goal: find hyperparameters that prevent mode collapse on the full 10K dataset. Reference untrained KID: **0.0689** (anything above means training made things worse).
 
-The Phase 1 sweep results (debug split, 98 prompts) are covered in [Section 5](#5-hyperparameter-experiments). For reference, the **untrained student** (teacher weights, no LADD training at all) has **KID = 0.0689 ± 0.0067** at 4 inference steps. Any KID above this means training actively made things worse.
+The Phase 1 sweep results (debug split, 98 prompts) are covered in [Section 4](#4-hyperparameter-search-results). For reference, the **untrained student** (teacher weights, no LADD training at all) has **KID = 0.0689 ± 0.0067** at 4 inference steps. Any KID above this means training actively made things worse.
 
 This appendix covers **Phase 2** — the anti-collapse sweep run after the production failure, using a fresh evaluation setup with corrected teacher images:
 
@@ -990,7 +1004,7 @@ The final run in the log (KID=0.0788) showed a regression with `disc_accuracy_fa
 
 ---
 
-## 12. Key References
+## 11. Key References
 
 | Year | Paper | Contribution |
 |------|-------|-------------|
