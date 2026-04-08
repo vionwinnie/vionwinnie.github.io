@@ -614,7 +614,15 @@ The results were devastating.
 
 ### What happened
 
-At step 0 the student (initialized from teacher weights) produces recognizable images. By step 2000, all outputs collapse into the same colorful noise pattern regardless of prompt:
+To understand how bad the collapse is, here's what the **untrained student** produces — teacher weights, 4 inference steps, zero LADD training ([`cerulean-cosmos-147`](https://wandb.ai/yeun-yeungs/ladd/runs/2n21vass)):
+
+| "Sunset over the ocean" | "Cat on a windowsill" | "Futuristic city skyline" | "Watercolor mountain landscape" |
+|:---:|:---:|:---:|:---:|
+| ![Untrained student — sunset](/images/ladd-training-framework/untrained_student_0.png) | ![Untrained student — cat](/images/ladd-training-framework/untrained_student_1.png) | ![Untrained student — city](/images/ladd-training-framework/untrained_student_2.png) | ![Untrained student — watercolor](/images/ladd-training-framework/untrained_student_3.png) |
+
+These are blurry (4 steps instead of 50) but recognizable — the student starts from a reasonable place. LADD training is supposed to make these *sharper*. Instead, it destroyed them:
+
+By step 2000, all outputs collapse into the same colorful noise pattern regardless of prompt:
 
 **Prompt: "A row of colorful, stylized, and simplified animal figures..."**
 
