@@ -909,21 +909,47 @@ The fix required increasing `train_batch_size` from 1 to 2 (so the hinge loss is
 
 ## 11. Summary & Next Steps
 
-We built a LADD training framework that distills a 6.15B image model from 50 steps to 4. The key components:
+### What we built
 
-- **Architecture**: Student (6.15B, trainable) + Teacher (6.15B, frozen) + Discriminator (14M, 6 multi-scale conv heads on teacher features)
+A LADD training framework that distills a 6.15B parameter image model from 50 inference steps to 4:
+
+- **Architecture**: Student (6.15B, trainable) + Teacher (6.15B, frozen) + Discriminator (14M, 6 multi-scale conv heads on teacher features, CLIP-conditioned)
 - **Loss**: Adversarial hinge loss only — no distillation loss, no pixel-space comparison
-- **Training**: Asymmetric D/G updates (3:1), logit-normal re-noising ($m=0.5$, $s=1.0$), timestep curriculum
-- **Infrastructure**: FSDP across 8× A100 80GB, ~26 GB per GPU, 20K steps in ~2 hours
+- **Training**: Asymmetric D/G updates (3:1), logit-normal re-noising ($m=1.0$, $s=1.0$), timestep curriculum
+- **Infrastructure**: FSDP across 8× A100 80GB, precomputed teacher latents and text embeddings, W&B logging
 
-Single-GPU experiments confirmed the architecture works: the student produces semantically correct images that match prompts, quality improves with more data and steps, and gradient flow is healthy. The remaining gap is scale — batch size 64 (vs 1), 10K+ prompts (vs 98), and 20K steps (vs 2000).
+### What we learned
 
-### What's next
+Our experimental methodology followed a clear pipeline:
 
-1. Run the production 8-GPU training (20K steps, effective batch 64, 10K precomputed latents)
-2. Compare 4-step student outputs against 50-step teacher at scale
-3. If time permits: precompute more latents (50K+) for a second run with less repetition
-4. Evaluate on held-out test set (13K prompts) with KID and visual quality assessment
+1. **Precompute** all latents and embeddings offline (teacher latents with CFG=5, Qwen text embeddings, CLIP embeddings for disc conditioning)
+2. **Small runs** on 3K data subsets with a single A100 to test hypotheses — 500 steps each, measuring KID against teacher reference images, keeping only configs that beat the untrained baseline (KID = 0.069)
+3. **Launch** the best config on the full 8-GPU cluster
+
+Key findings from three rounds of sweeps (33+ experiments):
+- **GI=3** is consistently optimal across all architecture versions
+- **Disc LR** should be modest (1e-5, not 5e-5) — the discriminator doesn't need to be aggressive
+- **Batch size > 1** is critical — hinge loss with bs=1 is degenerate (zero gradient per micro-step)
+- **bs=2 vs bs=1** dramatically stabilizes training — smoother loss curves, non-trivial accuracy, less oscillation
+- **Run-to-run variance** is high at 500 steps / bs=1: a single "best" run can be 2× better than the true mean. Always run 3-5 seeds.
+- **1000 steps overfits on 3K data** — more data (10K+) is needed before longer training helps
+- **Qwen vs CLIP embeddings for disc conditioning**: we initially used mean-pooled Qwen self-attention features for the discriminator's FiLM conditioning. Switching to CLIP embeddings gave the discriminator a stronger semantic signal. Interestingly, KID results were similar between the two — the CLIP version's main benefit was that `renoise_m=1.0` became optimal (the discriminator could discriminate even at higher noise levels), simplifying the hyperparameter search.
+
+### What went wrong
+
+- **Data preprocessing bottleneck**: precomputing teacher latents at ~7s/image limited us to 10K of our 500K prompts. The 10K subset overfits quickly — KID degrades after 500 steps.
+- **Mode collapse on the full cluster run**: misconfigured hyperparameters (`bs=1` + `renoise_m=1.0` instead of validated config) caused the student to collapse into noise within 2000 steps. KID went from 0.069 (untrained) to 0.593 (8.6× worse).
+- **FSDP debugging**: collective operation hangs, checkpoint format incompatibilities, subprocess W&B logging failures, and 10-minute `get_state_dict` calls — each consumed hours.
+- **Config drift**: debug sweep validated one config, production launched a different one. No automated check caught the mismatch.
+
+### What to try next
+
+1. **Higher batch size** (bs=4+) for more stable gradient flow — requires memory optimization (activation checkpointing, offloading) to fit on A100 80GB
+2. **EMA (Exponential Moving Average) weight updates** — maintain a running average of student weights to prevent quality regressions during training oscillations. The LADD paper uses EMA; we haven't implemented it yet.
+3. **Alternative loss functions** — variants of the GAN loss (non-saturating loss, Wasserstein loss, R1 gradient penalty) may provide more stable gradients than hinge loss, especially at small batch sizes
+4. **More fine-grained evaluation** — run KID at every 500 steps out to step 4000+ to understand the degradation curve better and identify the optimal early-stopping point
+5. **Scale up training data** — precompute latents for 50K+ prompts to reduce overfitting and enable longer training runs
+6. **Multi-seed averaging** — run 3-5 seeds per config and report mean KID to avoid false confidence from lucky single runs
 
 The code is open source at [github.com/vionwinnie/Z-Image-LADD-distillation](https://github.com/vionwinnie/Z-Image-LADD-distillation).
 
