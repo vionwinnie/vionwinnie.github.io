@@ -592,7 +592,8 @@ References organized by section. All links verified at time of writing.
 
 ### Uncertainty in policies (§8 Q31)
 
-- [What Uncertainties Do We Need in Bayesian Deep Learning for Computer Vision?](https://arxiv.org/abs/1703.04977) — Kendall & Gal, NIPS'17. The canonical aleatoric vs. epistemic decomposition for deep models. Worth reading for the framing alone — the "noise inherent in observations" vs. "uncertainty in the model that more data could explain away" distinction is exactly the split invoked in §8 Q31.
+- [Measuring Aleatoric and Epistemic Uncertainty in LLMs: Empirical Evaluation on ID and OOD QA Tasks](https://arxiv.org/abs/2511.03166) — Wang et al., 2025. Benchmarks 12 uncertainty-estimation methods on in-distribution and OOD QA. Headline takeaways: information-based methods win ID; density-based methods and P(True) win OOD; semantic-consistency methods are the most robust across datasets. The most directly useful reference for §8 Q31 — gives you a comparison table for which method to reach for when.
+- [What Uncertainties Do We Need in Bayesian Deep Learning for Computer Vision?](https://arxiv.org/abs/1703.04977) — Kendall & Gal, NIPS'17. The foundational framework paper — formalizes the aleatoric vs. epistemic decomposition that the LLM benchmark above operationalizes.
 - [Diff-DAgger: Uncertainty Estimation with Diffusion Policy for Robotic Manipulation](https://arxiv.org/html/2410.14868v1) — applied to chunked diffusion policies; shows how chunk-level diffusion variance can serve as an OOD signal, which is the operationalization §8 Q31 sketches.
 
 ### Autonomous-vehicle eval & planner literature (§10)
