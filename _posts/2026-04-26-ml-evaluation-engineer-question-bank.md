@@ -551,6 +551,60 @@ Topics covered:
 
 ---
 
+## Further Reading
+
+References organized by section. All links verified at time of writing.
+
+### Production inference (§1)
+
+- [PyTorch 2.2 release blog — AOTInductor announcement](https://pytorch.org/blog/pytorch2-2/) — official launch post for AOT graph compilation; pairs with [the AOTInductor docs](https://docs.pytorch.org/docs/stable/torch.compiler_aot_inductor.html) for the API.
+- [H100 Transformer Engine: FP8 explained](https://blogs.nvidia.com/blog/h100-transformer-engine/) — NVIDIA's high-level pitch on FP8; for the technical deep-dive see [Floating-Point 8: An Introduction to Efficient, Lower-Precision AI Training](https://developer.nvidia.com/blog/floating-point-8-an-introduction-to-efficient-lower-precision-ai-training/) and [Per-Tensor and Per-Block Scaling Strategies for FP8](https://developer.nvidia.com/blog/per-tensor-and-per-block-scaling-strategies-for-effective-fp8-training/).
+- [Efficient Memory Management for LLM Serving with PagedAttention (vLLM)](https://arxiv.org/abs/2309.06180) — Kwon et al., SOSP'23. Foundation reading for autoscaling and KV-cache economics behind §1 Q4.
+
+### LLM-as-a-Judge & evaluation methodology (§2, §4, §9)
+
+- [Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena](https://arxiv.org/abs/2306.05685) — Zheng et al., NeurIPS'23. The canonical paper; covers position bias, verbosity bias, and self-enhancement bias — which is the "judge rubber-stamps the captioner" failure mode in Q7.
+- [DSPy: Compiling Declarative Language Model Calls into Self-Improving Pipelines](https://arxiv.org/abs/2310.03714) — Khattab et al., ICLR'24. The framework paper.
+- [DSPy GitHub](https://github.com/stanfordnlp/dspy) and [dspy.ai docs](https://dspy.ai/) — implementation and current API.
+- **DSPy applied — concrete cases:**
+  - [Optimizing Databricks LLM Pipelines with DSPy (JetBlue case study)](https://www.databricks.com/blog/optimizing-databricks-llm-pipelines-dspy) — **the link to read first if §10 Q42 felt abstract.** Walks through how JetBlue replaced manual prompt tuning in a multi-stage RAG chatbot with DSPy + LLM-as-a-Judge metrics, and got 2× faster deployment than their prior LangChain pipeline.
+  - [Is It Time To Treat Prompts As Code? A Multi-Use Case Study For Prompt Optimization Using DSPy](https://arxiv.org/html/2507.03620v1) — five applied use cases: guardrail enforcement, hallucination detection in code, code generation, routing agents, prompt evaluation.
+  - [DSPy + MLflow for Automatically Optimizing LLM Programs](https://notebooks.databricks.com/devrel/mlflow/2024-11-27-dspy.html) — Databricks DevRel runnable notebook tying DSPy optimizers to MLflow tracking.
+
+### Annotation pipelines & inter-rater reliability (§5)
+
+- [The Kappa Statistic in Reliability Studies (NIH)](https://pmc.ncbi.nlm.nih.gov/articles/PMC3900052/) — clean Cohen's kappa primer with the Landis & Koch (1977) interpretation thresholds referenced in §9 Q36.
+- [Cohen, Fleiss & Krippendorff: IAA Metrics & Implementation](https://mbrenndoerfer.com/writing/inter-annotator-agreement-kappa-alpha-reliability) — interactive tutorial with worked examples for each metric.
+- [Understanding Krippendorff's Alpha (Encord)](https://encord.com/blog/interrater-reliability-krippendorffs-alpha/) — practical guide for when alpha beats kappa (ordinal labels, missing data, >2 raters).
+
+### VLM fine-tuning & LoRA (§7)
+
+- [LoRA: Low-Rank Adaptation of Large Language Models](https://arxiv.org/abs/2106.09685) — Hu et al., ICLR'22. Reference for §7 Q19–Q20 on rank, target modules, learning rate behavior.
+- [microsoft/LoRA](https://github.com/microsoft/LoRA) — original implementation.
+
+### Sim-to-real, VLA models, and action chunking (§8)
+
+- [Domain Randomization for Transferring DNNs from Simulation to the Real World](https://arxiv.org/abs/1703.06907) — Tobin et al., IROS'17. The DR foundation paper for §8 Q29.
+- [Learning Fine-Grained Bimanual Manipulation with Low-Cost Hardware (ACT)](https://arxiv.org/abs/2304.13705) — Zhao et al., RSS'23. Action Chunking Transformer; the chunking pattern referenced in §8 Q27.
+- [Diffusion Policy: Visuomotor Policy Learning via Action Diffusion](https://arxiv.org/abs/2303.04137) — Chi et al., RSS'23. Receding-horizon control + diffusion action heads — the policy architecture pattern that GR00T N1's DiT chunked policy inherits.
+- [Accelerate Generalist Humanoid Robot Development with NVIDIA Isaac GR00T N1](https://developer.nvidia.com/blog/accelerate-generalist-humanoid-robot-development-with-nvidia-isaac-gr00t-n1/) — NVIDIA technical blog on the GR00T N1 model and synthetic-data blueprint that §8 builds on.
+- [Cosmos World Foundation Models (NVIDIA)](https://blogs.nvidia.com/blog/cosmos-world-foundation-models/) and [Simplify End-to-End AV Development with Cosmos](https://developer.nvidia.com/blog/simplify-end-to-end-autonomous-vehicle-development-with-new-nvidia-cosmos-world-foundation-models/) — the Cosmos Predict / Reason / Transfer stack referenced throughout §7 and §8.
+
+### Uncertainty in policies (§8 Q31)
+
+- [What Uncertainties Do We Need in Bayesian Deep Learning for Computer Vision?](https://arxiv.org/abs/1703.04977) — Kendall & Gal, NIPS'17. The canonical aleatoric vs. epistemic decomposition for deep models. Worth reading for the framing alone — the "noise inherent in observations" vs. "uncertainty in the model that more data could explain away" distinction is exactly the split invoked in §8 Q31.
+- [Diff-DAgger: Uncertainty Estimation with Diffusion Policy for Robotic Manipulation](https://arxiv.org/html/2410.14868v1) — applied to chunked diffusion policies; shows how chunk-level diffusion variance can serve as an OOD signal, which is the operationalization §8 Q31 sketches.
+
+### Autonomous-vehicle eval & planner literature (§10)
+
+- [Waymo's Safety Case Blueprint (blog)](https://waymo.com/blog/2023/03/a-blueprint-for-av-safety-waymos/) — accessible entry point.
+- [Building a Credible Case for Safety: Waymo's Approach](https://arxiv.org/abs/2306.01917) — the formal write-up; introduces the Case Credibility Assessment framework relevant to §9 Q37 (release-gating with statistical guarantees).
+- [MotionLM: Multi-Agent Motion Forecasting as Language Modeling](https://arxiv.org/abs/2309.16534) — Seff et al., ICCV'23 (Waymo).
+- [Wayformer: Motion Forecasting via Simple & Efficient Attention Networks](https://arxiv.org/abs/2207.05844) — Nayakanti et al.
+- [VAD: Vectorized Scene Representation for Efficient Autonomous Driving](https://arxiv.org/abs/2303.12077) — Jiang et al., ICCV'23. End-to-end vectorized planner; pair with [VADv2](https://arxiv.org/abs/2402.13243) for the probabilistic planning extension.
+
+---
+
 ## Closing Notes
 
 If a question landed without your having a clean mental model for the answer, that's the signal — the fastest way to get unstuck is usually to write out your own version of the answer first, then compare. The point of the toggle isn't to give you the answer; it's to let you check your own.
