@@ -142,6 +142,31 @@ $H(p)$ tells us *how much* the model is hedging. It does not tell us *why*. Two 
 
 These two cases demand different responses. High aleatoric uncertainty means *more annotators won't help — the scene really is ambiguous*. High epistemic uncertainty means *more training data of this type will help — the model is the bottleneck*. A single $H(p)$ blends them and forces you to guess which one you're looking at.
 
+### A worked example: 8 weather forecasters
+
+Imagine 8 forecasters each predicting "will it rain tomorrow?" — a binary outcome ($K=2$). Each forecaster outputs a distribution $p_i = [P(\text{rain}), P(\text{no rain})]$. We average them to get $\bar{p}$, then look at the three uncertainty numbers in three scenarios:
+
+![Three-panel figure showing three weather-forecaster scenarios. Top row of each panel shows 8 horizontal stacked bars representing each forecaster's predicted P(rain) split. Bottom row shows the corresponding stacked uncertainty bar with AU in blue and EU in red, total height labeled with TU. Case A: all 8 forecasters split 50/50, total uncertainty TU=1.0 bit, all of which is AU=1.0 with EU=0. Case B: 4 forecasters say definitely rain, 4 say definitely no rain, total uncertainty TU=1.0 bit, all of which is EU=1.0 with AU=0. Case C: all 8 forecasters say definitely rain, TU=AU=EU=0. The Case A and Case B bars are identical in height (TU=1) but have completely opposite colors.]({{ site.baseurl }}/assets/img/blog/vlm-judge-waymo/framework_weather_example.png)
+
+| Scenario | Each forecaster says | $\bar{p}$ | TU | AU | EU |
+|---|---|---|---|---|---|
+| **A — genuinely ambiguous, forecasters agree** | "[0.5, 0.5]" — coin flip, all 8 of them | [0.5, 0.5] | **1.00** | **1.00** | 0.00 |
+| **B — clear-cut data, forecasters disagree** | 4 say "[1, 0]", 4 say "[0, 1]" | [0.5, 0.5] | **1.00** | 0.00 | **1.00** |
+| **C — clear-cut data, forecasters agree** | all 8 say "[1, 0]" | [1, 0] | 0.00 | 0.00 | 0.00 |
+
+The key observation: **Cases A and B have identical TU** (1 bit, the maximum for $K=2$) **but opposite operational meanings.**
+
+- In Case A, the data really is a coin flip. Every forecaster individually hedges, all the spread lives *within* each forecaster's own distribution, so AU = TU. Hiring more forecasters won't help — there's nothing to learn. *Aleatoric.*
+- In Case B, the data is clear-cut (some confident answer is right), but the forecasters confidently disagree. The spread doesn't come from any individual hedging — it comes from *disagreement across forecasters*. Each $H(p_i)$ is zero, so AU = 0, and all the entropy lands in EU. Better-trained forecasters would converge on the right answer. *Epistemic.*
+
+If you only saw $H(p) = 1$ bit, you couldn't tell which case you were in — and you'd have no idea whether the right operational response was "hire a senior rater because the scene is ambiguous" or "collect more training data because the model is undertrained." That is what the AU/EU split buys you.
+
+Mapping back to the three VLM judges (Section 8 will show the actual numbers):
+
+- **Cosmos** sits closest to **Case A** — high TU dominated by AU. The model thinks the scene is genuinely ambiguous regardless of how you ask.
+- **Video-LLaVA** sits at **Case C** for everything — low TU, AU and EU both near zero. The model is confident. (At 10% accuracy, that confidence is wrong, but that's a calibration story, not an uncertainty-decomposition story.)
+- **Case B** (low AU + high EU = pure model disagreement) is empty in our data because prompt paraphrasing alone is not strong enough to make any of these models commit-then-disagree. Visual perturbation likely would populate it.
+
 ### The trick to separating them: $N$ forward passes
 
 With one distribution per clip, you can compute total entropy but you can't decompose it. With $N$ stochastic forward passes per clip — different sampled completions, dropout masks, paraphrased prompts, ensemble members, anything that produces variability — each producing a full distribution $p_i$, you get two questions you can answer separately:
