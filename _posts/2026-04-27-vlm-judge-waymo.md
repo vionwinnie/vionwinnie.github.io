@@ -308,6 +308,12 @@ Two facts shape the rest of the section:
 1. **AU dominates EU by roughly 10×** for all three judges. Almost all of the per-clip uncertainty under prompt paraphrasing is the model spreading mass within each phrasing's distribution, not phrasings disagreeing with each other.
 2. **Cosmos's AU is huge** — 2.07 bits, 62% of the maximum possible entropy $\log_2 10 = 3.32$. The model is genuinely hedging on each individual answer.
 
+The first fact is most visible as a stacked bar — bar height is total uncertainty TU, the blue base is AU, the red sliver on top is EU:
+
+![Stacked bar chart showing mean TU = AU + EU per judge. Cosmos's bar is tallest at 2.15 bits with AU=2.07 (blue) plus a small EU=0.09 sliver (red) on top, ratio AU:EU ≈ 24×. Molmo's bar is 1.59 bits with AU=1.45 plus EU=0.14, ratio ≈ 10×. Video-LLaVA's bar is shortest at 0.41 bits with AU=0.39 plus EU=0.02, ratio ≈ 21×. A dashed reference line at log₂(10)=3.32 marks maximum possible entropy.]({{ site.baseurl }}/assets/img/blog/vlm-judge-waymo/perturbed_au_eu_stacked.png)
+
+In every bar, the red EU sliver is essentially invisible compared to the blue AU base. Whatever uncertainty these judges have under paraphrasing is uncertainty *within* each individual answer's distribution, not disagreement *across* paraphrased answers. That tells us something specific: prompt paraphrasing isn't a strong enough perturbation to shake any of these models loose from a stable predictive distribution. To populate the EU axis we'd need a perturbation that changes what the model actually sees (visual-side) — see "What this round explicitly doesn't measure" below.
+
 ### What this means: the model is consistent, but consistently uncertain
 
 Reading the (AU, EU) plane from Section 5 against these numbers:
@@ -319,9 +325,15 @@ Putting those together: **all 3 judges are consistent across phrasings (low EU),
 
 ### Per-cluster picture
 
-![Two stacked grouped-bar charts. Top panel: per-cluster mean AU for the three judges across all 10 Waymo clusters; Cosmos's bars dominate, with Multi-Lane Maneuvers and Single-Lane Maneuvers near the maximum entropy ceiling. Bottom panel: per-cluster mean EU, with all three judges sitting near zero across the board.]({{ site.baseurl }}/assets/img/blog/vlm-judge-waymo/perturbed_per_cluster_au_eu.png)
+The same AU-dominates-EU story holds when broken out per cluster — bar height is mean TU for that cluster, blue is AU, red is EU on top:
 
-For Cosmos, mean AU is high across nearly every cluster — no easy/hard split, the model is broadly hedged. EU is tiny everywhere. Same shape for Molmo at lower magnitude. VL is the odd one out — both AU and EU near zero on every cluster, which is the calibration story re-told.
+![Three-panel stacked bar chart, one panel per judge, showing per-cluster mean TU = AU + EU. Cosmos's bars are uniformly tall (AU around 2 bits across nearly every cluster); EU slivers are tiny everywhere. Molmo's bars are moderate (AU around 1.5 bits); EU slivers slightly larger but still small. Video-LLaVA's bars are uniformly short (AU and EU both near zero across all clusters).]({{ site.baseurl }}/assets/img/blog/vlm-judge-waymo/perturbed_au_eu_stacked_per_cluster.png)
+
+For Cosmos, mean AU is high across nearly every cluster — no easy/hard split, the model is broadly hedged. EU is a thin sliver everywhere. Same shape for Molmo at lower magnitude. VL is the odd one out — both AU and EU near zero on every cluster, which is the calibration story re-told.
+
+The standalone per-metric breakdown (separate AU and EU panels) is also useful when you want to compare a single metric across judges directly:
+
+![Two stacked grouped-bar charts. Top panel: per-cluster mean AU for the three judges across all 10 Waymo clusters; Cosmos's bars dominate, with Multi-Lane Maneuvers and Single-Lane Maneuvers near the maximum entropy ceiling. Bottom panel: per-cluster mean EU, with all three judges sitting near zero across the board.]({{ site.baseurl }}/assets/img/blog/vlm-judge-waymo/perturbed_per_cluster_au_eu.png)
 
 ### AU vs EU per clip — the operational quadrant
 
