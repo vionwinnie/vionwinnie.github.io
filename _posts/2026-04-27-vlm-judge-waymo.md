@@ -21,8 +21,9 @@ math: true
 6. [The TU / AU / EU framework — what each one measures](#6-the-tu--au--eu-framework--what-each-one-measures)
 7. [Analysis 2: per-clip predictive entropy from single-pass logits](#7-analysis-2-per-clip-predictive-entropy-from-single-pass-logits)
 8. [The triage funnel — VLM as a router for human raters](#8-the-triage-funnel--vlm-as-a-router-for-human-raters)
-9. [What we still can't measure](#9-what-we-still-cant-measure)
-10. [Key references](#10-key-references)
+9. [Analysis 3: a real AU / EU split via prompt-paraphrase perturbation](#9-analysis-3-a-real-au--eu-split-via-prompt-paraphrase-perturbation)
+10. [What we still can't measure](#10-what-we-still-cant-measure)
+11. [Key references](#11-key-references)
 
 ---
 
@@ -178,7 +179,7 @@ $$
 
 The decomposition is useful because the two sources demand different responses: high AU means *the labeler will probably disagree with themselves too — defer to consensus or accept that this clip is ambiguous*; high EU means *the model needs to learn more — collect more training data of this type*.
 
-There is a crucial caveat in our setup. The decomposition only works when each $p_i$ is a *full distribution*, not a single sampled class. Section 7 explains why and what we did about it.
+There is a crucial caveat in our setup. The decomposition only works when each $p_i$ is a *full distribution*, not a single sampled class. Section 7 explains why this matters under the cheap single-method setup, and Section 9 then resolves it by running $N=8$ full-distribution forward passes per clip with prompt-paraphrase perturbation.
 
 ---
 
@@ -193,7 +194,7 @@ The two approaches are not interchangeable for the AU/EU split:
 - In **sample-and-count**, each trial produces one *sampled* class. As a distribution that single answer is one-hot — `[0, 0, 1, 0, ..., 0]` — and the entropy of any one-hot distribution is zero. So $\mathbb{E}_i\!\left[H(p_i)\right] = 0$, $\text{AU} = 0$, and $\text{EU} = \text{TU}$ identically. We can measure TU but the decomposition collapses.
 - In **single-pass logits**, we get the model's actual softmax distribution at the answer position from one forward pass. This is one full $p$ per clip — no $N$, no average. We can compute $H(p)$ directly as the per-clip predictive entropy, which is a real continuous signal.
 
-Both methods give us *something*, but neither gives us a real AU/EU split from a single-method run. (To get that, you need $N$ forward passes *and* full per-trial distributions — for example, $N$ greedy passes with input perturbation.) For this study we ran the single-pass logit version because (a) it is roughly 16× cheaper in GPU time and (b) the per-clip $H(p)$ it produces is a denser, more usable signal than the sparse vote-distribution TU from $N=10$ sampling.
+Both methods give us *something*, but neither gives us a real AU/EU split from a single-method run. (To get that, you need $N$ forward passes *and* full per-trial distributions — for example, $N$ greedy passes with input perturbation, which is what Section 9 then runs.) For this section we ran the single-pass logit version because (a) it is roughly 16× cheaper in GPU time and (b) the per-clip $H(p)$ it produces is a denser, more usable signal than the sparse vote-distribution TU from $N=10$ sampling.
 
 ### How we extracted the logits
 
@@ -259,19 +260,94 @@ The three branches map to three different downstream costs:
 
 ---
 
-## 9. What we still can't measure
+## 9. Analysis 3: a real AU / EU split via prompt-paraphrase perturbation
 
-Three known gaps in this study, in order of cost to fix:
+Section 7 produced one full softmax distribution per clip — enough for a per-clip $H(p)$, but not enough for the AU / EU decomposition (which needs $N$ distributions). To get a real split we need **multiple full distributions per clip** — same model, same letter-mapping, different *something*. The natural choices are: perturb the visual input ($N$ different temporal samplings of the video, or $N$ camera-subsets) or perturb the language input ($N$ paraphrases of the question). We picked **prompt paraphrasing** because it is uniform across all 3 judges, requires zero video work, and is honestly scoped — it measures *language-side* sensitivity of the prediction. Visual-side perturbation is a follow-up.
 
-**A real AU/EU split.** Single-pass logits give one $p$ per clip; sample-and-count with one-hot trials gives $\text{AU} = 0$. To measure both AU and EU meaningfully you need $N$ forward passes that each produce a *full* distribution. The natural way to generate that variability is input perturbation — for example $N$ different temporal samplings of the same clip, or $N$ paraphrases of the prompt — reading the full softmax from each pass. This is the natural next iteration if a downstream consumer specifically needs to distinguish "scene is genuinely ambiguous" (high AU) from "model doesn't know" (high EU). For the production triage use case in Section 8, the per-clip $H(p)$ from one greedy pass is already enough to rank clips by risk, so we did not run this round.
+### Setup
 
-**Cross-judge ensemble calibration.** Section 8's design uses three judges as cross-checks, but we have not measured whether ensemble agreement (e.g. all-3-confidently-agree) is itself a calibrated signal. It probably isn't on this small sample — and given that all 3 judges fail differently, an ensemble may be no better calibrated than any single one. Worth running on a ≥500-clip set before deploying anything.
+For each clip × judge × N=8 prompt phrasings (each a different framing of the same multi-choice question, with the *same* A-J letter→cluster mapping appended verbatim), we run one greedy forward pass and capture the full 10-class softmax distribution. We then compute the decomposition above on that list of 8 distributions.
 
-**No fine-tuning baseline.** All three judges are zero-shot. The natural comparison is *Cosmos with LoRA fine-tuning on a 200-clip Waymo-labeled subset* — based on similar literature, expect a 30-50 percentage-point lift on top-1 accuracy. The interesting question is whether fine-tuning *also* improves the calibration of $H(p)$, or whether the model just gets more confidently wrong.
+### Verification gate
+
+Before applying to real data, the decomposition function (`decompose(p_list)` in `analysis/uncertainty.py`) is gated by 9 new tests added to the existing 21-test suite — covering unanimous one-hots ($\text{TU} = \text{AU} = \text{EU} = 0$), consistent uniform ($\text{TU} = \text{AU} = \log_2 K$, $\text{EU} = 0$ — pure aleatoric), disagreeing one-hots ($\text{AU} = 0$, $\text{EU} = \text{TU}$ — pure epistemic), the identity $\text{TU} = \text{AU} + \text{EU}$ on random Dirichlet samples, and Jensen's inequality $\text{AU} \le \text{TU}$. All 30 tests pass before this section's numbers exist.
+
+On real data: identity holds to within $10^{-9}$ for all 50 × 3 = 150 decompositions, and AU is strictly positive on all 150 clips (sanity-checks that paraphrasing produced meaningful per-trial variation).
+
+### Headline numbers (50 clips × 3 judges, N=8 paraphrases per clip)
+
+| Judge | Modal acc | Mean TU | Mean AU | Mean EU | AU escalation $\Delta$ | EU escalation $\Delta$ |
+|---|---|---|---|---|---|---|
+| **Cosmos-Reason 2-2B** | 22% | 2.152 bits | **2.065** | 0.087 | **+0.243** | +0.011 |
+| **Video-LLaVA-7B** | 10% | 0.410 bits | 0.391 | 0.019 | +0.045 | +0.004 |
+| **Molmo2-8B** | 12% | 1.591 bits | 1.449 | 0.141 | +0.111 | −0.030 |
+
+Two facts jump out and shape the rest of the section:
+
+1. **AU dominates EU by roughly 10×** for all three judges. Almost all of the per-clip uncertainty under prompt paraphrasing is the model spreading mass within each phrasing's distribution, not phrasings disagreeing with each other.
+2. **Cosmos's AU is huge** — 2.07 bits, which is 62% of the maximum possible entropy $\log_2 10 = 3.32$. The model is genuinely hedging on each individual answer.
+
+### What this means: the model is consistent, but consistently uncertain
+
+The two regimes that the AU / EU decomposition is designed to separate look like this:
+
+- **Low EU** = the model gives the same kind of distribution regardless of which phrasing you use. The mean across 8 phrasings doesn't differ much from any single phrasing. Operationally: *the model is robust to prompt choice.*
+- **High AU** = each individual phrasing's distribution is itself spread across multiple classes. The model is hedging within every single forward pass. Operationally: *the model thinks the scene supports multiple labels.*
+
+Putting those together: **all 3 judges are consistent across phrasings (low EU), but Cosmos and Molmo are individually uncertain (high AU); Video-LLaVA is individually narrow (low AU) and consistently narrow across phrasings (low EU) — i.e., consistently confidently-wrong.** This corroborates the Phase 4 finding (VL was 95% confident at 10% accuracy) through a completely different lens: VL's narrowness is not an artifact of greedy decoding, and it is not paraphrasing-sensitive — the model just locks in.
+
+### Per-cluster picture
+
+![Two stacked grouped-bar charts. Top panel: per-cluster mean AU for the three judges across all 10 Waymo clusters; Cosmos's bars dominate, with Multi-Lane Maneuvers and Single-Lane Maneuvers near the maximum entropy ceiling. Bottom panel: per-cluster mean EU, with all three judges sitting near zero across the board.]({{ site.baseurl }}/assets/img/blog/vlm-judge-waymo/perturbed_per_cluster_au_eu.png)
+
+For Cosmos, mean AU is high across nearly every cluster — the model doesn't have one "easy" cluster type and one "hard" type, it's broadly hedged. EU is tiny everywhere. Same shape for Molmo (just at lower magnitude). VL is the odd one out — both AU and EU are near zero on every cluster, which is the calibration story re-told.
+
+### AU vs EU per clip — the operational quadrant
+
+![Three-panel scatter plot, one per judge, showing each clip's AU on the x-axis and EU on the y-axis with dotted guide lines at 0.5. Cosmos points are clustered along a vertical strip at high AU (~2 bits) and low EU (~0.1 bits). Video-LLaVA points are clustered tightly near the origin. Molmo points are spread along a similar vertical strip at moderate AU (~1.5 bits) and low EU. Correct predictions are colored green, wrong predictions red, with no obvious horizontal separation between them in any panel.]({{ site.baseurl }}/assets/img/blog/vlm-judge-waymo/perturbed_au_eu_scatter.png)
+
+The (AU, EU) quadrant has four operational meanings (high or low for each axis). Empirically these three judges live in only two of the four:
+
+- **Cosmos and Molmo: high AU, low EU** — "the model is consistently saying 'this scene is ambiguous to me'." Under prompt paraphrasing, this is the dominant regime.
+- **Video-LLaVA: low AU, low EU** — "the model is consistently saying 'I am sure'." Combined with 10% accuracy, this is the worst possible calibration.
+- *(High EU, low AU — "the model is confident on each pass but they disagree" — is empty under prompt paraphrasing for these models. To populate that quadrant we would need visual perturbation, where we expect EU to grow.)*
+
+### AU and EU as escalation signals — which is the better wrong-answer flag?
+
+![Six-panel histogram (3 judges × 2 metrics) showing each metric's distribution split by correct (green) versus wrong (red) predictions. Top row is AU: Cosmos shows a clear right-shift of the wrong-prediction histogram by +0.243 bits, Molmo by +0.111 bits, Video-LLaVA shows a small +0.045 shift. Bottom row is EU: all three judges show essentially overlapping distributions for correct and wrong, with Δ values close to zero.]({{ site.baseurl }}/assets/img/blog/vlm-judge-waymo/perturbed_escalation_signals.png)
+
+The AU row has signal — Cosmos's wrong predictions sit on a noticeably wider distribution than its correct ones (+0.243 bits, the strongest escalation Δ in this whole study). Molmo also shows a positive AU $\Delta$ (+0.111 bits), so Molmo's AU is more usable as an escalation signal than its Phase 4 $H(p)$ was (which actually went the *wrong* way at −0.167). The EU row is essentially noise for all three judges, which makes operational sense given the paraphrase-consistency finding.
+
+### How this changes the production routing rule
+
+In Section 8 we routed clips by Cosmos's $H(p)$ alone because it was the only signal that monotonically tracked correctness. Phase 5 lets us do better: **route by AU**, with EU as a secondary "did the model give different confident answers under paraphrasing?" check that flags clips for prompt-robustness review specifically. The routing rule from Section 8 becomes:
+
+| Bucket | Trigger | Downstream |
+|---|---|---|
+| Auto-bin | low AU AND all 3 judges' modal predictions agree | batch-accept the cluster label |
+| Standard human review | high AU OR judges disagree | regular rater queue |
+| Prompt-robustness review | high EU (rare under paraphrasing, common under visual perturbation when we add it) | prompt-design audit + senior rater |
+| Novel-scenario candidate | high AU AND no judge confident AND $\bar{p}$ is roughly uniform | taxonomy-review queue |
+
+The Section 8 funnel still applies; Phase 5 just splits the "high-uncertainty" branch into AU-driven and EU-driven sub-branches, giving the human rater more information about *why* the VLM is uncertain.
+
+### What this round explicitly doesn't measure
+
+This round measures *language-side* uncertainty only. The follow-up is **visual-side perturbation**: re-render each clip with $N$ different temporal samplings (different 8-second windows of the same scene) or $N$ different camera dropouts (front-only, rear-only, side-only). Under visual perturbation we *expect* EU to grow — the prediction may flip when the cyclist drops out of CAM_7+CAM_8 — and we can compare that EU against the AU we measured here. The clean version of the operational story is "AU from prompt paraphrasing + EU from visual perturbation", and Phase 5 only delivers half of that.
 
 ---
 
-## 10. Key references
+## 10. What we still can't measure
+
+Two known gaps remain after Phase 5:
+
+**Cross-judge ensemble calibration.** Section 8's design uses three judges as cross-checks, but we have not measured whether ensemble agreement (e.g. all-3-confidently-agree) is itself a calibrated signal. It probably isn't on this small sample — and given that all 3 judges fail differently, an ensemble may be no better calibrated than any single one. Worth running on a ≥500-clip set before deploying anything.
+
+**No fine-tuning baseline.** All three judges are zero-shot. The natural comparison is *Cosmos with LoRA fine-tuning on a 200-clip Waymo-labeled subset* — based on similar literature, expect a 30-50 percentage-point lift on top-1 accuracy. The interesting question is whether fine-tuning *also* improves the calibration of $H(p)$ and AU, or whether the model just gets more confidently wrong.
+
+---
+
+## 11. Key references
 
 | Year | Paper / Resource | Relevance |
 |---|---|---|
