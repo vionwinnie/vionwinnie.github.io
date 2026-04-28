@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="700" height="340">
+  <!-- Arrow marker -->
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#555"/>
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="350" y="22" font-size="14" fill="#333" font-weight="bold" text-anchor="middle">Single-pass logit extraction — one forward pass, one distribution per clip</text>
+
+  <!-- Stage 1: Composite video (blue) -->
+  <rect x="20" y="60" width="150" height="100" rx="4" fill="#3498db" fill-opacity="0.12" stroke="#3498db" stroke-width="1.5"/>
+  <text x="95" y="78" font-size="11" fill="#3498db" text-anchor="middle" font-weight="bold">Composite video</text>
+  <text x="95" y="92" font-size="9" fill="#666" text-anchor="middle">8 cams, 4 Hz, 8s</text>
+  <!-- Mini 2x4 grid icon -->
+  <g transform="translate(35,105)">
+    <rect x="0" y="0" width="28" height="18" rx="2" fill="#3498db" fill-opacity="0.25" stroke="#3498db" stroke-width="0.8"/>
+    <rect x="30" y="0" width="28" height="18" rx="2" fill="#3498db" fill-opacity="0.25" stroke="#3498db" stroke-width="0.8"/>
+    <rect x="60" y="0" width="28" height="18" rx="2" fill="#3498db" fill-opacity="0.25" stroke="#3498db" stroke-width="0.8"/>
+    <rect x="90" y="0" width="28" height="18" rx="2" fill="#3498db" fill-opacity="0.25" stroke="#3498db" stroke-width="0.8"/>
+    <rect x="0" y="20" width="28" height="18" rx="2" fill="#3498db" fill-opacity="0.25" stroke="#3498db" stroke-width="0.8"/>
+    <rect x="30" y="20" width="28" height="18" rx="2" fill="#3498db" fill-opacity="0.25" stroke="#3498db" stroke-width="0.8"/>
+    <rect x="60" y="20" width="28" height="18" rx="2" fill="#e74c3c" fill-opacity="0.25" stroke="#e74c3c" stroke-width="0.8"/>
+    <rect x="90" y="20" width="28" height="18" rx="2" fill="#e74c3c" fill-opacity="0.25" stroke="#e74c3c" stroke-width="0.8"/>
+  </g>
+
+  <!-- Arrow 1 -->
+  <line x1="172" y1="110" x2="195" y2="110" stroke="#555" stroke-width="1" marker-end="url(#arrow)"/>
+
+  <!-- Stage 2: VLM (orange) -->
+  <rect x="200" y="60" width="160" height="100" rx="4" fill="#e67e22" fill-opacity="0.12" stroke="#e67e22" stroke-width="1.5"/>
+  <text x="280" y="78" font-size="11" fill="#e67e22" text-anchor="middle" font-weight="bold">VLM forward pass</text>
+  <!-- 3 stacked sub-boxes -->
+  <rect x="215" y="88" width="130" height="18" rx="3" fill="#e67e22" fill-opacity="0.18" stroke="#e67e22" stroke-width="0.8"/>
+  <text x="280" y="100" font-size="9" fill="#666" text-anchor="middle">Cosmos-Reason 2</text>
+  <rect x="215" y="110" width="130" height="18" rx="3" fill="#e67e22" fill-opacity="0.18" stroke="#e67e22" stroke-width="0.8"/>
+  <text x="280" y="122" font-size="9" fill="#666" text-anchor="middle">Qwen2.5-VL</text>
+  <rect x="215" y="132" width="130" height="18" rx="3" fill="#e67e22" fill-opacity="0.18" stroke="#e67e22" stroke-width="0.8"/>
+  <text x="280" y="144" font-size="9" fill="#666" text-anchor="middle">Molmo2</text>
+
+  <!-- Prompt sub-box (dashed arrow down to stage 2) -->
+  <rect x="190" y="180" width="180" height="42" rx="4" fill="#e67e22" fill-opacity="0.08" stroke="#e67e22" stroke-width="1" stroke-dasharray="5,4"/>
+  <text x="280" y="195" font-size="9" fill="#666" text-anchor="middle">+ multi-choice prompt</text>
+  <text x="280" y="208" font-size="9" fill="#666" text-anchor="middle">A) Intersections … J) Others.</text>
+  <text x="280" y="219" font-size="9" fill="#666" text-anchor="middle">"Answer with one letter:"</text>
+  <line x1="280" y1="178" x2="280" y2="162" stroke="#555" stroke-width="1" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+
+  <!-- Arrow 2 -->
+  <line x1="362" y1="110" x2="385" y2="110" stroke="#555" stroke-width="1" marker-end="url(#arrow)"/>
+
+  <!-- Stage 3: Logits (purple) -->
+  <rect x="390" y="60" width="170" height="100" rx="4" fill="#9b59b6" fill-opacity="0.12" stroke="#9b59b6" stroke-width="1.5"/>
+  <text x="475" y="78" font-size="11" fill="#9b59b6" text-anchor="middle" font-weight="bold">Logits at answer pos</text>
+  <text x="475" y="92" font-size="9" fill="#666" text-anchor="middle">(vocab-sized vector)</text>
+  <line x1="405" y1="100" x2="545" y2="100" stroke="#9b59b6" stroke-width="0.8" stroke-opacity="0.4"/>
+  <text x="475" y="118" font-size="9" fill="#666" text-anchor="middle">→ restrict to letter token</text>
+  <text x="475" y="130" font-size="9" fill="#666" text-anchor="middle">IDs A..J (10 tokens)</text>
+  <text x="475" y="148" font-size="10" fill="#9b59b6" text-anchor="middle" font-weight="bold">→ softmax</text>
+
+  <!-- Arrow 3 -->
+  <line x1="562" y1="110" x2="585" y2="110" stroke="#555" stroke-width="1" marker-end="url(#arrow)"/>
+
+  <!-- Stage 4: per-clip distribution p (green) — bar chart -->
+  <rect x="590" y="60" width="100" height="115" rx="4" fill="#27ae60" fill-opacity="0.12" stroke="#27ae60" stroke-width="1.5"/>
+  <text x="640" y="78" font-size="11" fill="#27ae60" text-anchor="middle" font-weight="bold">p over A..J</text>
+  <!-- 10 bars from x=600..690, baseline y=160, max bar height ≈ 70 -->
+  <g>
+    <!-- bar A -->
+    <rect x="600" y="155" width="6" height="5" fill="#27ae60" fill-opacity="0.7"/>
+    <!-- bar B -->
+    <rect x="609" y="153" width="6" height="7" fill="#27ae60" fill-opacity="0.7"/>
+    <!-- bar C (tall ~0.78) -->
+    <rect x="618" y="92" width="6" height="68" fill="#27ae60"/>
+    <!-- bar D -->
+    <rect x="627" y="156" width="6" height="4" fill="#27ae60" fill-opacity="0.7"/>
+    <!-- bar E (medium ~0.10) -->
+    <rect x="636" y="143" width="6" height="17" fill="#27ae60" fill-opacity="0.85"/>
+    <!-- bar F -->
+    <rect x="645" y="156" width="6" height="4" fill="#27ae60" fill-opacity="0.7"/>
+    <!-- bar G -->
+    <rect x="654" y="155" width="6" height="5" fill="#27ae60" fill-opacity="0.7"/>
+    <!-- bar H -->
+    <rect x="663" y="157" width="6" height="3" fill="#27ae60" fill-opacity="0.7"/>
+    <!-- bar I -->
+    <rect x="672" y="155" width="6" height="5" fill="#27ae60" fill-opacity="0.7"/>
+    <!-- bar J -->
+    <rect x="681" y="156" width="6" height="4" fill="#27ae60" fill-opacity="0.7"/>
+    <!-- baseline -->
+    <line x1="600" y1="161" x2="690" y2="161" stroke="#666" stroke-width="0.8"/>
+  </g>
+  <text x="640" y="172" font-size="9" fill="#666" text-anchor="middle">A B C D E F G H I J</text>
+
+  <!-- p = softmax label -->
+  <text x="640" y="190" font-size="10" fill="#27ae60" text-anchor="middle" font-weight="bold">p = softmax(logits[A..J])</text>
+
+  <!-- Entropy formula line -->
+  <text x="350" y="265" font-size="11" fill="#333" text-anchor="middle">H(p) = −Σᵢ pᵢ log₂ pᵢ     (predictive entropy in bits, ∈ [0, log₂ 10 ≈ 3.32])</text>
+
+  <!-- Bottom note -->
+  <rect x="80" y="290" width="540" height="38" rx="6" fill="#f5f5f5" stroke="#333"/>
+  <text x="350" y="313" font-size="10" fill="#333" text-anchor="middle">11 minutes of GPU for 3 judges × 50 clips — vs ~3 hours for the 10-trial sampling alternative.</text>
+</svg>
