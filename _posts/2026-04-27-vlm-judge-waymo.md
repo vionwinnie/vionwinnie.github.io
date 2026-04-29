@@ -420,6 +420,10 @@ The single-pass $H(p)$ from Analysis 2 was the original proposal for gating beca
 
 The funnel diagram still applies; Analysis 3 just splits the "high-uncertainty" branch into AU-driven and EU-driven sub-branches, giving the human rater more information about *why* the VLM is uncertain.
 
+### What happens inside the novel-scenario branch
+
+Routing a clip to "taxonomy-review queue" only specifies *where* it goes — not *what to do once it gets there*. The follow-up post [*Discovering New Scenarios in Waymo's 'Others' Bucket*]({{ site.baseurl }}/2026/04/28/others-discovery.html) demonstrates the downstream pipeline: caption every flagged clip with two independent VLMs, embed and cluster each captioner's outputs separately, and surface only the cluster pairs that survive a permutation-test cross-validation. Run on Waymo's 22 `Others`-labeled val clips, exactly one cluster pair survives the gate (Jaccard 0.60, $p < 0.05$), and what the discovered cluster actually contains turns out to say more about how labelers handle ambiguous lighting than about a missing event category.
+
 ---
 
 ## 10. What we still can't measure
